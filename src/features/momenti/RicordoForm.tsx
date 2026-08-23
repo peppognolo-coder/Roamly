@@ -149,7 +149,7 @@ export function RicordoForm({
           className="
             w-full px-4 py-3
             bg-roamly-g7 border border-roamly-g5
-            rounded-xl
+            rounded-2xl
             font-dm-sans text-base text-roamly-text
             placeholder:text-roamly-text/30
             resize-none
