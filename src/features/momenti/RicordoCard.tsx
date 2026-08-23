@@ -59,10 +59,9 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
       className="
         flex gap-0 overflow-hidden
         bg-white rounded-2xl
-        border border-roamly-g6
-        shadow-sm shadow-roamly-g0/5
+        shadow-roamly
         cursor-pointer
-        hover:shadow-md hover:border-roamly-g5
+        hover:shadow-roamly-lg
         active:scale-[0.99]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
