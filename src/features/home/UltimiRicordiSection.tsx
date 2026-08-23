@@ -84,9 +84,10 @@ function RicordoCardCompatta({ ricordo, onClick }: { ricordo: Ricordo; onClick: 
       className="
         shrink-0 w-32
         flex flex-col
-        bg-white rounded-xl border border-roamly-g6
+        bg-white rounded-xl
         overflow-hidden
-        hover:shadow-md hover:border-roamly-g5
+        shadow-roamly
+        hover:shadow-roamly-lg
         active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
