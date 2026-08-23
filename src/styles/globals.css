@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   ROAMLY — CSS CUSTOM PROPERTIES (Design Tokens)
+   ============================================================ */
+
+:root {
+  /* Palette blu oceano Roamly */
+  --color-g0: #0C2A3D;
+  --color-g1: #123F58;
+  --color-g2: #1A5875;
+  --color-g3: #0F7EA8;
+  --color-g4: #5FB8D9;
+  --color-g5: #A3DAEC;
+  --color-g6: #DFF3FA;
+  --color-g7: #F0FAFD;
+
+  /* Background e testo */
+  --color-bg:   #F9FBFC;
+  --color-text: #16232E;
+
+  /* Font families */
+  --font-lora:    'Lora', Georgia, serif;
+  --font-dm-sans: 'DM Sans', system-ui, sans-serif;
+  --font-dm-mono: 'DM Mono', 'Courier New', monospace;
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-dm-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   SCROLLBAR — discreta, in linea con il design
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-g5);
+  border-radius: 2px;
+}
+
+/* ============================================================
+   SELEZIONE TESTO
+   ============================================================ */
+
+::selection {
+  background-color: var(--color-g5);
+  color: var(--color-g0);
+}

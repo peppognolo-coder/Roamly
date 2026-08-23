@@ -1,0 +1,110 @@
+import { MOOD_OPTIONS } from '@/types'
+import type { Mood } from '@/types'
+import type { FiltriDiario } from '@/lib/diario-utils'
+
+// ============================================================
+// FiltriBar — pill filtri nel Diario
+// Mood: multi-select
+// Preferiti: toggle singolo
+// I due si combinano con AND logico.
+// ============================================================
+
+interface FiltriBarProps {
+  filtri: FiltriDiario
+  onToggleMood: (mood: Mood) => void
+  onTogglePreferiti: () => void
+  onReset: () => void
+  totaleFiltrati: number
+  totaleRicordi: number
+}
+
+export function FiltriBar({
+  filtri,
+  onToggleMood,
+  onTogglePreferiti,
+  onReset,
+  totaleFiltrati,
+  totaleRicordi,
+}: FiltriBarProps) {
+  const haNessunFiltro = filtri.mood.length === 0 && !filtri.soloPreferiti
+  const mostraContatore = !haNessunFiltro
+
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Riga pill */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
+
+        {/* Pill mood */}
+        {MOOD_OPTIONS.map((option) => {
+          const attivo = filtri.mood.includes(option.value)
+          return (
+            <button
+              key={option.value}
+              onClick={() => onToggleMood(option.value)}
+              className={`
+                flex items-center gap-1.5 px-3 py-1.5
+                rounded-full border shrink-0
+                font-dm-sans text-xs font-medium
+                transition-all duration-150
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+                active:scale-95
+                ${attivo
+                  ? 'bg-roamly-g0 border-roamly-g0 text-white shadow-sm'
+                  : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50 hover:border-roamly-g4'
+                }
+              `}
+            >
+              <span className="text-sm leading-none">{option.emoji}</span>
+              <span>{option.label}</span>
+            </button>
+          )
+        })}
+
+        {/* Separatore */}
+        <div className="w-px h-5 bg-roamly-g5 shrink-0" />
+
+        {/* Pill preferiti */}
+        <button
+          onClick={onTogglePreferiti}
+          className={`
+            flex items-center gap-1.5 px-3 py-1.5
+            rounded-full border shrink-0
+            font-dm-sans text-xs font-medium
+            transition-all duration-150
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+            active:scale-95
+            ${filtri.soloPreferiti
+              ? 'bg-roamly-g0 border-roamly-g0 text-white shadow-sm'
+              : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50 hover:border-roamly-g4'
+            }
+          `}
+        >
+          <span className="text-sm leading-none">❤️</span>
+          <span>Preferiti</span>
+        </button>
+      </div>
+
+      {/* Riga contatore + reset — visibile solo con filtri attivi */}
+      {mostraContatore && (
+        <div className="flex items-center justify-between px-0.5">
+          <span className="font-dm-sans text-xs text-roamly-text/40">
+            {totaleFiltrati === totaleRicordi
+              ? `${totaleRicordi} ricordi`
+              : `${totaleFiltrati} di ${totaleRicordi} ricordi`
+            }
+          </span>
+          <button
+            onClick={onReset}
+            className="
+              font-dm-sans text-xs text-roamly-g2 underline
+              hover:text-roamly-g1
+              focus:outline-none focus-visible:ring-1 focus-visible:ring-roamly-g3
+            "
+          >
+            Rimuovi filtri
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
