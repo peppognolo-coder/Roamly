@@ -63,7 +63,7 @@ export function DiarioPage() {
 
         {/* ── Header ── */}
         <header className="sticky top-0 z-30 bg-roamly-bg/95 backdrop-blur-sm px-5 pt-14 pb-3">
-          <h1 className="font-lora text-2xl font-semibold text-roamly-g0 mb-3">
+          <h1 className="font-lora text-h1 text-roamly-g0 mb-3">
             Il tuo diario
           </h1>
           <FiltriBar
@@ -161,7 +161,7 @@ export function DiarioPage() {
 
 function SkeletonHero() {
   return (
-    <div className="rounded-3xl overflow-hidden bg-white border border-roamly-g6">
+    <div className="rounded-3xl overflow-hidden bg-white shadow-roamly">
       <div className="h-36 bg-roamly-g6 animate-pulse" />
       <div className="p-4 flex flex-col gap-2">
         <div className="h-3 bg-roamly-g6 rounded animate-pulse w-1/3" />
@@ -181,7 +181,7 @@ function SkeletonTimeline() {
             <div className="w-6 h-6 rounded bg-roamly-g6 animate-pulse" />
             <div className="h-4 bg-roamly-g6 rounded animate-pulse w-1/3" />
           </div>
-          <div className="flex gap-0 h-20 bg-white rounded-2xl border border-roamly-g6 overflow-hidden">
+          <div className="flex gap-0 h-20 bg-white rounded-2xl shadow-roamly overflow-hidden">
             <div className="w-20 bg-roamly-g6 animate-pulse" />
             <div className="flex-1 p-3 flex flex-col gap-2">
               <div className="h-3 bg-roamly-g6 rounded animate-pulse w-3/4" />
