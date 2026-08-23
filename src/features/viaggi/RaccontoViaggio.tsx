@@ -113,7 +113,7 @@ function Copertina({
           )}
 
           {/* Titolo viaggio */}
-          <h1 className="font-lora text-4xl font-semibold text-white leading-tight
+          <h1 className="font-lora text-display text-white
             [text-shadow:0_2px_16px_rgba(0,0,0,0.4)]">
             {viaggio.nome}
           </h1>
@@ -331,8 +331,8 @@ function BloccoTesto({
 }) {
   const moodOpt = MOOD_OPTIONS.find((m) => m.value === rr.ricordo.mood)
   const gradient = isSpeciale
-    ? 'from-amber-400/20 to-yellow-300/10 border-amber-200'
-    : `${MOOD_GRADIENT_LIGHT[rr.ricordo.mood] ?? 'from-roamly-g7 to-roamly-g6'} border-roamly-g6`
+    ? 'from-amber-400/20 to-yellow-300/10'
+    : `${MOOD_GRADIENT_LIGHT[rr.ricordo.mood] ?? 'from-roamly-g7 to-roamly-g6'}`
 
   // Altezza ridotta senza foto — non cerca di riempire la viewport
   return (
@@ -340,9 +340,9 @@ function BloccoTesto({
       onClick={() => navigate(`/ricordi/${rr.ricordo.id}`)}
       className={`
         relative mx-4 rounded-3xl overflow-hidden
-        bg-gradient-to-br border
+        bg-gradient-to-br
         ${gradient}
-        ${isSpeciale ? 'border-2 border-amber-300' : 'border'}
+        ${isSpeciale ? 'border-2 border-amber-300 shadow-roamly-lg' : 'shadow-roamly'}
         text-left w-[calc(100%-32px)]
         focus:outline-none active:scale-[0.99] transition-transform duration-150
       `}
@@ -482,9 +482,9 @@ export function RaccontoViaggio({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="flex flex-col items-center gap-5 py-12 text-center
-          bg-white rounded-3xl border border-roamly-g6 mx-0"
+          bg-white rounded-3xl shadow-roamly mx-0"
       >
-        <div className="w-16 h-16 rounded-2xl bg-roamly-g7 border border-roamly-g6
+        <div className="w-16 h-16 rounded-2xl bg-roamly-g7 shadow-roamly
           flex items-center justify-center text-3xl">
           📖
         </div>
