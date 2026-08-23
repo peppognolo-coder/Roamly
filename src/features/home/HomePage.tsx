@@ -82,7 +82,7 @@ export function HomePage() {
           >
             <div className="
               w-20 h-20 rounded-3xl
-              bg-roamly-g7 border border-roamly-g6
+              bg-roamly-g7 shadow-roamly
               flex items-center justify-center
             ">
               <span className="text-4xl">📖</span>
