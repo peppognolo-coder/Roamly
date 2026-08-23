@@ -194,7 +194,7 @@ export function ViaggioForm({
 
       {/* Anteprima selezionata */}
       {!isEdit && (
-        <div className="flex items-center gap-3 px-4 py-3 bg-roamly-g7 rounded-xl border border-roamly-g6">
+        <div className="flex items-center gap-3 px-4 py-3 bg-roamly-g7 rounded-xl shadow-roamly">
           <span className="text-2xl">{selectedEmoji}</span>
           <div>
             <p className="font-dm-sans text-sm font-medium text-roamly-text">
