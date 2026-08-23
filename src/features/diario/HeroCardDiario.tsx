@@ -43,10 +43,8 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
       className="
         rounded-3xl overflow-hidden
         bg-white
-        border border-roamly-g6
-        shadow-md shadow-roamly-g0/10
+        shadow-roamly-lg
         cursor-pointer
-        hover:shadow-lg hover:shadow-roamly-g0/15
         active:scale-[0.99]
         transition-all duration-200
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
