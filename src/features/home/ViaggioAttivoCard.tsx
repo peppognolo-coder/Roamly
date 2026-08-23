@@ -51,7 +51,7 @@ export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps
         hover:bg-roamly-g1 active:scale-[0.99]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-        shadow-md shadow-roamly-g0/20
+        shadow-roamly-lg
       "
     >
       {/* Riga superiore: emoji + nome + badge */}
