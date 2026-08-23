@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={`
             w-full h-11 px-4
             bg-roamly-g7 border border-roamly-g5
-            rounded-xl
+            rounded-2xl
             font-dm-sans text-base text-roamly-text
             placeholder:text-roamly-text/30
             transition-all duration-150

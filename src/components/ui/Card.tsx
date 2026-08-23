@@ -7,9 +7,9 @@ interface CardProps {
 
 const paddingClasses = {
   none: '',
-  sm:   'p-3',
-  md:   'p-4',
-  lg:   'p-5',
+  sm:   'p-4',
+  md:   'p-5',
+  lg:   'p-6',
 }
 
 export function Card({
@@ -32,11 +32,10 @@ export function Card({
       }
       className={`
         bg-white rounded-2xl
-        border border-roamly-g6
-        shadow-sm shadow-roamly-g0/5
+        shadow-roamly
         ${paddingClasses[padding]}
         ${isClickable
-          ? 'cursor-pointer hover:shadow-md hover:border-roamly-g5 active:scale-[0.99] transition-all duration-150'
+          ? 'cursor-pointer hover:shadow-roamly-lg active:scale-[0.99] transition-all duration-150'
           : ''
         }
         ${className}

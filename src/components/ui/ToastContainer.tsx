@@ -68,7 +68,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       className={`
         flex items-center gap-3
         px-4 py-3 rounded-2xl
-        border shadow-md shadow-black/8
+        border shadow-roamly-lg
         font-dm-sans text-sm font-medium
         ${STYLE[toast.type]}
       `}
