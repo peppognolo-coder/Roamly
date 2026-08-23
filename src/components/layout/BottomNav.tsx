@@ -66,7 +66,7 @@ export function BottomNav() {
       <div className="
         w-full max-w-[430px]
         bg-roamly-bg/95 backdrop-blur-sm
-        border-t border-roamly-g6
+        shadow-[0_-4px_20px_-4px_rgba(12,42,61,0.10)]
         flex items-center justify-around
         h-20 px-2
         pointer-events-auto
@@ -106,8 +106,13 @@ function NavTabItem({ item }: { item: NavItem }) {
     >
       {({ isActive }) => (
         <>
-          <span className={isActive ? 'scale-105 transition-transform' : ''}>
-            {item.icon}
+          <span className="relative">
+            {isActive && (
+              <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-roamly-g3" />
+            )}
+            <span className={isActive ? 'scale-105 transition-transform block' : 'block'}>
+              {item.icon}
+            </span>
           </span>
           <span className="text-[10px] font-dm-sans font-medium tracking-wide">
             {item.label}

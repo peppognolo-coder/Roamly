@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { PageLayout }        from '@/components/layout/PageLayout'
+import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
 import { Button }            from '@/components/ui/Button'
 import { ViaggioAttivoCard } from './ViaggioAttivoCard'
@@ -66,20 +67,10 @@ export function HomePage() {
       <div className="flex flex-col min-h-screen">
 
         {/* ── Header ── */}
-        <header className="px-5 pt-14 pb-5">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <p className="font-dm-mono text-[10px] uppercase tracking-widest text-roamly-text/30 mb-0.5">
-              {getDataOggi()}
-            </p>
-            <h1 className="font-lora text-2xl font-semibold text-roamly-g0">
-              {nomeUtente ? `${getSaluto()}, ${nomeUtente}` : getSaluto()}
-            </h1>
-          </motion.div>
-        </header>
+        <PageHeader
+          eyebrow={getDataOggi()}
+          title={nomeUtente ? `${getSaluto()}, ${nomeUtente}` : getSaluto()}
+        />
 
         {/* ── First Visit Empty State ── */}
         {isFirstVisit && (
