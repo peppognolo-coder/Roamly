@@ -18,7 +18,7 @@ export function DiarioVuoto() {
     <div className="flex flex-col items-center justify-center gap-6 py-16 text-center px-4">
       <div className="
         w-20 h-20 rounded-3xl
-        bg-roamly-g7 border border-roamly-g6
+        bg-roamly-g7 shadow-roamly
         flex items-center justify-center
       ">
         <span className="text-4xl">📖</span>
@@ -51,7 +51,7 @@ export function DiarioVuotoConFiltri({ onReset }: { onReset: () => void }) {
     <div className="flex flex-col items-center justify-center gap-5 py-12 text-center px-4">
       <div className="
         w-16 h-16 rounded-2xl
-        bg-roamly-g7 border border-roamly-g6
+        bg-roamly-g7 shadow-roamly
         flex items-center justify-center
       ">
         <span className="text-3xl">🔍</span>
