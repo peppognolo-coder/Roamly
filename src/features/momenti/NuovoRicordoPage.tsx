@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { PageLayout }              from '@/components/layout/PageLayout'
+import { PageHeader }              from '@/components/layout/PageHeader'
 import { AnimatedPage }            from '@/components/layout/AnimatedPage'
 import { Button }                  from '@/components/ui/Button'
 import { RicordoForm }             from './RicordoForm'
@@ -116,27 +117,7 @@ export function NuovoRicordoPage() {
       <div className="flex flex-col min-h-screen">
 
         {/* Header */}
-        <header className="flex items-center gap-3 px-5 pt-14 pb-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="
-              w-9 h-9 rounded-xl flex items-center justify-center
-              bg-roamly-g7 border border-roamly-g6
-              hover:bg-roamly-g6 active:scale-95
-              transition-all duration-150
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-            "
-            aria-label="Torna indietro"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <div className="flex-1">
-            <h1 className="font-lora text-xl font-semibold text-roamly-g0">Nuovo ricordo</h1>
-          </div>
-        </header>
+        <PageHeader title="Nuovo ricordo" variant="withBack" />
 
         {/* Viaggio selezionato — badge cliccabile */}
         <div className="px-5 pt-2 pb-4">
@@ -239,7 +220,7 @@ export function NuovoRicordoPage() {
 function NessunViaggioState({ onCrea }: { onCrea: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-8 text-center">
-      <div className="w-20 h-20 rounded-3xl bg-roamly-g7 border border-roamly-g6 flex items-center justify-center">
+      <div className="w-20 h-20 rounded-3xl bg-roamly-g7 shadow-roamly flex items-center justify-center">
         <span className="text-4xl">🗺️</span>
       </div>
       <div className="flex flex-col gap-2">
@@ -276,30 +257,12 @@ function ViaggioSelectorPage({
 }) {
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="flex items-center gap-3 px-5 pt-14 pb-6">
-        <button
-          onClick={onBack}
-          className="
-            w-9 h-9 rounded-xl flex items-center justify-center
-            bg-roamly-g7 border border-roamly-g6
-            hover:bg-roamly-g6 active:scale-95
-            transition-all duration-150
-            focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-          "
-          aria-label="Torna indietro"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <div>
-          <h1 className="font-lora text-xl font-semibold text-roamly-g0">Nuovo ricordo</h1>
-          <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5">
-            A quale viaggio appartiene?
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Nuovo ricordo"
+        subtitle="A quale viaggio appartiene?"
+        variant="withBack"
+        onBack={onBack}
+      />
 
       <div className="flex-1 px-5 pb-8 flex flex-col gap-2">
         {viaggi.map((v) => (
@@ -308,15 +271,15 @@ function ViaggioSelectorPage({
             onClick={() => onSeleziona(v.id)}
             className="
               flex items-center gap-4 p-4
-              bg-white rounded-2xl border border-roamly-g6
-              hover:border-roamly-g4 hover:shadow-sm
+              bg-white rounded-2xl shadow-roamly
+              hover:shadow-roamly-lg
               active:scale-[0.99]
               transition-all duration-150
               text-left w-full
               focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
             "
           >
-            <div className="w-11 h-11 rounded-xl bg-roamly-g7 border border-roamly-g6
+            <div className="w-11 h-11 rounded-xl bg-roamly-g7
               flex items-center justify-center text-xl shrink-0">
               {v.cover_emoji ?? '✈️'}
             </div>
