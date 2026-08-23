@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom'
 interface PageHeaderProps {
   title: string
   eyebrow?: string
+  subtitle?: string
   variant?: 'default' | 'withBack'
   onBack?: () => void
   action?: React.ReactNode
@@ -29,6 +30,7 @@ function BackIcon() {
 export function PageHeader({
   title,
   eyebrow,
+  subtitle,
   variant = 'default',
   onBack,
   action,
@@ -71,6 +73,11 @@ export function PageHeader({
           <h1 className="font-lora text-h1 text-roamly-g0 truncate">
             {title}
           </h1>
+          {subtitle && (
+            <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate">
+              {subtitle}
+            </p>
+          )}
         </div>
 
         {action && <div className="shrink-0">{action}</div>}
