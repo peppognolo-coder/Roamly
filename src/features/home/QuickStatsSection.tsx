@@ -54,8 +54,8 @@ function StatCard({
   return (
     <div className="
       flex flex-col items-center gap-1.5 py-3 px-2
-      bg-white rounded-2xl border border-roamly-g6
-      shadow-sm shadow-roamly-g0/5
+      bg-white rounded-2xl
+      shadow-roamly
     ">
       <span className="text-xl">{emoji}</span>
       {isLoading ? (
