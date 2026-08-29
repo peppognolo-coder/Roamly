@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { MapPin } from 'lucide-react'
 import { PageLayout }              from '@/components/layout/PageLayout'
 import { PageHeader }              from '@/components/layout/PageHeader'
 import { AnimatedPage }            from '@/components/layout/AnimatedPage'
@@ -221,7 +222,7 @@ function NessunViaggioState({ onCrea }: { onCrea: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-8 text-center">
       <div className="w-20 h-20 rounded-3xl bg-roamly-g7 shadow-roamly flex items-center justify-center">
-        <span className="text-4xl">🗺️</span>
+        <MapPin size={32} className="text-roamly-g3" />
       </div>
       <div className="flex flex-col gap-2">
         <h2 className="font-lora text-xl font-semibold text-roamly-g0">
