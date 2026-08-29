@@ -57,7 +57,7 @@ export function RicordoDelGiornoCard({
         border border-roamly-g6
         shadow-sm shadow-roamly-g0/5
         hover:shadow-md hover:border-roamly-g5
-        active:scale-[0.99]
+        active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
