@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { PageLayout }         from '@/components/layout/PageLayout'
+import { PageHeader }         from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }          from '@/components/layout/BottomNav'
 import { Button }             from '@/components/ui/Button'
@@ -69,11 +70,7 @@ export function ProfiloPage() {
       <div className="flex flex-col min-h-screen">
 
         {/* Header */}
-        <header className="px-5 pt-14 pb-6">
-          <h1 className="font-lora text-2xl font-semibold text-roamly-g0">
-            Profilo
-          </h1>
-        </header>
+        <PageHeader title="Profilo" />
 
         <div className="flex-1 px-5 flex flex-col gap-6">
 
@@ -98,7 +95,7 @@ export function ProfiloPage() {
           </div>
 
           {/* Form modifica nome */}
-          <div className="bg-white rounded-2xl border border-roamly-g6 p-5 flex flex-col gap-4">
+          <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-4">
             <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider">
               Informazioni
             </h2>
@@ -136,7 +133,7 @@ export function ProfiloPage() {
           </div>
 
           {/* Info account */}
-          <div className="bg-white rounded-2xl border border-roamly-g6 p-5 flex flex-col gap-3">
+          <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-3">
             <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider">
               Account
             </h2>
@@ -210,7 +207,7 @@ function AvatarPlaceholder({
       w-20 h-20 rounded-full
       bg-roamly-g0
       flex items-center justify-center
-      shadow-md shadow-roamly-g0/20
+      shadow-roamly-lg
     ">
       <span className="font-lora text-2xl font-semibold text-white">
         {initials}
