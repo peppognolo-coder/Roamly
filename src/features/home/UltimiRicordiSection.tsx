@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { ChevronRight, NotebookPen } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo } from '@/types'
 
@@ -50,9 +51,10 @@ export function UltimiRicordiSection({ ricordi, isLoading }: UltimiRicordiSectio
         </h2>
         <button
           onClick={() => navigate('/diario')}
-          className="font-dm-sans text-xs text-roamly-g2 hover:text-roamly-g1 transition-colors"
+          className="flex items-center gap-0.5 font-dm-sans text-xs text-roamly-g2 hover:text-roamly-g1 transition-colors"
         >
-          Vedi tutti →
+          Vedi tutti
+          <ChevronRight size={14} />
         </button>
       </div>
 
@@ -100,7 +102,11 @@ function RicordoCardCompatta({ ricordo, onClick }: { ricordo: Ricordo; onClick: 
         bg-gradient-to-br ${gradient}
         flex items-center justify-center
       `}>
-        <span className="text-3xl opacity-70">{moodOption?.emoji ?? '📝'}</span>
+        {moodOption ? (
+          <span className="text-3xl opacity-70">{moodOption.emoji}</span>
+        ) : (
+          <NotebookPen size={26} className="opacity-50 text-roamly-g2" />
+        )}
       </div>
 
       {/* Testo */}
