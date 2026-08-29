@@ -45,7 +45,7 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
         bg-white
         shadow-roamly-lg
         cursor-pointer
-        active:scale-[0.99]
+        active:scale-[0.98]
         transition-all duration-200
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
