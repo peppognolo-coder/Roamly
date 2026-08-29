@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { BookOpen } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -85,7 +86,7 @@ export function HomePage() {
               bg-roamly-g7 shadow-roamly
               flex items-center justify-center
             ">
-              <span className="text-4xl">📖</span>
+              <BookOpen size={32} className="text-roamly-g3" />
             </div>
 
             <div className="flex flex-col gap-2">
