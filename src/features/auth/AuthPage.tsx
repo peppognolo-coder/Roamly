@@ -24,7 +24,7 @@ export function AuthPage() {
             w-16 h-16 rounded-2xl
             bg-roamly-g0
             flex items-center justify-center
-            shadow-lg shadow-roamly-g0/25
+            shadow-roamly-lg
           ">
             <img src="/favicon.svg" alt="Roamly" className="w-10 h-10" />
           </div>
@@ -39,7 +39,7 @@ export function AuthPage() {
         </div>
 
         {/* Card auth */}
-        <div className="bg-white rounded-3xl border border-roamly-g6 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-roamly-lg overflow-hidden">
 
           {/* Tab switcher */}
           <div className="flex border-b border-roamly-g6">
@@ -119,4 +119,3 @@ function TabButton({
     </button>
   )
 }
-
