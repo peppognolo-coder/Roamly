@@ -10,7 +10,7 @@ import { Button }             from '@/components/ui/Button'
 import { Input }              from '@/components/ui/Input'
 import { useAuth }            from '@/hooks/useAuth'
 import { useProfilo, useAggiornaProfilo } from '@/hooks/useProfilo'
-import { useLogout }          from '@/hooks/useAuthActions'
+import { useLogout, useDeleteAccount } from '@/hooks/useAuthActions'
 
 // ============================================================
 // Schema Zod — Aggiornamento profilo
@@ -35,9 +35,11 @@ export function ProfiloPage() {
   const { data: profilo, isLoading: isLoadingProfilo } = useProfilo()
   const { mutateAsync: aggiorna, isPending: isUpdating } = useAggiornaProfilo()
   const { logout, isLoading: isLoggingOut } = useLogout()
+  const { deleteAccount, isLoading: isDeletingAccount, error: deleteAccountError } = useDeleteAccount()
 
   const [updateSuccess, setUpdateSuccess] = useState(false)
   const [updateError, setUpdateError]     = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const {
     register,
@@ -62,6 +64,13 @@ export function ProfiloPage() {
       setUpdateSuccess(true)
       setTimeout(() => setUpdateSuccess(false), 3000)
     }
+  }
+
+  async function handleDeleteAccount() {
+    if (!user) return
+    await deleteAccount(user.id)
+    // In caso di errore, deleteAccountError è già impostato dall'hook
+    // e resta visibile nella danger zone — nessun redirect avviene.
   }
 
   return (
@@ -162,7 +171,7 @@ export function ProfiloPage() {
         </div>
 
         {/* Logout */}
-        <div className="px-5 pt-4 pb-8">
+        <div className="px-5 pt-4 pb-3">
           <Button
             variant="ghost"
             fullWidth
@@ -172,6 +181,49 @@ export function ProfiloPage() {
           >
             Esci dall'account
           </Button>
+        </div>
+
+        {/* Danger zone — elimina account */}
+        <div className="px-5 pb-8">
+          {deleteAccountError && (
+            <p className="font-dm-sans text-sm text-red-500 mb-3 text-center">
+              {deleteAccountError}
+            </p>
+          )}
+          {!showDeleteConfirm ? (
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={() => setShowDeleteConfirm(true)}
+              className="text-red-500/70 hover:bg-red-50 hover:text-red-500"
+            >
+              Elimina account
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-2 bg-red-50 rounded-2xl p-4">
+              <p className="font-dm-sans text-sm font-medium text-red-600">
+                Tutti i tuoi viaggi, ricordi e foto verranno eliminati per sempre.
+                Questa azione non può essere annullata.
+              </p>
+              <div className="flex gap-2 mt-1">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1"
+                  disabled={isDeletingAccount}
+                >
+                  Annulla
+                </Button>
+                <Button
+                  onClick={handleDeleteAccount}
+                  isLoading={isDeletingAccount}
+                  className="flex-1 !bg-red-500 hover:!bg-red-600"
+                >
+                  Elimina per sempre
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
