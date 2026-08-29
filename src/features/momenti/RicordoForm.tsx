@@ -1,6 +1,7 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Heart } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { MoodPicker } from './MoodPicker'
@@ -197,7 +198,10 @@ export function RicordoForm({
           }
         `}
       >
-        <span className="text-xl">{preferitoValue ? '❤️' : '🤍'}</span>
+        <Heart
+          size={20}
+          className={preferitoValue ? 'fill-red-400 text-red-400' : 'text-roamly-text/40'}
+        />
         <div className="flex-1 text-left">
           <p className="font-dm-sans font-medium text-sm">
             {preferitoValue ? 'Tra i preferiti' : 'Aggiungi ai preferiti'}
