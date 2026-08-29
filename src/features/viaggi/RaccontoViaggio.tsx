@@ -344,7 +344,7 @@ function BloccoTesto({
         ${gradient}
         ${isSpeciale ? 'border-2 border-amber-300 shadow-roamly-lg' : 'shadow-roamly'}
         text-left w-[calc(100%-32px)]
-        focus:outline-none active:scale-[0.99] transition-transform duration-150
+        focus:outline-none active:scale-[0.98] transition-transform duration-150
       `}
     >
       {/* Emoji mood come sfondo decorativo */}
@@ -500,7 +500,7 @@ export function RaccontoViaggio({
           onClick={() => navigate(`/nuovo-ricordo?viaggioId=${viaggioId}`)}
           className="px-5 py-2.5 bg-roamly-g0 rounded-xl
             font-dm-sans text-sm font-medium text-white
-            hover:bg-roamly-g1 active:scale-95 transition-all duration-150"
+            hover:bg-roamly-g1 active:scale-[0.98] transition-all duration-150"
         >
           Aggiungi il primo ricordo
         </button>
