@@ -121,7 +121,7 @@ function SezioneStato({
 function EmptyState({ onCrea }: { onCrea: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
-      <div className="w-20 h-20 rounded-3xl bg-roamly-g7 border border-roamly-g6 flex items-center justify-center">
+      <div className="w-20 h-20 rounded-3xl bg-roamly-g7 shadow-roamly flex items-center justify-center">
         <span className="text-4xl">✈️</span>
       </div>
       <div className="flex flex-col gap-2">
@@ -154,7 +154,7 @@ function SkeletonList() {
       {[1, 2, 3].map((i) => (
         <div
           key={i}
-          className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-roamly-g6"
+          className="flex items-center gap-4 p-4 bg-white rounded-2xl shadow-roamly"
         >
           <div className="w-12 h-12 rounded-xl bg-roamly-g6 animate-pulse shrink-0" />
           <div className="flex-1 flex flex-col gap-2">
