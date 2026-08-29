@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Plane } from 'lucide-react'
 import { StatoBadge } from '@/features/viaggi/StatoBadge'
 import { calcolaGiorniAlPartenza, formatDataViaggio } from '@/lib/viaggi-utils'
 import type { ViaggioConStato } from '@/types'
@@ -138,8 +139,8 @@ function NessunViaggioCard() {
       "
     >
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-roamly-g6 flex items-center justify-center text-xl">
-          ✈️
+        <div className="w-11 h-11 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g2">
+          <Plane size={20} />
         </div>
         <div>
           <p className="font-dm-sans font-medium text-sm text-roamly-g1">
