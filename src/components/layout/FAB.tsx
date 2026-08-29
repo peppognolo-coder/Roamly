@@ -14,7 +14,7 @@ export function FAB() {
         shadow-roamly-lg
         flex items-center justify-center
         transition-all duration-200
-        active:scale-95
+        active:scale-[0.98]
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
     >
