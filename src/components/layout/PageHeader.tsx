@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 
 // ============================================================
 // PageHeader — header condiviso per le pagine
@@ -15,16 +16,6 @@ interface PageHeaderProps {
   onBack?: () => void
   action?: React.ReactNode
   className?: string
-}
-
-function BackIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
-    </svg>
-  )
 }
 
 export function PageHeader({
@@ -60,7 +51,7 @@ export function PageHeader({
               focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
             "
           >
-            <BackIcon />
+            <ArrowLeft size={20} />
           </button>
         )}
 
