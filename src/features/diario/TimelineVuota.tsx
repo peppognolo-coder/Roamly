@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { BookOpen, Search, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 // ============================================================
@@ -21,7 +22,7 @@ export function DiarioVuoto() {
         bg-roamly-g7 shadow-roamly
         flex items-center justify-center
       ">
-        <span className="text-4xl">📖</span>
+        <BookOpen size={32} className="text-roamly-g3" />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -54,7 +55,7 @@ export function DiarioVuotoConFiltri({ onReset }: { onReset: () => void }) {
         bg-roamly-g7 shadow-roamly
         flex items-center justify-center
       ">
-        <span className="text-3xl">🔍</span>
+        <Search size={24} className="text-roamly-g3" />
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -89,7 +90,7 @@ export function SezioneVuota({ viaggioId }: { viaggioId: string }) {
     <div className="
       flex items-center justify-between
       px-4 py-3
-      bg-roamly-g7 rounded-xl border border-roamly-g6
+      bg-roamly-g7 rounded-xl
     ">
       <p className="font-dm-sans text-sm text-roamly-text/40">
         Nessun ricordo ancora
@@ -97,12 +98,14 @@ export function SezioneVuota({ viaggioId }: { viaggioId: string }) {
       <button
         onClick={() => navigate(`/nuovo-ricordo?viaggioId=${viaggioId}`)}
         className="
+          flex items-center gap-0.5
           font-dm-sans text-xs font-medium text-roamly-g2
           hover:text-roamly-g1
           focus:outline-none focus-visible:ring-1 focus-visible:ring-roamly-g3
         "
       >
-        Aggiungi il primo →
+        Aggiungi il primo
+        <ChevronRight size={12} />
       </button>
     </div>
   )
