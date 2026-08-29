@@ -200,7 +200,7 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                       flex items-center gap-2 px-4 py-2.5
                       bg-roamly-g0 rounded-xl
                       font-dm-sans text-sm font-medium text-white
-                      hover:bg-roamly-g1 active:scale-95
+                      hover:bg-roamly-g1 active:scale-[0.98]
                       transition-all duration-150
                     "
                   >
