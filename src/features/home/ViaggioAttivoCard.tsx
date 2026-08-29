@@ -48,7 +48,7 @@ export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps
       className="
         w-full text-left
         bg-roamly-g0 rounded-2xl p-4
-        hover:bg-roamly-g1 active:scale-[0.99]
+        hover:bg-roamly-g1 active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
         shadow-roamly-lg
@@ -132,7 +132,7 @@ function NessunViaggioCard() {
         w-full text-left
         bg-roamly-g7 rounded-2xl p-4
         border border-roamly-g5 border-dashed
-        hover:bg-roamly-g6 active:scale-[0.99]
+        hover:bg-roamly-g6 active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
