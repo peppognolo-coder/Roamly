@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { deleteViaggio } from '@/services/viaggiService'
 
 // ============================================================
 // ROAMLY — Auth Service
@@ -108,4 +109,42 @@ export async function logout() {
 export async function getCurrentSession() {
   const { data: { session }, error } = await supabase.auth.getSession()
   return { session, error }
+}
+
+// ------------------------------------------------------------
+// Eliminazione account
+// Orchestrazione lato client:
+//   1. elimina ogni viaggio dell'utente (riusa deleteViaggio,
+//      che gestisce già Storage fisico + righe foto + cascata)
+//   2. chiama la funzione SQL che pulisce i dati residui non
+//      legati a un viaggio e cancella l'utente da auth.users
+// Se un passaggio fallisce, si interrompe senza proseguire —
+// nessuna cancellazione parziale silenziosa.
+// ------------------------------------------------------------
+
+export async function deleteAccount(
+  userId: string
+): Promise<{ error: string | null }> {
+  const { data: viaggi, error: errViaggi } = await supabase
+    .from('viaggi')
+    .select('id')
+    .eq('user_id', userId)
+
+  if (errViaggi) {
+    return { error: `Impossibile leggere i viaggi: ${errViaggi.message}` }
+  }
+
+  for (const v of viaggi ?? []) {
+    const { error } = await deleteViaggio(v.id, userId)
+    if (error) {
+      return { error: `Impossibile eliminare tutti i dati: ${error}` }
+    }
+  }
+
+  const { error: errRpc } = await supabase.rpc('elimina_account')
+  if (errRpc) {
+    return { error: `Impossibile eliminare l'account: ${errRpc.message}` }
+  }
+
+  return { error: null }
 }
