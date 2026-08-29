@@ -126,7 +126,7 @@ export function NuovoRicordoPage() {
             className="
               flex items-center gap-2 px-3 py-2
               bg-roamly-g6 border border-roamly-g5 rounded-xl
-              hover:bg-roamly-g5 active:scale-[0.99]
+              hover:bg-roamly-g5 active:scale-[0.98]
               transition-all duration-150
             "
           >
@@ -273,7 +273,7 @@ function ViaggioSelectorPage({
               flex items-center gap-4 p-4
               bg-white rounded-2xl shadow-roamly
               hover:shadow-roamly-lg
-              active:scale-[0.99]
+              active:scale-[0.98]
               transition-all duration-150
               text-left w-full
               focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
