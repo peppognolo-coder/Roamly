@@ -1,3 +1,6 @@
+import { Plane, NotebookPen, Globe } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+
 // ============================================================
 // QuickStatsSection — tre statistiche rapide in Home
 // Viaggi · Ricordi · Paesi
@@ -21,19 +24,19 @@ export function QuickStatsSection({
       <StatCard
         label="Viaggi"
         value={viaggi}
-        emoji="✈️"
+        icon={Plane}
         isLoading={isLoading}
       />
       <StatCard
         label="Ricordi"
         value={ricordi}
-        emoji="📝"
+        icon={NotebookPen}
         isLoading={isLoading}
       />
       <StatCard
         label="Paesi"
         value={paesi}
-        emoji="🌍"
+        icon={Globe}
         isLoading={isLoading}
       />
     </div>
@@ -43,12 +46,12 @@ export function QuickStatsSection({
 function StatCard({
   label,
   value,
-  emoji,
+  icon: Icon,
   isLoading,
 }: {
   label: string
   value: number
-  emoji: string
+  icon: LucideIcon
   isLoading: boolean
 }) {
   return (
@@ -57,7 +60,7 @@ function StatCard({
       bg-white rounded-2xl
       shadow-roamly
     ">
-      <span className="text-xl">{emoji}</span>
+      <Icon size={20} className="text-roamly-g3" />
       {isLoading ? (
         <div className="h-6 w-8 bg-roamly-g6 rounded animate-pulse" />
       ) : (
