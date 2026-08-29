@@ -112,8 +112,8 @@ export function RicordoDetailPage() {
             onClick={() => navigate(-1)}
             className="
               w-9 h-9 rounded-xl flex items-center justify-center
-              bg-roamly-g7 border border-roamly-g6
-              hover:bg-roamly-g6 active:scale-95
+              bg-roamly-g7 shadow-roamly
+              hover:bg-roamly-g6 active:scale-[0.98]
               transition-all duration-150
               focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
             "
@@ -129,8 +129,8 @@ export function RicordoDetailPage() {
             onClick={() => togglePreferito(ricordo.id, ricordo.preferito)}
             className="
               w-9 h-9 rounded-xl flex items-center justify-center
-              bg-roamly-g7 border border-roamly-g6
-              hover:bg-roamly-g6 active:scale-95
+              bg-roamly-g7 shadow-roamly
+              hover:bg-roamly-g6 active:scale-[0.98]
               transition-all duration-150
             "
             aria-label={ricordo.preferito ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
@@ -143,7 +143,7 @@ export function RicordoDetailPage() {
               px-3 py-1.5 rounded-xl
               font-dm-sans text-sm font-medium
               text-roamly-g1 bg-roamly-g6
-              hover:bg-roamly-g5 active:scale-95
+              hover:bg-roamly-g5 active:scale-[0.98]
               transition-all duration-150
             "
           >
@@ -161,7 +161,7 @@ export function RicordoDetailPage() {
                 flex items-center gap-3 p-4
                 bg-roamly-g0 rounded-2xl
                 text-left w-full
-                hover:bg-roamly-g1 active:scale-[0.99]
+                hover:bg-roamly-g1 active:scale-[0.98]
                 transition-all duration-150
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
               "
@@ -200,7 +200,7 @@ export function RicordoDetailPage() {
               {/* Mood + data */}
               <div className="flex items-center gap-3">
                 <div className="
-                  w-12 h-12 rounded-2xl bg-roamly-g7 border border-roamly-g6
+                  w-12 h-12 rounded-2xl bg-roamly-g7 shadow-roamly
                   flex items-center justify-center text-2xl shrink-0
                 ">
                   {moodOption?.emoji}
@@ -219,7 +219,7 @@ export function RicordoDetailPage() {
               </div>
 
               {/* Titolo */}
-              <h1 className="font-lora text-2xl font-semibold text-roamly-g0 leading-snug">
+              <h1 className="font-lora text-h1 text-roamly-g0 leading-snug">
                 {ricordo.titolo}
               </h1>
 
@@ -237,7 +237,7 @@ export function RicordoDetailPage() {
 
               {/* Testo */}
               {ricordo.testo && (
-                <div className="bg-white rounded-2xl border border-roamly-g6 p-4">
+                <div className="bg-white rounded-2xl shadow-roamly p-4">
                   <p className="font-dm-sans text-base text-roamly-text leading-relaxed whitespace-pre-wrap">
                     {ricordo.testo}
                   </p>
