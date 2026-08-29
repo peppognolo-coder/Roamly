@@ -115,8 +115,8 @@ export function ViaggioDetailPage() {
               className="
                 w-9 h-9 rounded-xl
                 flex items-center justify-center
-                bg-roamly-g7 border border-roamly-g6
-                hover:bg-roamly-g6 active:scale-95
+                bg-roamly-g7 shadow-roamly
+                hover:bg-roamly-g6 active:scale-[0.98]
                 transition-all duration-150
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
               "
@@ -133,8 +133,8 @@ export function ViaggioDetailPage() {
               onClick={() => setShowShare(true)}
               className="
                 w-9 h-9 rounded-xl flex items-center justify-center
-                bg-roamly-g6 border border-roamly-g6
-                hover:bg-roamly-g5 active:scale-95
+                bg-roamly-g6
+                hover:bg-roamly-g5 active:scale-[0.98]
                 transition-all duration-150
               "
               aria-label="Condividi viaggio"
@@ -156,7 +156,7 @@ export function ViaggioDetailPage() {
                 px-3 py-1.5 rounded-xl
                 font-dm-sans text-sm font-medium
                 text-roamly-g1 bg-roamly-g6
-                hover:bg-roamly-g5 active:scale-95
+                hover:bg-roamly-g5 active:scale-[0.98]
                 transition-all duration-150
               "
             >
@@ -169,7 +169,7 @@ export function ViaggioDetailPage() {
             {/* Hero icon: foto cover del viaggio se disponibile, altrimenti emoji */}
             <div className="
               w-16 h-16 rounded-2xl bg-roamly-g7
-              border border-roamly-g6
+              shadow-roamly
               flex items-center justify-center
               text-3xl shrink-0 overflow-hidden relative
             ">
@@ -196,7 +196,7 @@ export function ViaggioDetailPage() {
               )}
             </div>
             <div className="flex-1 min-w-0 pt-1">
-              <h1 className="font-lora text-2xl font-semibold text-roamly-g0 leading-tight">
+              <h1 className="font-lora text-h1 text-roamly-g0 leading-tight">
                 {viaggio.nome}
               </h1>
               {(viaggio.destinazione || viaggio.paese) && (
@@ -218,7 +218,7 @@ export function ViaggioDetailPage() {
 
           {/* Form modifica */}
           {isEditing && (
-            <div className="bg-white rounded-2xl border border-roamly-g5 p-5">
+            <div className="bg-white rounded-2xl shadow-roamly p-5">
               <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60
                 uppercase tracking-wider mb-4">
                 Modifica viaggio
@@ -243,7 +243,7 @@ export function ViaggioDetailPage() {
           )}
 
           {/* Statistiche base */}
-          <div className="bg-white rounded-2xl border border-roamly-g6 p-5">
+          <div className="bg-white rounded-2xl shadow-roamly p-5">
             <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60
               uppercase tracking-wider mb-4">
               Statistiche
@@ -297,7 +297,7 @@ export function ViaggioDetailPage() {
                   flex items-center gap-1 px-3 py-1.5
                   bg-roamly-g0 rounded-xl
                   font-dm-sans text-xs font-medium text-white
-                  hover:bg-roamly-g1 active:scale-95
+                  hover:bg-roamly-g1 active:scale-[0.98]
                   transition-all duration-150
                 "
               >
@@ -329,7 +329,7 @@ export function ViaggioDetailPage() {
               isLoadingRicordi ? (
                 <div className="flex flex-col gap-2">
                   {[1, 2].map((i) => (
-                    <div key={i} className="flex gap-0 h-24 bg-white rounded-2xl border border-roamly-g6 overflow-hidden">
+                    <div key={i} className="flex gap-0 h-24 bg-white rounded-2xl shadow-roamly overflow-hidden">
                       <div className="w-20 bg-roamly-g6 animate-pulse shrink-0" />
                       <div className="flex-1 p-3.5 flex flex-col gap-2">
                         <div className="h-4 bg-roamly-g6 rounded animate-pulse w-3/4" />
@@ -340,7 +340,7 @@ export function ViaggioDetailPage() {
                 </div>
               ) : ricordi.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-8 text-center
-                  bg-white rounded-2xl border border-roamly-g6">
+                  bg-white rounded-2xl shadow-roamly">
                   <span className="text-3xl">📖</span>
                   <div className="flex flex-col gap-1">
                     <p className="font-lora text-base font-semibold text-roamly-g0">
@@ -352,7 +352,7 @@ export function ViaggioDetailPage() {
                     className="
                       px-4 py-2 bg-roamly-g0 rounded-xl
                       font-dm-sans text-sm font-medium text-white
-                      hover:bg-roamly-g1 active:scale-95
+                      hover:bg-roamly-g1 active:scale-[0.98]
                       transition-all duration-150
                     "
                   >
@@ -454,7 +454,7 @@ function StatCard({
 }) {
   return (
     <div className="flex flex-col items-center gap-1.5 py-3 px-2
-      bg-roamly-g7 rounded-xl border border-roamly-g6">
+      bg-roamly-g7 rounded-xl">
       <span className="text-xl">{emoji}</span>
       <span className="font-dm-mono text-xl font-medium text-roamly-g0">
         {value}
