@@ -35,7 +35,7 @@ export function Card({
         shadow-roamly
         ${paddingClasses[padding]}
         ${isClickable
-          ? 'cursor-pointer hover:shadow-roamly-lg active:scale-[0.99] transition-all duration-150'
+          ? 'cursor-pointer hover:shadow-roamly-lg active:scale-[0.98] transition-all duration-150'
           : ''
         }
         ${className}
