@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Waves, BookOpen, Compass } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { markOnboardingSeen } from '@/lib/onboarding-utils'
 
@@ -10,24 +12,24 @@ import { markOnboardingSeen } from '@/lib/onboarding-utils'
 // ============================================================
 
 interface Schermata {
-  emoji: string
+  icon: LucideIcon
   titolo: string
   testo: string
 }
 
 const SCHERMATE: Schermata[] = [
   {
-    emoji: '🌊',
+    icon: Waves,
     titolo: 'Ogni ricordo ha un\'emozione',
     testo: 'Racconta come ti sei sentito in ogni momento del viaggio, non solo cosa hai visto.',
   },
   {
-    emoji: '📖',
+    icon: BookOpen,
     titolo: 'Il viaggio diventa un racconto',
     testo: 'Al ritorno, i tuoi ricordi si trasformano automaticamente in una storia da rileggere.',
   },
   {
-    emoji: '🧭',
+    icon: Compass,
     titolo: 'Sempre con te',
     testo: 'Aggiungi un ricordo ovunque tu sia, anche offline. Roamly sincronizza appena torni online.',
   },
@@ -90,7 +92,7 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 bg-roamly-g7 shadow-roamly
                 flex items-center justify-center
               ">
-                <span className="text-5xl leading-none">{schermata.emoji}</span>
+                <schermata.icon size={40} className="text-roamly-g3" />
               </div>
 
               <div className="flex flex-col gap-3 max-w-[300px]">
