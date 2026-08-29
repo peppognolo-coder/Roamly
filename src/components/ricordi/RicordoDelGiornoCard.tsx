@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { NotebookPen, Heart, ChevronRight } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 
@@ -54,9 +55,8 @@ export function RicordoDelGiornoCard({
       className="
         flex items-center gap-3 px-4 py-3.5 w-full text-left
         bg-white rounded-2xl
-        border border-roamly-g6
-        shadow-sm shadow-roamly-g0/5
-        hover:shadow-md hover:border-roamly-g5
+        shadow-roamly
+        hover:shadow-roamly-lg
         active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
@@ -67,9 +67,12 @@ export function RicordoDelGiornoCard({
         w-12 h-12 rounded-xl shrink-0
         bg-gradient-to-br ${gradient}
         flex items-center justify-center
-        border border-roamly-g6
       `}>
-        <span className="text-2xl">{moodOption?.emoji ?? '📝'}</span>
+        {moodOption ? (
+          <span className="text-2xl">{moodOption.emoji}</span>
+        ) : (
+          <NotebookPen size={20} className="opacity-50 text-roamly-g2" />
+        )}
       </div>
 
       {/* Testo */}
@@ -80,7 +83,7 @@ export function RicordoDelGiornoCard({
             {labelTempo ?? 'Ricordo del giorno'}
           </span>
           {ricordo.preferito && (
-            <span className="text-xs leading-none">❤️</span>
+            <Heart size={11} className="fill-red-400 text-red-400" />
           )}
         </div>
 
@@ -107,11 +110,7 @@ export function RicordoDelGiornoCard({
       </div>
 
       {/* Chevron */}
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-        className="text-roamly-text/20 shrink-0">
-        <path d="M9 18l6-6-6-6" />
-      </svg>
+      <ChevronRight size={16} className="text-roamly-text/20 shrink-0" />
     </button>
   )
 }
@@ -122,7 +121,7 @@ export function RicordoDelGiornoCardSkeleton() {
   return (
     <div className="
       flex items-center gap-3 px-4 py-3.5
-      bg-white rounded-2xl border border-roamly-g6
+      bg-white rounded-2xl shadow-roamly
     ">
       <div className="w-12 h-12 rounded-xl bg-roamly-g6 animate-pulse shrink-0" />
       <div className="flex-1 flex flex-col gap-1.5">
