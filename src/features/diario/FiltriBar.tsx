@@ -1,3 +1,4 @@
+import { Heart } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Mood } from '@/types'
 import type { FiltriDiario } from '@/lib/diario-utils'
@@ -72,14 +73,17 @@ export function FiltriBar({
             font-dm-sans text-xs font-medium
             transition-all duration-150
             focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-            active:scale-95
+            active:scale-[0.98]
             ${filtri.soloPreferiti
               ? 'bg-roamly-g0 border-roamly-g0 text-white shadow-sm'
               : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50 hover:border-roamly-g4'
             }
           `}
         >
-          <span className="text-sm leading-none">❤️</span>
+          <Heart
+            size={13}
+            className={filtri.soloPreferiti ? 'fill-white text-white' : ''}
+          />
           <span>Preferiti</span>
         </button>
       </div>
