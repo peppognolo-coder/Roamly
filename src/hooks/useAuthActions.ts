@@ -7,6 +7,7 @@ import {
   logout,
   mapAuthError,
   registerWithEmail,
+  deleteAccount,
 } from '@/services/authService'
 import { useAuthStore } from '@/store/authStore'
 
@@ -137,4 +138,40 @@ export function useLogout() {
   }
 
   return { logout: handleLogout, isLoading }
+}
+
+// ------------------------------------------------------------
+// useDeleteAccount
+// ------------------------------------------------------------
+
+export function useDeleteAccount() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const reset = useAuthStore((s) => s.reset)
+  const queryClient = useQueryClient()
+
+  async function handleDeleteAccount(userId: string) {
+    setIsLoading(true)
+    setError(null)
+
+    const { error: deleteError } = await deleteAccount(userId)
+
+    if (deleteError) {
+      setError(deleteError)
+      setIsLoading(false)
+      return { success: false }
+    }
+
+    // L'utente non esiste più lato server: chiude la sessione locale,
+    // pulisce store e cache, poi torna al login. Stesso ordine di useLogout.
+    await logout()
+    reset()
+    queryClient.clear()
+    setIsLoading(false)
+    navigate('/login', { replace: true })
+    return { success: true }
+  }
+
+  return { deleteAccount: handleDeleteAccount, isLoading, error, clearError: () => setError(null) }
 }
