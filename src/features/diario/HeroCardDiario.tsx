@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 
@@ -73,8 +74,8 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
 
         {/* Indicatore preferito */}
         {ricordo.preferito && (
-          <div className="absolute top-3 right-4">
-            <span className="text-base">❤️</span>
+          <div className="absolute top-3 right-4 w-6 h-6 rounded-full bg-white/60 backdrop-blur-sm flex items-center justify-center">
+            <Heart size={12} className="fill-red-400 text-red-400" />
           </div>
         )}
       </div>
