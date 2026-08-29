@@ -1,6 +1,7 @@
 import { useMemo }           from 'react'
 import { useNavigate }       from 'react-router-dom'
 import { motion }            from 'framer-motion'
+import { Sparkles, Image, ChevronRight, BookOpen } from 'lucide-react'
 import { buildRacconto }     from '@/lib/racconto-utils'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import { MOOD_OPTIONS }      from '@/types'
@@ -239,7 +240,7 @@ function BloccoFoto({
           <div className="absolute top-4 left-4
             flex items-center gap-1.5 px-3 py-1.5
             bg-amber-400/90 backdrop-blur-sm rounded-full">
-            <span className="text-xs leading-none">✨</span>
+            <Sparkles size={12} className="text-white" />
             <span className="font-dm-sans text-xs font-semibold text-white">
               Momento speciale
             </span>
@@ -301,13 +302,9 @@ function BloccoFoto({
             className="mx-6 flex items-center gap-2
               font-dm-sans text-xs text-roamly-g2 font-medium"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            {rr.fotoCount - 1} {rr.fotoCount === 2 ? 'altra foto' : 'altre foto'} →
+            <Image size={13} />
+            {rr.fotoCount - 1} {rr.fotoCount === 2 ? 'altra foto' : 'altre foto'}
+            <ChevronRight size={12} />
           </button>
         </div>
       )}
@@ -356,7 +353,7 @@ function BloccoTesto({
       {/* Badge speciale */}
       {isSpeciale && (
         <div className="flex items-center gap-1.5 px-5 pt-5 pb-0">
-          <span className="text-sm">✨</span>
+          <Sparkles size={14} className="text-amber-500" />
           <span className="font-dm-sans text-xs font-semibold text-amber-600
             uppercase tracking-wider">
             Momento speciale
@@ -485,8 +482,8 @@ export function RaccontoViaggio({
           bg-white rounded-3xl shadow-roamly mx-0"
       >
         <div className="w-16 h-16 rounded-2xl bg-roamly-g7 shadow-roamly
-          flex items-center justify-center text-3xl">
-          📖
+          flex items-center justify-center">
+          <BookOpen size={28} className="text-roamly-g3" />
         </div>
         <div className="flex flex-col gap-2 px-8 max-w-[280px]">
           <p className="font-lora text-lg font-semibold text-roamly-g0 leading-snug">
