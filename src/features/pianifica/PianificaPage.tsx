@@ -1,4 +1,5 @@
 import { PageLayout }        from '@/components/layout/PageLayout'
+import { PageHeader }        from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }         from '@/components/layout/BottomNav'
 import { CountdownSection }  from './CountdownSection'
@@ -29,11 +30,7 @@ export function PianificaPage() {
       <div className="flex flex-col min-h-screen">
 
         {/* Header */}
-        <header className="px-5 pt-14 pb-5">
-          <h1 className="font-lora text-2xl font-semibold text-roamly-g0">
-            Pianifica
-          </h1>
-        </header>
+        <PageHeader title="Pianifica" />
 
         <div className="flex-1 px-5 pb-8 flex flex-col gap-6">
 
@@ -60,8 +57,8 @@ export function PianificaPage() {
 
                   {viaggiPianificati.map((viaggio) => (
                     <div key={viaggio.id} className="
-                      bg-white rounded-2xl border border-roamly-g6
-                      shadow-sm shadow-roamly-g0/5
+                      bg-white rounded-2xl
+                      shadow-roamly
                       px-4 pt-1 pb-3
                     ">
                       {/* Card viaggio (navigazione a dettaglio) */}
