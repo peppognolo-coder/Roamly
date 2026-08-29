@@ -62,7 +62,7 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
         shadow-roamly
         cursor-pointer
         hover:shadow-roamly-lg
-        active:scale-[0.99]
+        active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
