@@ -71,6 +71,7 @@ const VOCI: VoceHub[] = [
     label: 'Note di viaggio',
     descrizione: 'Appunti liberi, promemoria',
     icon: NotebookPen,
+    path: 'note',
   },
 ]
 
