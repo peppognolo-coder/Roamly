@@ -13,6 +13,7 @@ import { ProfiloPage }        from '@/features/profilo/ProfiloPage'
 import { ViaggiPage }         from '@/features/viaggi/ViaggiPage'
 import { ViaggioDetailPage }  from '@/features/viaggi/ViaggioDetailPage'
 import { NuovoViaggioPage }   from '@/features/viaggi/NuovoViaggioPage'
+import { ValigiaPage }        from '@/features/pianifica/ValigiaPage'
 
 function Protected({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>
@@ -67,5 +68,9 @@ export const router = createBrowserRouter([
   {
     path: '/viaggi/:id',
     element: <Protected><ViaggioDetailPage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/valigia',
+    element: <Protected><ValigiaPage /></Protected>,
   },
 ])
