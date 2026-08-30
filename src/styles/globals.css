@@ -12,12 +12,17 @@
   /* Palette blu oceano Roamly */
   --color-g0: #0C2A3D;
   --color-g1: #123F58;
-  --color-g2: #1A5875;
-  --color-g3: #0F7EA8;
+  --color-g2: #154B63;
+  --color-g3: #0B6F99;
   --color-g4: #5FB8D9;
   --color-g5: #A3DAEC;
   --color-g6: #DFF3FA;
   --color-g7: #F0FAFD;
+
+  /* Accento firma */
+  --color-coral: #FF6B4A;
+  --color-coral-dark: #E5563A;
+  --color-coral-light: #FFE4DC;
 
   /* Background e testo */
   --color-bg:   #F9FBFC;
