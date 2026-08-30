@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { CheckCircle2, Sparkles } from 'lucide-react'
 import { ChecklistItemRow } from './ChecklistItemRow'
 import { ChecklistInput }   from './ChecklistInput'
 import { SuggerimentiSheet } from './SuggerimentiSheet'
@@ -163,9 +164,9 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                 <>
                   {/* Barra progresso dettagliata */}
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-dm-sans text-xs text-roamly-text/50">
+                    <span className="font-dm-sans text-xs text-roamly-text/50 flex items-center gap-1">
                       {stats.percentuale === 100
-                        ? '✅ Tutto pronto!'
+                        ? <><CheckCircle2 size={12} className="text-roamly-g3" /> Tutto pronto!</>
                         : `${stats.completati} di ${stats.totale} completati`
                       }
                     </span>
@@ -204,7 +205,7 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                       transition-all duration-150
                     "
                   >
-                    <span>✨</span>
+                    <Sparkles size={13} />
                     <span>Aggiungi suggerimenti</span>
                   </button>
                 </div>
@@ -227,9 +228,11 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                     hover:text-roamly-g2
                     transition-colors duration-150
                     text-center py-1
+                    flex items-center justify-center gap-1
                   "
                 >
-                  ✨ Aggiungi suggerimenti predefiniti
+                  <Sparkles size={12} />
+                  Aggiungi suggerimenti predefiniti
                 </button>
               )}
 
