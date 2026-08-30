@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Check } from 'lucide-react'
 import { PageLayout }         from '@/components/layout/PageLayout'
 import { PageHeader }         from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -115,9 +116,10 @@ export function ProfiloPage() {
               </div>
             )}
             {updateSuccess && (
-              <div className="px-4 py-3 bg-roamly-g6 border border-roamly-g5 rounded-xl">
+              <div className="px-4 py-3 bg-roamly-g6 border border-roamly-g5 rounded-xl flex items-center gap-2">
+                <Check size={15} className="text-roamly-g1 shrink-0" />
                 <p className="font-dm-sans text-sm text-roamly-g1">
-                  ✓ Profilo aggiornato
+                  Profilo aggiornato
                 </p>
               </div>
             )}
