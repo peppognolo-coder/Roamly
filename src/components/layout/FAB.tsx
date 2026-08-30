@@ -65,8 +65,9 @@ export function FAB() {
               exit={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
               transition={{ duration: 0.22, delay: i * 0.04, ease: 'easeOut' }}
               onClick={() => handleScegli(opz.to)}
+              style={{ left: 'calc(50% - 28px)' }}
               className="
-                absolute -top-6 left-1/2 -translate-x-1/2 z-50
+                absolute -top-6 z-50
                 flex flex-col items-center gap-1.5
               "
             >
