@@ -1,44 +1,15 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import { Check, X, Info } from 'lucide-react'
 import { useToastStore, type Toast, type ToastType } from '@/store/toastStore'
 
 // ============================================================
 // Toast + ToastContainer — sistema notifiche globale
 // ============================================================
 
-// ---- Icone per tipo ----
-
-function IconSuccess() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  )
-}
-
-function IconError() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function IconInfo() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-  )
-}
-
 const ICON: Record<ToastType, React.ReactNode> = {
-  success: <IconSuccess />,
-  error:   <IconError />,
-  info:    <IconInfo />,
+  success: <Check size={16} strokeWidth={2.5} />,
+  error:   <X size={16} strokeWidth={2.5} />,
+  info:    <Info size={16} strokeWidth={2.5} />,
 }
 
 const STYLE: Record<ToastType, string> = {
@@ -82,10 +53,7 @@ function ToastItem({ toast }: { toast: Toast }) {
         className="shrink-0 text-current opacity-40 hover:opacity-70 transition-opacity"
         aria-label="Chiudi"
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-          <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
+        <X size={13} strokeWidth={2.5} />
       </button>
     </motion.div>
   )
