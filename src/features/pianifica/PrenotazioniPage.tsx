@@ -123,11 +123,17 @@ export function PrenotazioniPage() {
                             <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
                               {p.nome}
                             </p>
-                            {p.data && (
-                              <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5">
-                                {new Date(p.data).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}
-                              </p>
-                            )}
+                            <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate">
+                              {[
+                                p.dettaglio?.numero,
+                                p.dettaglio?.da && p.dettaglio?.a
+                                  ? `${p.dettaglio.da} → ${p.dettaglio.a}`
+                                  : null,
+                                p.data
+                                  ? new Date(p.data).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+                                  : null,
+                              ].filter(Boolean).join(' · ')}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
                             {p.prezzo != null && (
