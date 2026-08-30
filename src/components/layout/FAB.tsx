@@ -16,7 +16,7 @@ const OPZIONI = [
     icon: NotebookPen,
     to: '/nuovo-ricordo',
     // in alto a sinistra
-    offset: { x: -74, y: -46 },
+    offset: { x: -104, y: -88 },
   },
   {
     id: 'viaggio',
@@ -24,7 +24,7 @@ const OPZIONI = [
     icon: Plane,
     to: '/viaggi/nuovo',
     // in alto a destra
-    offset: { x: 74, y: -46 },
+    offset: { x: 104, y: -88 },
   },
 ] as const
 
@@ -71,17 +71,17 @@ export function FAB() {
               "
             >
               <span className="
-                w-12 h-12 rounded-full
+                w-14 h-14 rounded-full
                 bg-white shadow-roamly-lg
                 flex items-center justify-center
                 text-roamly-g2
               ">
-                <Icon size={20} />
+                <Icon size={24} />
               </span>
               <span className="
-                px-2 py-0.5 rounded-full
+                px-2.5 py-1 rounded-full
                 bg-roamly-g0 text-white
-                font-dm-sans text-[10px] font-medium
+                font-dm-sans text-xs font-medium
                 whitespace-nowrap
               ">
                 {opz.label}
