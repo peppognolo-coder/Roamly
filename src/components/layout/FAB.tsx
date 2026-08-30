@@ -10,7 +10,7 @@ export function FAB() {
       className="
         absolute -top-6
         w-14 h-14 rounded-full
-        bg-roamly-g0 hover:bg-roamly-g1
+        bg-roamly-coral hover:bg-roamly-coral-dark
         shadow-roamly-lg
         flex items-center justify-center
         transition-all duration-200
