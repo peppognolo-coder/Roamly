@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Mail, Check } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useRegister } from '@/hooks/useAuthActions'
@@ -46,7 +47,7 @@ function EmailSentState({ email }: { email: string }) {
   return (
     <div className="flex flex-col items-center gap-4 py-4 text-center">
       <div className="w-16 h-16 rounded-full bg-roamly-g6 flex items-center justify-center">
-        <span className="text-3xl">📬</span>
+        <Mail size={28} className="text-roamly-g3" />
       </div>
       <div>
         <h3 className="font-lora text-xl font-semibold text-roamly-g0">
@@ -96,7 +97,7 @@ function PasswordStrengthHint({ password }: { password: string }) {
             }
           `}
         >
-          <span>{c.ok ? '✓' : '·'}</span>
+          {c.ok ? <Check size={10} strokeWidth={3} /> : <span>·</span>}
           {c.label}
         </span>
       ))}
