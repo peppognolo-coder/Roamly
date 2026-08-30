@@ -35,6 +35,19 @@ export function PrenotazionePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   function handleSubmit(data: PrenotazioneFormData) {
+    // Costruisce dettaglio includendo solo i campi effettivamente valorizzati,
+    // per non riempire il JSONB di stringhe vuote.
+    const dettaglio: Record<string, string> = {}
+    const campiExtra: (keyof PrenotazioneFormData)[] = [
+      'note', 'sottotipo', 'numero', 'da', 'a', 'orario',
+      'checkout', 'numero_conferma', 'numero_biglietti',
+      'numero_persone', 'numero_pratica', 'scadenza',
+    ]
+    for (const campo of campiExtra) {
+      const valore = data[campo]
+      if (valore) dettaglio[campo] = String(valore)
+    }
+
     const payload = {
       viaggio_id: viaggioId ?? '',
       tipo: data.tipo,
@@ -42,7 +55,7 @@ export function PrenotazionePage() {
       data: data.data || null,
       prezzo: data.prezzo ? Number(data.prezzo) : null,
       stato: data.stato,
-      dettaglio: data.note ? { note: data.note } : null,
+      dettaglio: Object.keys(dettaglio).length > 0 ? dettaglio : null,
     }
 
     if (isEdit && prenotazioneId) {
