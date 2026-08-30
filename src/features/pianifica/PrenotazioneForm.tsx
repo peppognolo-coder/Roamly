@@ -79,6 +79,25 @@ function labelNumero(sottotipo: string | undefined): string {
   return 'Numero (opzionale)'
 }
 
+function placeholderNome(
+  tipo: PrenotazioneFormData['tipo'],
+  sottotipo: string | undefined
+): string {
+  if (tipo === 'trasporto') {
+    if (sottotipo === 'aereo') return 'Es. Volo Milano–Barcellona'
+    if (sottotipo === 'treno') return 'Es. Treno Roma–Firenze'
+    if (sottotipo === 'bus')   return 'Es. Bus Milano–Praga'
+    if (sottotipo === 'auto')  return 'Es. Taxi aeroporto–hotel'
+    return 'Es. Traghetto Napoli–Capri'
+  }
+  if (tipo === 'alloggio') return 'Es. Hotel Barcellona Centro'
+  if (tipo === 'museo')    return 'Es. Museo del Prado'
+  if (tipo === 'evento')   return 'Es. Concerto in piazza'
+  if (tipo === 'food')     return 'Es. Cena da Can Culleretes'
+  if (tipo === 'visto')    return 'Es. Visto turistico USA'
+  return 'Es. Noleggio bici'
+}
+
 export function PrenotazioneForm({
   prenotazione,
   tipoIniziale,
@@ -162,7 +181,7 @@ export function PrenotazioneForm({
       {/* Nome */}
       <Input
         label="Nome"
-        placeholder="Es. Volo Milano-Barcellona"
+        placeholder={placeholderNome(tipo, sottotipo)}
         error={errors.nome?.message}
         {...register('nome')}
       />
@@ -183,7 +202,7 @@ export function PrenotazioneForm({
                     { value: 'aereo', label: 'Aereo' },
                     { value: 'treno', label: 'Treno' },
                     { value: 'bus',   label: 'Bus' },
-                    { value: 'auto',  label: 'Auto' },
+                    { value: 'auto',  label: 'Taxi/Uber' },
                     { value: 'altro', label: 'Altro' },
                   ] as const).map((opt) => (
                     <button
