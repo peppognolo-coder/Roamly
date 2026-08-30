@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { CalendarDays, PartyPopper } from 'lucide-react'
 import { Button }        from '@/components/ui/Button'
 import { StatoBadge }    from '@/features/viaggi/StatoBadge'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
@@ -60,7 +61,7 @@ export function CountdownSection({
         flex flex-col items-center gap-4 py-8 px-4 text-center
         bg-roamly-g7 rounded-2xl border border-roamly-g5 border-dashed
       ">
-        <span className="text-4xl">🗓️</span>
+        <CalendarDays size={36} className="text-roamly-g3" />
         <div className="flex flex-col gap-1">
           <p className="font-lora text-lg font-semibold text-roamly-g0">
             Nessun viaggio in programma
@@ -81,7 +82,7 @@ export function CountdownSection({
   const isDomani = giorniAlPartenza === 1
 
   const labelCountdown = (() => {
-    if (isOggi)   return 'Partenza oggi! 🎉'
+    if (isOggi)   return 'Partenza oggi!'
     if (isDomani) return 'Manca 1 giorno'
     if (giorniAlPartenza !== null) return `Mancano ${giorniAlPartenza} giorni`
     return 'Data non definita'
@@ -127,9 +128,11 @@ export function CountdownSection({
       <div className="flex items-center gap-3 pt-1 border-t border-white/10">
         <p className={`
           font-lora font-semibold text-white
+          flex items-center gap-2
           ${isOggi ? 'text-xl' : 'text-2xl'}
         `}>
           {labelCountdown}
+          {isOggi && <PartyPopper size={18} />}
         </p>
         {!isOggi && giorniAlPartenza !== null && (
           <p className="font-dm-mono text-[10px] text-white/40 ml-auto shrink-0">
