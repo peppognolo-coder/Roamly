@@ -112,7 +112,7 @@ export function useUpdateRicordo(ricordoId: string, viaggioId?: string) {
       }
 
       setError(null)
-      showSuccess('✓ Modifiche salvate')
+      showSuccess('Modifiche salvate')
 
       // Invalida sempre il detail del ricordo modificato
       queryClient.invalidateQueries({ queryKey: queryKeys.ricordi.detail(ricordoId) })
