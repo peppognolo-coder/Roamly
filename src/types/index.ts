@@ -234,3 +234,54 @@ export const MOOD_OPTIONS: MoodOption[] = [
   { value: 'entusiasta',  label: 'Entusiasta',   emoji: '🎉' },
   { value: 'ispirato',    label: 'Ispirato',     emoji: '🤩' },
 ]
+
+// ------------------------------------------------------------
+// TAPPE VIAGGIO
+// Alimenta sia la vista Itinerario (raggruppata per giorno) sia
+// la vista Attività (pin sulla mappa) — stessa tabella, due viste.
+// ------------------------------------------------------------
+
+export type CategoriaTappa = 'visita' | 'ristorante' | 'trasporto' | 'svago' | 'altro'
+
+export interface TappaViaggio {
+  id: string
+  user_id: string
+  viaggio_id: string
+  nome: string
+  categoria: CategoriaTappa
+  giorno: string | null       // ISO date 'YYYY-MM-DD'
+  ora: string | null          // 'HH:MM:SS'
+  lat: number | null
+  lng: number | null
+  indirizzo: string | null
+  note: string | null
+  ordine: number
+  created_at: string
+}
+
+export type NuovaTappaViaggio = Pick<
+  TappaViaggio,
+  'viaggio_id' | 'nome'
+> & Partial<Pick<
+  TappaViaggio,
+  'categoria' | 'giorno' | 'ora' | 'lat' | 'lng' | 'indirizzo' | 'note' | 'ordine'
+>>
+
+export type ModificaTappaViaggio = Partial<
+  Pick<TappaViaggio, 'nome' | 'categoria' | 'giorno' | 'ora' | 'lat' | 'lng' | 'indirizzo' | 'note' | 'ordine'>
+>
+
+// ------------------------------------------------------------
+// NOTE VIAGGIO
+// ------------------------------------------------------------
+
+export interface NotaViaggio {
+  id: string
+  user_id: string
+  viaggio_id: string
+  contenuto: string
+  created_at: string
+  updated_at: string
+}
+
+export type NuovaNotaViaggio = Pick<NotaViaggio, 'viaggio_id' | 'contenuto'>
