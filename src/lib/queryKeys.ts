@@ -99,6 +99,14 @@ export const queryKeys = {
     byViaggio: (viaggioId: string) => ['prenotazioni', 'list', viaggioId] as const,
   },
 
+  tappe: {
+    /** ['tappe'] — root */
+    all: ['tappe'] as const,
+
+    /** ['tappe', 'list', viaggioId] — tappe di un viaggio (Itinerario + Attività) */
+    byViaggio: (viaggioId: string) => ['tappe', 'list', viaggioId] as const,
+  },
+
   // ----------------------------------------------------------
   // STATISTICHE HOME
   // ----------------------------------------------------------
