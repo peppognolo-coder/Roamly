@@ -11,6 +11,7 @@ import { useViaggio, useStatisticheViaggio } from '@/hooks/useViaggi'
 import { useUpdateViaggio, useDeleteViaggio } from '@/hooks/useCrudViaggio'
 import { RicordoCard }           from '@/features/momenti/RicordoCard'
 import { RaccontoViaggio }       from './RaccontoViaggio'
+import { PianificaHub }          from '@/features/pianifica/PianificaHub'
 import { ShareCardViaggio }      from './ShareCardViaggio'
 import { useRicordi }       from '@/hooks/useRicordi'
 import { useCoversByViaggio, useCoverViaggio, useFotoCountByViaggio } from '@/hooks/useFoto'
@@ -42,7 +43,7 @@ export function ViaggioDetailPage() {
 
   const [isEditing, setIsEditing]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [tab, setTab]                 = useState<'ricordi' | 'racconto'>('racconto')
+  const [tab, setTab]                 = useState<'ricordi' | 'racconto' | 'pianifica'>('racconto')
   const [showShare, setShowShare]     = useState(false)
 
   // Chiude il form solo dopo che la mutation è completata con successo.
@@ -273,7 +274,7 @@ export function ViaggioDetailPage() {
             {/* Tab bar */}
             <div className="flex items-center justify-between">
               <div className="flex gap-1 bg-roamly-g7 rounded-xl p-1">
-                {(['racconto', 'ricordi'] as const).map((t) => (
+                {(['racconto', 'ricordi', 'pianifica'] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
@@ -287,10 +288,11 @@ export function ViaggioDetailPage() {
                       }
                     `}
                   >
-                    {t === 'racconto' ? 'Racconto' : 'Ricordi'}
+                    {t === 'racconto' ? 'Racconto' : t === 'ricordi' ? 'Ricordi' : 'Pianifica'}
                   </button>
                 ))}
               </div>
+              {tab !== 'pianifica' && (
               <button
                 onClick={() => navigate(`/nuovo-ricordo?viaggioId=${id}`)}
                 className="
@@ -308,6 +310,7 @@ export function ViaggioDetailPage() {
                 </svg>
                 Aggiungi
               </button>
+              )}
             </div>
 
             {/* Tab Racconto */}
@@ -322,6 +325,11 @@ export function ViaggioDetailPage() {
                 numRicordi={stats?.ricordi ?? 0}
                 isLoading={isLoadingRicordi}
               />
+            )}
+
+            {/* Tab Pianifica */}
+            {tab === 'pianifica' && (
+              <PianificaHub viaggioId={id ?? ''} />
             )}
 
             {/* Tab Ricordi */}
