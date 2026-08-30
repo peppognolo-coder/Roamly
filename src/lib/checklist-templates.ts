@@ -1,4 +1,6 @@
 import type { ChecklistItem } from '@/types'
+import { FileText, BatteryCharging, Pill, Shirt, Package } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 // ============================================================
 // ROAMLY — checklist-templates
@@ -36,11 +38,19 @@ export const TEMPLATE_BASE: TemplateChecklistItem[] = [
 ]
 
 export const CATEGORIA_LABEL: Record<CategoriaChecklist, string> = {
-  documenti:    '📄 Documenti',
-  tech:         '🔋 Tech',
-  salute:       '💊 Salute',
-  abbigliamento:'👕 Abbigliamento',
-  varie:        '📦 Varie',
+  documenti:      'Documenti',
+  tech:           'Tech',
+  salute:         'Salute',
+  abbigliamento:  'Abbigliamento',
+  varie:          'Varie',
+}
+
+export const CATEGORIA_ICON: Record<CategoriaChecklist, LucideIcon> = {
+  documenti:      FileText,
+  tech:           BatteryCharging,
+  salute:         Pill,
+  abbigliamento:  Shirt,
+  varie:          Package,
 }
 
 // ------------------------------------------------------------
