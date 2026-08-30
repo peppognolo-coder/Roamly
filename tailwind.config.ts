@@ -10,14 +10,21 @@ export default {
       colors: {
         'roamly-g0':   '#0C2A3D',
         'roamly-g1':   '#123F58',
-        'roamly-g2':   '#1A5875',
-        'roamly-g3':   '#0F7EA8',
+        'roamly-g2':   '#154B63',
+        'roamly-g3':   '#0B6F99',
         'roamly-g4':   '#5FB8D9',
         'roamly-g5':   '#A3DAEC',
         'roamly-g6':   '#DFF3FA',
         'roamly-g7':   '#F0FAFD',
         'roamly-bg':   '#F9FBFC',
         'roamly-text': '#16232E',
+
+        // Accento firma — usato con parsimonia sui punti che
+        // devono restare impressi: CTA principali, bottone "+",
+        // momenti speciali. Non sostituisce il blu, lo completa.
+        'roamly-coral':       '#FF6B4A',
+        'roamly-coral-dark':  '#E5563A',
+        'roamly-coral-light': '#FFE4DC',
       },
       fontFamily: {
         'lora':    ['Lora', 'Georgia', 'serif'],
