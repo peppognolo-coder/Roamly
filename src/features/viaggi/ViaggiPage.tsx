@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Plane } from 'lucide-react'
 import { PageLayout }  from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }   from '@/components/layout/BottomNav'
@@ -122,7 +123,7 @@ function EmptyState({ onCrea }: { onCrea: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-16 text-center">
       <div className="w-20 h-20 rounded-3xl bg-roamly-g7 shadow-roamly flex items-center justify-center">
-        <span className="text-4xl">✈️</span>
+        <Plane size={32} className="text-roamly-g3" />
       </div>
       <div className="flex flex-col gap-2">
         <h2 className="font-lora text-xl font-semibold text-roamly-g0">
