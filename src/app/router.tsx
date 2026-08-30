@@ -14,6 +14,8 @@ import { ViaggiPage }         from '@/features/viaggi/ViaggiPage'
 import { ViaggioDetailPage }  from '@/features/viaggi/ViaggioDetailPage'
 import { NuovoViaggioPage }   from '@/features/viaggi/NuovoViaggioPage'
 import { ValigiaPage }        from '@/features/pianifica/ValigiaPage'
+import { PrenotazioniPage }   from '@/features/pianifica/PrenotazioniPage'
+import { PrenotazionePage }   from '@/features/pianifica/PrenotazionePage'
 
 function Protected({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>
@@ -72,5 +74,18 @@ export const router = createBrowserRouter([
   {
     path: '/viaggi/:id/valigia',
     element: <Protected><ValigiaPage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/prenotazioni',
+    element: <Protected><PrenotazioniPage /></Protected>,
+  },
+  // NOTA: /prenotazioni/nuova deve precedere /prenotazioni/:prenotazioneId
+  {
+    path: '/viaggi/:id/prenotazioni/nuova',
+    element: <Protected><PrenotazionePage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/prenotazioni/:prenotazioneId',
+    element: <Protected><PrenotazionePage /></Protected>,
   },
 ])
