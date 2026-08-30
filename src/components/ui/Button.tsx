@@ -12,10 +12,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary: `
-    bg-roamly-g0 text-white
+    bg-roamly-coral text-white
     shadow-roamly
-    hover:bg-roamly-g1
-    active:bg-roamly-g2
+    hover:bg-roamly-coral-dark
+    active:bg-roamly-coral-dark
     disabled:bg-roamly-g5 disabled:text-white/60 disabled:shadow-none
   `,
   secondary: `
