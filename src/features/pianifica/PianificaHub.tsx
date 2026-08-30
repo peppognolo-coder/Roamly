@@ -43,12 +43,14 @@ const VOCI: VoceHub[] = [
     label: 'Itinerario',
     descrizione: 'Il percorso giorno per giorno',
     icon: Map,
+    path: 'itinerario',
   },
   {
     id: 'attivita',
     label: 'Attività',
     descrizione: 'Tutte le tappe sulla mappa',
     icon: MapPinned,
+    path: 'attivita',
   },
   {
     id: 'valigia',
