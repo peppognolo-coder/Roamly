@@ -285,3 +285,49 @@ export interface NotaViaggio {
 }
 
 export type NuovaNotaViaggio = Pick<NotaViaggio, 'viaggio_id' | 'contenuto'>
+
+// ------------------------------------------------------------
+// PRENOTAZIONI
+// Riusa la tabella `wallet` già esistente nello schema.
+// ------------------------------------------------------------
+
+export type TipoPrenotazione =
+  | 'trasporto' | 'alloggio' | 'museo' | 'evento' | 'food' | 'visto' | 'altro'
+
+export type StatoPrenotazione = 'confermato' | 'in_attesa' | 'annullato'
+
+export interface Prenotazione {
+  id: string
+  user_id: string
+  viaggio_id: string
+  tipo: TipoPrenotazione
+  nome: string
+  dettaglio: Record<string, string> | null
+  data: string | null      // ISO date 'YYYY-MM-DD'
+  prezzo: number | null
+  stato: StatoPrenotazione
+  created_at: string
+}
+
+export type NuovaPrenotazione = Pick<
+  Prenotazione, 'viaggio_id' | 'tipo' | 'nome'
+> & Partial<Pick<Prenotazione, 'dettaglio' | 'data' | 'prezzo' | 'stato'>>
+
+export type ModificaPrenotazione = Partial<
+  Pick<Prenotazione, 'nome' | 'tipo' | 'dettaglio' | 'data' | 'prezzo' | 'stato'>
+>
+
+export interface TipoPrenotazioneOption {
+  value: TipoPrenotazione
+  label: string
+}
+
+export const TIPO_PRENOTAZIONE_OPTIONS: TipoPrenotazioneOption[] = [
+  { value: 'trasporto', label: 'Mezzi di trasporto' },
+  { value: 'alloggio',  label: 'Alloggi' },
+  { value: 'museo',     label: 'Musei' },
+  { value: 'evento',    label: 'Eventi' },
+  { value: 'food',      label: 'Food' },
+  { value: 'visto',     label: 'Visti' },
+  { value: 'altro',     label: 'Altro' },
+]
