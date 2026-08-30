@@ -91,6 +91,14 @@ export const queryKeys = {
     byViaggio: (viaggioId: string) => ['checklist', 'list', viaggioId] as const,
   },
 
+  prenotazioni: {
+    /** ['prenotazioni'] — root */
+    all: ['prenotazioni'] as const,
+
+    /** ['prenotazioni', 'list', viaggioId] — prenotazioni di un viaggio */
+    byViaggio: (viaggioId: string) => ['prenotazioni', 'list', viaggioId] as const,
+  },
+
   // ----------------------------------------------------------
   // STATISTICHE HOME
   // ----------------------------------------------------------
