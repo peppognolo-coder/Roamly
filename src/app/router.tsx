@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import { AuthGuard }  from '@/components/auth/AuthGuard'
 import { GuestGuard } from '@/components/auth/GuestGuard'
@@ -16,6 +17,22 @@ import { NuovoViaggioPage }   from '@/features/viaggi/NuovoViaggioPage'
 import { ValigiaPage }        from '@/features/pianifica/ValigiaPage'
 import { PrenotazioniPage }   from '@/features/pianifica/PrenotazioniPage'
 import { PrenotazionePage }   from '@/features/pianifica/PrenotazionePage'
+import { ItinerarioPage }     from '@/features/pianifica/ItinerarioPage'
+import { TappaPage }          from '@/features/pianifica/TappaPage'
+
+// AttivitaPage carica Leaflet (~150 KB) — lazy, così pesa solo per
+// chi apre davvero la mappa, non su ogni utente al primo avvio.
+const AttivitaPage = lazy(() =>
+  import('@/features/pianifica/AttivitaPage').then((m) => ({ default: m.AttivitaPage }))
+)
+
+function MapLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-roamly-bg flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full border-2 border-roamly-g3 border-t-transparent animate-spin" />
+    </div>
+  )
+}
 
 function Protected({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>
@@ -87,5 +104,28 @@ export const router = createBrowserRouter([
   {
     path: '/viaggi/:id/prenotazioni/:prenotazioneId',
     element: <Protected><PrenotazionePage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/itinerario',
+    element: <Protected><ItinerarioPage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/attivita',
+    element: (
+      <Protected>
+        <Suspense fallback={<MapLoadingFallback />}>
+          <AttivitaPage />
+        </Suspense>
+      </Protected>
+    ),
+  },
+  // NOTA: /tappe/nuova deve precedere /tappe/:tappaId
+  {
+    path: '/viaggi/:id/tappe/nuova',
+    element: <Protected><TappaPage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/tappe/:tappaId',
+    element: <Protected><TappaPage /></Protected>,
   },
 ])
