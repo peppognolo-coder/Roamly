@@ -19,6 +19,7 @@ import { PrenotazioniPage }   from '@/features/pianifica/PrenotazioniPage'
 import { PrenotazionePage }   from '@/features/pianifica/PrenotazionePage'
 import { ItinerarioPage }     from '@/features/pianifica/ItinerarioPage'
 import { TappaPage }          from '@/features/pianifica/TappaPage'
+import { CalendarioPage }     from '@/features/pianifica/CalendarioPage'
 
 // AttivitaPage carica Leaflet (~150 KB) — lazy, così pesa solo per
 // chi apre davvero la mappa, non su ogni utente al primo avvio.
@@ -127,5 +128,9 @@ export const router = createBrowserRouter([
   {
     path: '/viaggi/:id/tappe/:tappaId',
     element: <Protected><TappaPage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/calendario',
+    element: <Protected><CalendarioPage /></Protected>,
   },
 ])
