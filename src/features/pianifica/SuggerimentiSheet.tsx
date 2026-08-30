@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   TEMPLATE_BASE,
   CATEGORIA_LABEL,
+  CATEGORIA_ICON,
   type TemplateChecklistItem,
   type CategoriaChecklist,
 } from '@/lib/checklist-templates'
@@ -153,9 +154,12 @@ export function SuggerimentiSheet({
                     Tutti i suggerimenti sono già nella tua checklist.
                   </p>
                 ) : (
-                  Object.entries(perCategoria).map(([cat, items]) => (
+                  Object.entries(perCategoria).map(([cat, items]) => {
+                    const CategoriaIcon = CATEGORIA_ICON[cat as CategoriaChecklist]
+                    return (
                     <div key={cat} className="flex flex-col gap-2">
-                      <p className="font-dm-sans text-xs font-semibold text-roamly-text/40 uppercase tracking-wider">
+                      <p className="font-dm-sans text-xs font-semibold text-roamly-text/40 uppercase tracking-wider flex items-center gap-1.5">
+                        <CategoriaIcon size={12} />
                         {CATEGORIA_LABEL[cat as CategoriaChecklist]}
                       </p>
                       {items.map((item) => {
@@ -198,7 +202,8 @@ export function SuggerimentiSheet({
                         )
                       })}
                     </div>
-                  ))
+                    )
+                  })
                 )}
               </div>
 
