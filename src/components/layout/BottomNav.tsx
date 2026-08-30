@@ -67,7 +67,7 @@ export function BottomNav() {
         w-full max-w-[430px]
         bg-roamly-bg/95 backdrop-blur-sm
         shadow-[0_-4px_20px_-4px_rgba(12,42,61,0.10)]
-        flex items-center justify-around
+        grid grid-cols-5 items-center
         h-20 px-2
         pointer-events-auto
       ">
@@ -76,8 +76,8 @@ export function BottomNav() {
           <NavTabItem key={item.to} item={item} />
         ))}
 
-        {/* Slot centrale FAB */}
-        <div className="relative flex items-center justify-center w-16">
+        {/* Slot centrale FAB — colonna dedicata, sempre al centro esatto */}
+        <div className="relative flex items-center justify-center">
           <FAB />
         </div>
 
