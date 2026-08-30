@@ -239,7 +239,7 @@ function BloccoFoto({
         {isSpeciale && (
           <div className="absolute top-4 left-4
             flex items-center gap-1.5 px-3 py-1.5
-            bg-amber-400/90 backdrop-blur-sm rounded-full">
+            bg-roamly-coral/90 backdrop-blur-sm rounded-full">
             <Sparkles size={12} className="text-white" />
             <span className="font-dm-sans text-xs font-semibold text-white">
               Momento speciale
@@ -328,7 +328,7 @@ function BloccoTesto({
 }) {
   const moodOpt = MOOD_OPTIONS.find((m) => m.value === rr.ricordo.mood)
   const gradient = isSpeciale
-    ? 'from-amber-400/20 to-yellow-300/10'
+    ? 'from-roamly-coral/20 to-orange-100/40'
     : `${MOOD_GRADIENT_LIGHT[rr.ricordo.mood] ?? 'from-roamly-g7 to-roamly-g6'}`
 
   // Altezza ridotta senza foto — non cerca di riempire la viewport
@@ -339,7 +339,7 @@ function BloccoTesto({
         relative mx-4 rounded-3xl overflow-hidden
         bg-gradient-to-br
         ${gradient}
-        ${isSpeciale ? 'border-2 border-amber-300 shadow-roamly-lg' : 'shadow-roamly'}
+        ${isSpeciale ? 'border-2 border-roamly-coral shadow-roamly-lg' : 'shadow-roamly'}
         text-left w-[calc(100%-32px)]
         focus:outline-none active:scale-[0.98] transition-transform duration-150
       `}
@@ -353,8 +353,8 @@ function BloccoTesto({
       {/* Badge speciale */}
       {isSpeciale && (
         <div className="flex items-center gap-1.5 px-5 pt-5 pb-0">
-          <Sparkles size={14} className="text-amber-500" />
-          <span className="font-dm-sans text-xs font-semibold text-amber-600
+          <Sparkles size={14} className="text-roamly-coral" />
+          <span className="font-dm-sans text-xs font-semibold text-roamly-coral-dark
             uppercase tracking-wider">
             Momento speciale
           </span>
