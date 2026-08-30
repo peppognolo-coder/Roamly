@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { Heart } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo } from '@/types'
 
@@ -109,7 +110,7 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
             {ricordo.titolo}
           </p>
           {ricordo.preferito && (
-            <span className="text-base shrink-0 leading-none mt-0.5">❤️</span>
+            <Heart size={14} className="fill-red-400 text-red-400 shrink-0 mt-0.5" />
           )}
         </div>
 
