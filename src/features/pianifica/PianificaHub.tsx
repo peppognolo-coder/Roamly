@@ -64,6 +64,7 @@ const VOCI: VoceHub[] = [
     label: 'Calendario',
     descrizione: 'Tutto il viaggio a colpo d\'occhio',
     icon: CalendarDays,
+    path: 'calendario',
   },
   {
     id: 'note',
