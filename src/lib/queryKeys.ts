@@ -107,6 +107,14 @@ export const queryKeys = {
     byViaggio: (viaggioId: string) => ['tappe', 'list', viaggioId] as const,
   },
 
+  noteViaggio: {
+    /** ['note-viaggio'] — root */
+    all: ['note-viaggio'] as const,
+
+    /** ['note-viaggio', 'list', viaggioId] — note di un viaggio */
+    byViaggio: (viaggioId: string) => ['note-viaggio', 'list', viaggioId] as const,
+  },
+
   // ----------------------------------------------------------
   // STATISTICHE HOME
   // ----------------------------------------------------------
