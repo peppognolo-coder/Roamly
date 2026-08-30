@@ -48,7 +48,7 @@ export function FAB() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-roamly-g0/20 backdrop-blur-[1px] z-40"
+            className="fixed inset-0 bg-roamly-g0/60 backdrop-blur-sm z-40"
           />
         )}
       </AnimatePresence>
