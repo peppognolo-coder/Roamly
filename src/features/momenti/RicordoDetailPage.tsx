@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { Heart } from 'lucide-react'
 import { PageLayout }     from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }      from '@/components/layout/BottomNav'
@@ -135,7 +136,10 @@ export function RicordoDetailPage() {
             "
             aria-label={ricordo.preferito ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
           >
-            <span className="text-lg">{ricordo.preferito ? '❤️' : '🤍'}</span>
+            <Heart
+              size={17}
+              className={ricordo.preferito ? 'fill-red-400 text-red-400' : 'text-roamly-text/40'}
+            />
           </button>
           <button
             onClick={() => setIsEditing(!isEditing)}
