@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Plus, NotebookPen, Plane } from 'lucide-react'
@@ -39,9 +40,13 @@ export function FAB() {
 
   return (
     <>
-      {/* Sfondo — tap per chiudere */}
+      {/* Sfondo — tap per chiudere. Renderizzato via portal in document.body:
+          la barra di navigazione ha backdrop-blur-sm, che in CSS crea un
+          nuovo "containing block" per i discendenti fixed — senza il
+          portal, lo sfondo resterebbe intrappolato nei confini della barra
+          invece di coprire l'intero schermo. */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && createPortal(
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -49,7 +54,8 @@ export function FAB() {
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
             className="fixed inset-0 bg-roamly-g0/60 backdrop-blur-sm z-40"
-          />
+          />,
+          document.body
         )}
       </AnimatePresence>
 
