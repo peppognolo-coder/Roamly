@@ -36,6 +36,7 @@ const VOCI: VoceHub[] = [
     label: 'Prenotazioni',
     descrizione: 'Trasporti, alloggi, musei, eventi...',
     icon: Briefcase,
+    path: 'prenotazioni',
   },
   {
     id: 'itinerario',
