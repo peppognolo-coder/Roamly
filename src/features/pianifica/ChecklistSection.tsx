@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, Sparkles } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { ChecklistItemRow } from './ChecklistItemRow'
 import { ChecklistInput }   from './ChecklistInput'
 import { SuggerimentiSheet } from './SuggerimentiSheet'
@@ -97,7 +98,7 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
         aria-expanded={isExpanded}
       >
         {/* Emoji + nome */}
-        <span className="text-xl shrink-0">{viaggio.cover_emoji ?? '✈️'}</span>
+        <span className="shrink-0 text-roamly-g2"><ViaggioCoverIcon value={viaggio.cover_emoji} size={18} /></span>
         <div className="flex-1 min-w-0">
           <p className="font-lora text-base font-semibold text-roamly-g0 truncate">
             {viaggio.nome}

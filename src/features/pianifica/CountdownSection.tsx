@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { CalendarDays, PartyPopper } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { Button }        from '@/components/ui/Button'
 import { StatoBadge }    from '@/features/viaggi/StatoBadge'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
@@ -34,9 +35,9 @@ export function CountdownSection({
       ">
         <div className="
           w-12 h-12 rounded-xl bg-white/15
-          flex items-center justify-center text-2xl shrink-0
+          flex items-center justify-center shrink-0 text-white
         ">
-          {viaggioAttivo.cover_emoji ?? '✈️'}
+          <ViaggioCoverIcon value={viaggioAttivo.cover_emoji} size={22} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-dm-sans text-xs text-white/60 uppercase tracking-wider mb-0.5">
@@ -106,8 +107,8 @@ export function CountdownSection({
     >
       {/* Label + emoji viaggio */}
       <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center text-xl shrink-0">
-          {prossimoViaggio.cover_emoji ?? '✈️'}
+        <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0 text-white">
+          <ViaggioCoverIcon value={prossimoViaggio.cover_emoji} size={20} />
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-dm-sans text-xs text-white/60 uppercase tracking-wider mb-0.5">
