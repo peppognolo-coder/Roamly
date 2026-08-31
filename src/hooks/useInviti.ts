@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
-import { getInvitoAttivo, createInvito } from '@/services/invitiService'
+import { queryKeys } from '@/lib/queryKeys'
+import { getInvitoAttivo, createInvito, getAnteprimaInvito, accettaInvito } from '@/services/invitiService'
 
 // ============================================================
 // ROAMLY — useInvitoLink
@@ -54,4 +57,48 @@ export function useInvitoLink(viaggioId: string, nomeViaggio: string) {
   }
 
   return { condividi, isLoading }
+}
+
+// ------------------------------------------------------------
+// useAnteprimaInvito — anteprima pubblica del viaggio, per la
+// pagina /invito/:token — funziona anche senza essere autenticati.
+// ------------------------------------------------------------
+
+export function useAnteprimaInvito(token: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.inviti.anteprima(token ?? ''),
+    queryFn: () => getAnteprimaInvito(token as string),
+    enabled: !!token,
+    retry: false,
+  })
+}
+
+// ------------------------------------------------------------
+// useAccettaInvito — entra come collaboratore, poi naviga al
+// viaggio. Usata dalla pagina /invito/:token quando l'utente è
+// già autenticato, e dal gestore dell'invito in sospeso dopo
+// login/registrazione (vedi App.tsx).
+// ------------------------------------------------------------
+
+export function useAccettaInvito() {
+  const navigate = useNavigate()
+  const { showSuccess, showError } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
+
+  async function accetta(token: string) {
+    setIsLoading(true)
+    const { viaggioId, error } = await accettaInvito(token)
+    setIsLoading(false)
+
+    if (error || !viaggioId) {
+      showError('Invito non valido o scaduto.')
+      return { success: false }
+    }
+
+    showSuccess('Ti sei unito al viaggio!')
+    navigate(`/viaggi/${viaggioId}`)
+    return { success: true }
+  }
+
+  return { accetta, isLoading }
 }
