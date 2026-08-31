@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
-import { getRicordiDelViaggio, getRicordo, getRicordiRecenti, getStatisticheUtente } from '@/services/ricordiService'
+import { getRicordiDelViaggio, getRicordo, getRicordiRecenti, getStatisticheUtente, getRicordiViaggioIds } from '@/services/ricordiService'
 import { useAuth } from '@/hooks/useAuth'
 
 // ============================================================
@@ -92,5 +92,25 @@ export function useStatisticheUtente() {
     },
     enabled: !!user,
     staleTime: 1000 * 60 * 5, // 5 minuti — cambia solo dopo create/delete
+  })
+}
+
+// ------------------------------------------------------------
+// useRicordiViaggioIds — solo i viaggio_id di tutti i ricordi,
+// per StatistichePage (Q2) → calcolaStatistichePersonali
+// ------------------------------------------------------------
+
+export function useRicordiViaggioIds() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: queryKeys.ricordi.viaggioIds(user?.id ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getRicordiViaggioIds()
+      if (error) throw new Error(error)
+      return data
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
   })
 }
