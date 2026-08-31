@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { RicordoCard } from '@/features/momenti/RicordoCard'
 import { GiornoLabel } from './GiornoLabel'
 import { SezioneVuota } from './TimelineVuota'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import type { SezioneViaggio as SezioneViaggioType } from '@/lib/diario-utils'
 
@@ -53,8 +54,10 @@ export function SezioneViaggio({ sezione, isExpanded, onToggle }: SezioneViaggio
           aria-expanded={isExpanded}
           aria-label={`${isExpanded ? 'Comprimi' : 'Espandi'} ${viaggio.nome}`}
         >
-          {/* Emoji copertina */}
-          <span className="text-xl shrink-0">{viaggio.cover_emoji ?? '✈️'}</span>
+          {/* Icona copertina */}
+          <span className="shrink-0 text-roamly-g2">
+            <ViaggioCoverIcon value={viaggio.cover_emoji} size={18} />
+          </span>
 
           {/* Nome + metadati */}
           <div className="flex-1 min-w-0">

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 
@@ -128,7 +129,7 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
               w-fit
             "
           >
-            <span className="text-base leading-none">{viaggio.cover_emoji ?? '✈️'}</span>
+            <ViaggioCoverIcon value={viaggio.cover_emoji} size={14} />
             <span className="font-dm-sans text-xs font-medium">
               Parte di: {viaggio.nome}
             </span>
