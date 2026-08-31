@@ -133,9 +133,9 @@ function EmptyState({ onCrea }: { onCrea: () => void }) {
           inizia con un primo passo.
         </p>
         <p className="font-dm-sans text-sm text-roamly-text/50 mt-1 leading-relaxed">
-          Crea il tuo primo viaggio e inizia a
+          Cerca la tua prossima meta,
           <br />
-          raccogliere i tuoi ricordi.
+          pianificala, raccontala dopo.
         </p>
       </div>
       <Button onClick={onCrea} size="lg">
