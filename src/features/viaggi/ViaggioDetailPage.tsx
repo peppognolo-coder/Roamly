@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Check, NotebookPen, Heart, Star } from 'lucide-react'
+import { Check, NotebookPen, Heart, Star, UserPlus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }       from '@/components/layout/PageLayout'
@@ -12,6 +12,8 @@ import { ViaggioForm }      from './ViaggioForm'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import { useViaggio, useStatisticheViaggio } from '@/hooks/useViaggi'
 import { useUpdateViaggio, useDeleteViaggio } from '@/hooks/useCrudViaggio'
+import { useMioRuolo }      from '@/hooks/useMembri'
+import { useInvitoLink }    from '@/hooks/useInviti'
 import { RicordoCard }           from '@/features/momenti/RicordoCard'
 import { RaccontoViaggio }       from './RaccontoViaggio'
 import { PianificaHub }          from '@/features/pianifica/PianificaHub'
@@ -43,6 +45,8 @@ export function ViaggioDetailPage() {
   const { updateViaggio, isLoading: isUpdating, isSuccess: updateSuccess, error: updateError } =
     useUpdateViaggio(id ?? '')
   const { deleteViaggio, isLoading: isDeleting, error: deleteError } = useDeleteViaggio()
+  const { data: mioRuolo } = useMioRuolo(id)
+  const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(id ?? '', viaggio?.nome ?? '')
 
   const [isEditing, setIsEditing]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -133,6 +137,27 @@ export function ViaggioDetailPage() {
             </button>
             <div className="flex-1" />
             {/* Azioni */}
+            {mioRuolo === 'proprietario' && (
+              <button
+                onClick={condividiInvito}
+                disabled={isInvitando}
+                className="
+                  w-9 h-9 rounded-xl flex items-center justify-center
+                  bg-roamly-g6
+                  hover:bg-roamly-g5 active:scale-[0.98]
+                  transition-all duration-150
+                  disabled:opacity-50
+                "
+                aria-label="Invita al viaggio"
+                title="Invita"
+              >
+                {isInvitando ? (
+                  <span className="w-3.5 h-3.5 rounded-full border-2 border-roamly-g1 border-t-transparent animate-spin" />
+                ) : (
+                  <UserPlus size={16} className="text-roamly-g1" />
+                )}
+              </button>
+            )}
             <button
               onClick={() => setShowShare(true)}
               className="
