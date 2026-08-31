@@ -115,6 +115,19 @@ export const queryKeys = {
     byViaggio: (viaggioId: string) => ['note-viaggio', 'list', viaggioId] as const,
   },
 
+  inviti: {
+    /** ['inviti', viaggioId] — invito attivo di un viaggio */
+    attivo: (viaggioId: string) => ['inviti', 'attivo', viaggioId] as const,
+  },
+
+  membri: {
+    /** ['membri', 'list', viaggioId] — membri di un viaggio */
+    byViaggio: (viaggioId: string) => ['membri', 'list', viaggioId] as const,
+
+    /** ['membri', 'ruolo', viaggioId, userId] — ruolo dell'utente corrente */
+    mioRuolo: (viaggioId: string, userId: string) => ['membri', 'ruolo', viaggioId, userId] as const,
+  },
+
   // ----------------------------------------------------------
   // STATISTICHE HOME
   // ----------------------------------------------------------
