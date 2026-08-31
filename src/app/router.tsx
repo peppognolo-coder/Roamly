@@ -11,6 +11,8 @@ import { NuovoRicordoPage }   from '@/features/momenti/NuovoRicordoPage'
 import { RicordoDetailPage }  from '@/features/momenti/RicordoDetailPage'
 import { PianificaPage }      from '@/features/pianifica/PianificaPage'
 import { ProfiloPage }        from '@/features/profilo/ProfiloPage'
+import { ImpostazioniAccountPage } from '@/features/profilo/ImpostazioniAccountPage'
+import { StatistichePage }    from '@/features/profilo/StatistichePage'
 import { ViaggiPage }         from '@/features/viaggi/ViaggiPage'
 import { ViaggioDetailPage }  from '@/features/viaggi/ViaggioDetailPage'
 import { NuovoViaggioPage }   from '@/features/viaggi/NuovoViaggioPage'
@@ -75,6 +77,14 @@ export const router = createBrowserRouter([
   {
     path: '/profilo',
     element: <Protected><ProfiloPage /></Protected>,
+  },
+  {
+    path: '/profilo/impostazioni',
+    element: <Protected><ImpostazioniAccountPage /></Protected>,
+  },
+  {
+    path: '/profilo/statistiche',
+    element: <Protected><StatistichePage /></Protected>,
   },
   {
     path: '/viaggi',
