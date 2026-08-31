@@ -118,6 +118,9 @@ export const queryKeys = {
   inviti: {
     /** ['inviti', viaggioId] — invito attivo di un viaggio */
     attivo: (viaggioId: string) => ['inviti', 'attivo', viaggioId] as const,
+
+    /** ['inviti', 'anteprima', token] — anteprima pubblica per /invito/:token */
+    anteprima: (token: string) => ['inviti', 'anteprima', token] as const,
   },
 
   membri: {
