@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Heart } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }     from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }      from '@/components/layout/BottomNav'
@@ -173,9 +174,9 @@ export function RicordoDetailPage() {
               <div className="
                 w-10 h-10 rounded-xl bg-white/15
                 flex items-center justify-center
-                text-xl shrink-0
+                shrink-0 text-white
               ">
-                {viaggio.cover_emoji ?? '✈️'}
+                <ViaggioCoverIcon value={viaggio.cover_emoji} size={18} />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-dm-sans text-xs text-white/60 uppercase tracking-wider mb-0.5">

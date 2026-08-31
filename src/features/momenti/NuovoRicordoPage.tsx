@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { MapPin } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }              from '@/components/layout/PageLayout'
 import { PageHeader }              from '@/components/layout/PageHeader'
 import { AnimatedPage }            from '@/components/layout/AnimatedPage'
@@ -131,7 +132,7 @@ export function NuovoRicordoPage() {
               transition-all duration-150
             "
           >
-            <span className="text-lg">{viaggioPreselezionato.cover_emoji ?? '✈️'}</span>
+            <ViaggioCoverIcon value={viaggioPreselezionato.cover_emoji} size={18} />
             <div className="flex-1 text-left">
               <p className="font-dm-sans text-xs text-roamly-text/50">Viaggio</p>
               <p className="font-dm-sans text-sm font-medium text-roamly-g0 leading-none">
@@ -281,8 +282,8 @@ function ViaggioSelectorPage({
             "
           >
             <div className="w-11 h-11 rounded-xl bg-roamly-g7
-              flex items-center justify-center text-xl shrink-0">
-              {v.cover_emoji ?? '✈️'}
+              flex items-center justify-center shrink-0 text-roamly-g2">
+              <ViaggioCoverIcon value={v.cover_emoji} size={20} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-dm-sans font-semibold text-sm text-roamly-text truncate">
