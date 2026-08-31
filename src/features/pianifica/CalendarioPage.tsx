@@ -12,6 +12,8 @@ import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
 import { usePrenotazioni } from '@/hooks/usePrenotazioni'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys } from '@/lib/queryKeys'
 import type { CategoriaTappa, TipoPrenotazione, TappaViaggio, Prenotazione } from '@/types'
 
 // ============================================================
@@ -63,6 +65,9 @@ export function CalendarioPage() {
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [] } = useTappe(viaggioId)
   const { data: prenotazioni = [] } = usePrenotazioni(viaggioId)
+
+  useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
+  useRealtimeSync('wallet', 'viaggio_id', viaggioId, [queryKeys.prenotazioni.byViaggio(viaggioId ?? '')])
 
   const eventiPerGiorno = useMemo(() => {
     const mappa = new Map<string, EventoGiorno[]>()

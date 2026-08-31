@@ -6,6 +6,8 @@ import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { Button }       from '@/components/ui/Button'
 import { useViaggio }   from '@/hooks/useViaggi'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys } from '@/lib/queryKeys'
 import {
   useNoteViaggio, useCreateNota, useUpdateNota, useDeleteNota,
 } from '@/hooks/useNoteViaggio'
@@ -27,6 +29,8 @@ export function NoteViaggioPage() {
   const { id: viaggioId } = useParams<{ id: string }>()
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: note = [], isLoading } = useNoteViaggio(viaggioId)
+
+  useRealtimeSync('note_viaggio', 'viaggio_id', viaggioId, [queryKeys.noteViaggio.byViaggio(viaggioId ?? '')])
 
   const { createNota, isLoading: isCreating, error: createError } = useCreateNota(viaggioId ?? '')
   const { updateNota, error: updateError } = useUpdateNota(viaggioId ?? '')

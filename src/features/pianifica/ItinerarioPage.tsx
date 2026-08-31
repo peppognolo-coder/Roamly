@@ -6,6 +6,8 @@ import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys }    from '@/lib/queryKeys'
 import type { CategoriaTappa, TappaViaggio } from '@/types'
 
 // ============================================================
@@ -33,6 +35,8 @@ export function ItinerarioPage() {
   const navigate = useNavigate()
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [], isLoading } = useTappe(viaggioId)
+
+  useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
 
   const giorniConTappe = Array.from(
     new Set(tappe.filter((t) => t.giorno).map((t) => t.giorno as string))

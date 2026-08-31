@@ -3,6 +3,8 @@ import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys } from '@/lib/queryKeys'
 import { ChecklistSection } from './ChecklistSection'
 
 // ============================================================
@@ -15,6 +17,8 @@ import { ChecklistSection } from './ChecklistSection'
 export function ValigiaPage() {
   const { id } = useParams<{ id: string }>()
   const { data: viaggio, isLoading } = useViaggio(id)
+
+  useRealtimeSync('checklist_items', 'viaggio_id', id, [queryKeys.checklist.byViaggio(id ?? '')])
 
   return (
     <PageLayout>

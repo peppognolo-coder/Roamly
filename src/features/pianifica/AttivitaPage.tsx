@@ -8,6 +8,8 @@ import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys }    from '@/lib/queryKeys'
 import 'leaflet/dist/leaflet.css'
 import '@/styles/leaflet-overrides.css'
 
@@ -55,7 +57,7 @@ function AdattaAiConfini({ punti }: { punti: [number, number][] }) {
 
 function GestoreClick({ onClick }: { onClick: (lat: number, lng: number) => void }) {
   useMapEvents({
-    click(e) {
+    click(e: L.LeafletMouseEvent) {
       onClick(e.latlng.lat, e.latlng.lng)
     },
   })
@@ -68,6 +70,8 @@ export function AttivitaPage() {
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [], isLoading } = useTappe(viaggioId)
   const [geoloc, setGeoloc] = useState<[number, number] | null>(null)
+
+  useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
 
   const tappeConPosizione = tappe.filter((t) => t.lat != null && t.lng != null)
   const punti: [number, number][] = tappeConPosizione.map((t) => [t.lat as number, t.lng as number])

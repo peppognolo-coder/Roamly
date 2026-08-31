@@ -9,6 +9,8 @@ import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { usePrenotazioni } from '@/hooks/usePrenotazioni'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys } from '@/lib/queryKeys'
 import { TIPO_PRENOTAZIONE_OPTIONS } from '@/types'
 import type { TipoPrenotazione, Prenotazione } from '@/types'
 
@@ -38,6 +40,8 @@ export function PrenotazioniPage() {
   const navigate = useNavigate()
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: prenotazioni = [], isLoading } = usePrenotazioni(viaggioId)
+
+  useRealtimeSync('wallet', 'viaggio_id', viaggioId, [queryKeys.prenotazioni.byViaggio(viaggioId ?? '')])
 
   const totaleSpeso = prenotazioni
     .filter((p) => p.stato !== 'annullato' && p.prezzo != null)
