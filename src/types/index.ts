@@ -41,7 +41,8 @@ export interface Profilo {
 
 export interface Viaggio {
   id: string
-  user_id: string
+  user_id: string | null   // nullable: SET NULL se il creatore elimina l'account
+                            // (i permessi reali passano da viaggio_membri, non da qui)
   nome: string
   destinazione: string | null
   paese: string | null
@@ -332,3 +333,26 @@ export const TIPO_PRENOTAZIONE_OPTIONS: TipoPrenotazioneOption[] = [
   { value: 'visto',     label: 'Visti' },
   { value: 'altro',     label: 'Altro' },
 ]
+
+// ------------------------------------------------------------
+// COLLABORAZIONE MULTI-UTENTE
+// ------------------------------------------------------------
+
+export type RuoloMembro = 'proprietario' | 'collaboratore'
+
+export interface ViaggioMembro {
+  id: string
+  viaggio_id: string
+  user_id: string
+  ruolo: RuoloMembro
+  joined_at: string
+}
+
+export interface InvitoViaggio {
+  id: string
+  viaggio_id: string
+  creato_da: string
+  token: string
+  scade_il: string
+  created_at: string
+}
