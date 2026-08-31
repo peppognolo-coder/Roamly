@@ -399,7 +399,7 @@ export function useDeleteFotoSingola(ricordoId: string, viaggioId?: string) {
   const mutation = useMutation({
     mutationFn: (foto: Foto) => {
       if (!user) throw new Error('Utente non autenticato')
-      return deleteSingolaFoto(foto, user.id)
+      return deleteSingolaFoto(foto)
     },
     onSuccess: (result) => {
       if (result.error) {
@@ -463,7 +463,7 @@ export function useSetCoverFoto(ricordoId: string, viaggioId?: string) {
   return useMutation({
     mutationFn: (fotoId: string) => {
       if (!user) throw new Error('Utente non autenticato')
-      return setCoverFoto(fotoId, ricordoId, user.id)
+      return setCoverFoto(fotoId, ricordoId)
     },
 
     // Aggiornamento ottimistico sulla cache byRicordo

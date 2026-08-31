@@ -156,7 +156,7 @@ export function useDeleteRicordo(viaggioId?: string) {
   const { showSuccess } = useToast()
 
   const mutation = useMutation({
-    mutationFn: (ricordoId: string) => deleteRicordo(ricordoId, user!.id),
+    mutationFn: (ricordoId: string) => deleteRicordo(ricordoId),
     onSuccess: (result, ricordoId) => {
       if (result.error) {
         setError('Impossibile eliminare il ricordo. Riprova.')

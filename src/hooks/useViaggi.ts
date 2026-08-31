@@ -22,7 +22,7 @@ export function useViaggi() {
   return useQuery({
     queryKey: queryKeys.viaggi.list(user?.id ?? ''),
     queryFn: async () => {
-      const { data, error } = await getViaggi(user!.id)
+      const { data, error } = await getViaggi()
       if (error) throw new Error(error)
       return arricchisciViagg(data)
     },

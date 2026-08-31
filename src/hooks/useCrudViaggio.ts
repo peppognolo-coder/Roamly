@@ -123,7 +123,7 @@ export function useDeleteViaggio() {
   const { showSuccess } = useToast()
 
   const mutation = useMutation({
-    mutationFn: (viaggioId: string) => deleteViaggio(viaggioId, user!.id),
+    mutationFn: (viaggioId: string) => deleteViaggio(viaggioId),
     onSuccess: (result, viaggioId) => {
       if (result.error) {
         setError('Impossibile eliminare il viaggio. Riprova.')
