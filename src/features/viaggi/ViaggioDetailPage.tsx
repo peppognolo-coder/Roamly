@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Check, NotebookPen, Heart, Star, UserPlus } from 'lucide-react'
+import { Check, NotebookPen, Heart, Star, UserPlus, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }       from '@/components/layout/PageLayout'
@@ -156,6 +156,21 @@ export function ViaggioDetailPage() {
                 ) : (
                   <UserPlus size={16} className="text-roamly-g1" />
                 )}
+              </button>
+            )}
+            {mioRuolo && (
+              <button
+                onClick={() => navigate(`/viaggi/${id}/membri`)}
+                className="
+                  w-9 h-9 rounded-xl flex items-center justify-center
+                  bg-roamly-g6
+                  hover:bg-roamly-g5 active:scale-[0.98]
+                  transition-all duration-150
+                "
+                aria-label="Membri del viaggio"
+                title="Membri"
+              >
+                <Users size={16} className="text-roamly-g1" />
               </button>
             )}
             <button
