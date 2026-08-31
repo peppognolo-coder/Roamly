@@ -67,6 +67,9 @@ export const queryKeys = {
     /** ['ricordi', 'recenti', userId] — ultimi N ricordi (Home + B45) */
     recenti: (userId: string) => ['ricordi', 'recenti', userId] as const,
 
+    /** ['ricordi', 'viaggio-ids', userId] — solo i viaggio_id, per Q2 statistiche personali */
+    viaggioIds: (userId: string) => ['ricordi', 'viaggio-ids', userId] as const,
+
     /** ['ricordi', 'preferiti', userId] — ricordi con preferito=true
      *  [V2] Non usata nel MVP: il filtro preferiti del Diario lavora su cache locale */
     preferiti: (userId: string) => ['ricordi', 'preferiti', userId] as const,
