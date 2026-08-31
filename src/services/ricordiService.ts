@@ -27,6 +27,23 @@ import {
 const ORDER_DATA_DESC = { ascending: false } as const
 
 // ------------------------------------------------------------
+// getRicordiViaggioIds — solo i viaggio_id di tutti i ricordi
+// visibili all'utente (RLS li scopa già ai viaggi di cui è
+// membro). Usata per calcolare "meta con più ricordi" in
+// StatistichePage — leggera, un solo campo per riga.
+// ------------------------------------------------------------
+
+export async function getRicordiViaggioIds(): Promise<{
+  data: string[]
+  error: string | null
+}> {
+  const { data, error } = await supabase.from('ricordi').select('viaggio_id')
+
+  if (error) return { data: [], error: error.message }
+  return { data: (data ?? []).map((r) => r.viaggio_id as string), error: null }
+}
+
+// ------------------------------------------------------------
 // getRicordiDelViaggio — lista ricordi per viaggio
 // Ordinamento: data DESC, created_at DESC
 // ------------------------------------------------------------
