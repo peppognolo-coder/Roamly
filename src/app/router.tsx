@@ -23,6 +23,7 @@ import { ItinerarioPage }     from '@/features/pianifica/ItinerarioPage'
 import { TappaPage }          from '@/features/pianifica/TappaPage'
 import { CalendarioPage }     from '@/features/pianifica/CalendarioPage'
 import { NoteViaggioPage }    from '@/features/pianifica/NoteViaggioPage'
+import { InvitoPage }         from '@/features/inviti/InvitoPage'
 
 // AttivitaPage carica Leaflet (~150 KB) — lazy, così pesa solo per
 // chi apre davvero la mappa, non su ogni utente al primo avvio.
@@ -47,6 +48,12 @@ function Public({ children }: { children: React.ReactNode }) {
 }
 
 export const router = createBrowserRouter([
+  // ── Libera (funziona sia autenticati che no) ──────────────
+  {
+    path: '/invito/:token',
+    element: <InvitoPage />,
+  },
+
   // ── Pubbliche (solo per utenti NON autenticati) ──────────
   {
     path: '/login',
