@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { Plane } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { StatoBadge } from '@/features/viaggi/StatoBadge'
 import { calcolaGiorniAlPartenza, formatDataViaggio } from '@/lib/viaggi-utils'
 import type { ViaggioConStato } from '@/types'
@@ -60,9 +61,9 @@ export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps
         <div className="
           w-11 h-11 rounded-xl bg-white/15
           flex items-center justify-center
-          text-xl shrink-0
+          shrink-0 text-white
         ">
-          {viaggio.cover_emoji ?? '✈️'}
+          <ViaggioCoverIcon value={viaggio.cover_emoji} size={20} />
         </div>
 
         <div className="flex-1 min-w-0 pt-0.5">
