@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { NotebookPen, Heart, ChevronRight } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 
@@ -96,7 +97,7 @@ export function RicordoDelGiornoCard({
         <div className="flex items-center gap-1.5 mt-0.5">
           {viaggio && (
             <>
-              <span className="text-xs leading-none">{viaggio.cover_emoji ?? '✈️'}</span>
+              <ViaggioCoverIcon value={viaggio.cover_emoji} size={13} />
               <span className="font-dm-sans text-[10px] text-roamly-text/40 truncate">
                 {viaggio.nome}
               </span>
