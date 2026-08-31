@@ -14,6 +14,8 @@ import { useViaggio, useStatisticheViaggio } from '@/hooks/useViaggi'
 import { useUpdateViaggio, useDeleteViaggio } from '@/hooks/useCrudViaggio'
 import { useMioRuolo }      from '@/hooks/useMembri'
 import { useInvitoLink }    from '@/hooks/useInviti'
+import { useRealtimeSync }  from '@/hooks/useRealtimeSync'
+import { queryKeys }        from '@/lib/queryKeys'
 import { RicordoCard }           from '@/features/momenti/RicordoCard'
 import { RaccontoViaggio }       from './RaccontoViaggio'
 import { PianificaHub }          from '@/features/pianifica/PianificaHub'
@@ -47,6 +49,9 @@ export function ViaggioDetailPage() {
   const { deleteViaggio, isLoading: isDeleting, error: deleteError } = useDeleteViaggio()
   const { data: mioRuolo } = useMioRuolo(id)
   const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(id ?? '', viaggio?.nome ?? '')
+
+  useRealtimeSync('viaggi', 'id', id, [queryKeys.viaggi.detail(id ?? '')])
+  useRealtimeSync('ricordi', 'viaggio_id', id, [queryKeys.ricordi.byViaggio(id ?? '')])
 
   const [isEditing, setIsEditing]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
