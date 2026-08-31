@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, Search, Compass, ChevronRight } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -94,12 +94,30 @@ export function HomePage() {
                 Benvenuto in Roamly
               </p>
               <p className="font-lora text-xl font-semibold text-roamly-g0">
-                Ogni viaggio inizia da una storia.
+                Cerca. Pianifica. Racconta.
               </p>
-              <p className="font-dm-sans text-sm text-roamly-text/50 mt-1 leading-relaxed">
-                Crea il tuo primo viaggio e inizia
-                <br />a costruire il tuo diario.
+              <p className="font-dm-sans text-sm text-roamly-text/50 mt-1 leading-relaxed max-w-[260px]">
+                Trova ispirazione per la tua prossima meta, organizza ogni
+                dettaglio, e trasforma i ricordi in un racconto da rileggere.
               </p>
+            </div>
+
+            {/* Trittico Cerca → Pianifica → Racconta */}
+            <div className="flex items-center gap-2 text-roamly-text/30">
+              <div className="flex flex-col items-center gap-1.5">
+                <Search size={18} className="text-roamly-g3" />
+                <span className="font-dm-sans text-[11px] text-roamly-text/45">Cerca</span>
+              </div>
+              <ChevronRight size={14} />
+              <div className="flex flex-col items-center gap-1.5">
+                <Compass size={18} className="text-roamly-g3" />
+                <span className="font-dm-sans text-[11px] text-roamly-text/45">Pianifica</span>
+              </div>
+              <ChevronRight size={14} />
+              <div className="flex flex-col items-center gap-1.5">
+                <BookOpen size={18} className="text-roamly-g3" />
+                <span className="font-dm-sans text-[11px] text-roamly-text/45">Racconta</span>
+              </div>
             </div>
 
             <Button onClick={() => navigate('/viaggi/nuovo')} size="lg">
