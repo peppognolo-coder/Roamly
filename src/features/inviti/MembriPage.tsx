@@ -9,6 +9,8 @@ import { useAuth }      from '@/hooks/useAuth'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useMioRuolo, useMembriViaggio, useRimuoviMembro } from '@/hooks/useMembri'
 import { useInvitoLink } from '@/hooks/useInviti'
+import { useRealtimeSync } from '@/hooks/useRealtimeSync'
+import { queryKeys } from '@/lib/queryKeys'
 import type { MembroConProfilo } from '@/services/membriService'
 
 // ============================================================
@@ -34,6 +36,8 @@ export function MembriPage() {
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: mioRuolo } = useMioRuolo(viaggioId)
   const { data: membri = [], isLoading } = useMembriViaggio(viaggioId)
+
+  useRealtimeSync('viaggio_membri', 'viaggio_id', viaggioId, [queryKeys.membri.byViaggio(viaggioId ?? '')])
   const { rimuovi, isLoading: isRimuovendo } = useRimuoviMembro(viaggioId ?? '')
   const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(viaggioId ?? '', viaggio?.nome ?? '')
 
