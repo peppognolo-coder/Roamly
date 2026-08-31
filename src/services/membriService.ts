@@ -3,10 +3,12 @@ import type { ViaggioMembro, RuoloMembro } from '@/types'
 
 // ============================================================
 // ROAMLY — Membri Viaggio Service
-// Base minimale per M2 (serve solo a sapere se l'utente corrente
-// è proprietario, per mostrare o meno il bottone "Invita").
-// Verrà esteso nel Blocco M4 con la gestione completa dei membri.
 // ============================================================
+
+export interface MembroConProfilo extends ViaggioMembro {
+  display_name: string | null
+  avatar_url: string | null
+}
 
 export async function getMioRuolo(
   viaggioId: string,
@@ -23,16 +25,62 @@ export async function getMioRuolo(
   return { ruolo: (data as { ruolo: RuoloMembro } | null)?.ruolo ?? null, error: null }
 }
 
+// ------------------------------------------------------------
+// Lista membri, arricchita con nome/foto dal profilo.
+// Due query separate invece di un embed PostgREST: viaggio_membri
+// e profili non hanno una relazione diretta (entrambe puntano a
+// auth.users, non l'una all'altra), quindi niente join automatico.
+// ------------------------------------------------------------
+
 export async function getMembriViaggio(viaggioId: string): Promise<{
-  data: ViaggioMembro[]
+  data: MembroConProfilo[]
   error: string | null
 }> {
-  const { data, error } = await supabase
+  const { data: membri, error } = await supabase
     .from('viaggio_membri')
     .select('*')
     .eq('viaggio_id', viaggioId)
     .order('joined_at', { ascending: true })
 
   if (error) return { data: [], error: error.message }
-  return { data: data as ViaggioMembro[], error: null }
+  if (!membri || membri.length === 0) return { data: [], error: null }
+
+  const userIds = membri.map((m) => m.user_id)
+  const { data: profili, error: errProfili } = await supabase
+    .from('profili')
+    .select('id, display_name, avatar_url')
+    .in('id', userIds)
+
+  if (errProfili) return { data: [], error: errProfili.message }
+
+  const profiliMap = new Map(
+    (profili ?? []).map((p) => [p.id, p as { id: string; display_name: string | null; avatar_url: string | null }])
+  )
+
+  const arricchiti: MembroConProfilo[] = membri.map((m) => ({
+    ...(m as ViaggioMembro),
+    display_name: profiliMap.get(m.user_id)?.display_name ?? null,
+    avatar_url:    profiliMap.get(m.user_id)?.avatar_url ?? null,
+  }))
+
+  return { data: arricchiti, error: null }
+}
+
+// ------------------------------------------------------------
+// Rimuove un membro (o se stessi, per uscire dal viaggio) — la
+// policy RLS decide chi può farlo: se stessi sempre, altri solo
+// se chi chiama è il proprietario.
+// ------------------------------------------------------------
+
+export async function rimuoviMembro(
+  viaggioId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('viaggio_membri')
+    .delete()
+    .eq('viaggio_id', viaggioId)
+    .eq('user_id', userId)
+
+  return { error: error?.message ?? null }
 }
