@@ -2,6 +2,7 @@ import { PageLayout }    from '@/components/layout/PageLayout'
 import { PageHeader }    from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { ViaggioForm }   from './ViaggioForm'
+import { DEFAULT_COVER_ICON_ID } from '@/lib/viaggio-cover-icons'
 import { useCreateViaggio } from '@/hooks/useCrudViaggio'
 import type { ViaggioFormData } from './ViaggioForm'
 
@@ -20,7 +21,7 @@ export function NuovoViaggioPage() {
       paese:        data.paese        || null,
       data_inizio:  data.data_inizio  || null,
       data_fine:    data.data_fine    || null,
-      cover_emoji:  data.cover_emoji  ?? '✈️',
+      cover_emoji:  data.cover_emoji  ?? DEFAULT_COVER_ICON_ID,
       budget_totale: null,
     })
   }

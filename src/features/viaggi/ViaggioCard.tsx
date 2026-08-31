@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
+import { ChevronRight } from 'lucide-react'
 import { StatoBadge } from './StatoBadge'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import type { ViaggioConStato } from '@/types'
 
@@ -16,7 +18,6 @@ export function ViaggioCard({ viaggio }: ViaggioCardProps) {
   const navigate = useNavigate()
 
   const dataFormattata = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
-  const emoji = viaggio.cover_emoji ?? '✈️'
 
   return (
     <div
@@ -27,24 +28,22 @@ export function ViaggioCard({ viaggio }: ViaggioCardProps) {
       className="
         flex items-center gap-4 p-4
         bg-white rounded-2xl
-        border border-roamly-g6
-        shadow-sm shadow-roamly-g0/5
+        shadow-roamly
         cursor-pointer
-        hover:shadow-md hover:border-roamly-g5
-        active:scale-[0.99]
+        hover:shadow-roamly-lg
+        active:scale-[0.98]
         transition-all duration-150
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
     >
-      {/* Emoji cover */}
+      {/* Icona copertina */}
       <div className="
         w-12 h-12 rounded-xl
         bg-roamly-g7
         flex items-center justify-center
-        text-2xl shrink-0
-        border border-roamly-g6
+        shrink-0 text-roamly-g2
       ">
-        {emoji}
+        <ViaggioCoverIcon value={viaggio.cover_emoji} size={22} />
       </div>
 
       {/* Info */}
@@ -68,19 +67,7 @@ export function ViaggioCard({ viaggio }: ViaggioCardProps) {
       </div>
 
       {/* Chevron */}
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="text-roamly-text/20 shrink-0"
-      >
-        <path d="M9 18l6-6-6-6" />
-      </svg>
+      <ChevronRight size={16} className="text-roamly-text/20 shrink-0" />
     </div>
   )
 }

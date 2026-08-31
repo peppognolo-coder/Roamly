@@ -2,6 +2,7 @@ import { useMemo }           from 'react'
 import { useNavigate }       from 'react-router-dom'
 import { motion }            from 'framer-motion'
 import { Sparkles, Image, ChevronRight, BookOpen } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { buildRacconto }     from '@/lib/racconto-utils'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import { MOOD_OPTIONS }      from '@/types'
@@ -61,7 +62,7 @@ function Copertina({
   numFoto:       number
   durataGiorni:  number | null
 }) {
-  const emoji   = viaggio.cover_emoji ?? '✈️'
+  const coverValue = viaggio.cover_emoji
   const dataStr = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
 
   return (
@@ -85,7 +86,9 @@ function Copertina({
         /* Fallback: gradiente brand con emoji centrata */
         <div className="absolute inset-0 bg-gradient-to-br from-roamly-g0 to-roamly-g1
           flex items-center justify-center">
-          <span className="text-[120px] leading-none opacity-20 select-none">{emoji}</span>
+          <span className="text-white opacity-20 select-none">
+            <ViaggioCoverIcon value={coverValue} size={200} />
+          </span>
         </div>
       )}
 
@@ -93,8 +96,8 @@ function Copertina({
       <div className="relative z-10 flex flex-col h-full px-6">
 
         {/* Emoji in alto — ancorata al top */}
-        <div className="pt-16 pb-0">
-          <span className="text-4xl leading-none">{emoji}</span>
+        <div className="pt-16 pb-0 text-white">
+          <ViaggioCoverIcon value={coverValue} size={36} />
         </div>
 
         {/* Testo principale — ancorato in basso */}

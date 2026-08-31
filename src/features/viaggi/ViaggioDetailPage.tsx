@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Check, NotebookPen, Heart, Star } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }       from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }        from '@/components/layout/BottomNav'
@@ -101,7 +102,7 @@ export function ViaggioDetailPage() {
     if (id) deleteViaggio(id)
   }
 
-  const emoji         = viaggio.cover_emoji ?? '✈️'
+  const coverValue      = viaggio.cover_emoji
   const dataFormattata = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const totFoto        = fotoCount ? Array.from(fotoCount.values()).reduce((a, b) => a + b, 0) : 0
 
@@ -183,19 +184,21 @@ export function ViaggioDetailPage() {
                     alt=""
                     className="w-full h-full object-cover"
                   />
-                  {/* Emoji badge sovrapposta in basso a sinistra */}
+                  {/* Icona copertina sovrapposta in basso a sinistra */}
                   <div className="
                     absolute bottom-0.5 right-0.5
                     w-6 h-6 rounded-full
                     bg-black/40 backdrop-blur-sm
                     flex items-center justify-center
-                    text-sm leading-none
+                    text-white
                   ">
-                    {emoji}
+                    <ViaggioCoverIcon value={coverValue} size={13} />
                   </div>
                 </>
               ) : (
-                emoji
+                <span className="text-roamly-g3">
+                  <ViaggioCoverIcon value={coverValue} size={28} />
+                </span>
               )}
             </div>
             <div className="flex-1 min-w-0 pt-1">

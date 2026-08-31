@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion }  from 'framer-motion'
 import { toPng }                   from 'html-to-image'
+import { ViaggioCoverIcon }         from '@/components/ui/ViaggioCoverIcon'
 import { formatDataViaggio }        from '@/lib/viaggi-utils'
 import { calcolaDurataViaggio }     from '@/lib/viaggi-utils'
 import type { ViaggioConStato }     from '@/types'
@@ -80,7 +81,7 @@ function CardContent({
 }: CardContentProps) {
   const durataGiorni = calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const dataStr      = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
-  const emoji        = viaggio.cover_emoji ?? '✈️'
+  const coverValue   = viaggio.cover_emoji
   const isStory      = formato === 'story'
 
   // Font sizes scalati sulla larghezza reale (1080px base)
@@ -182,11 +183,11 @@ function CardContent({
         {/* Emoji/icona viaggio — solo se no cover */}
         {!coverData && (
           <div style={{
-            fontSize: fs.emoji,
-            lineHeight: 1,
-            textAlign: isStory ? 'center' : 'left',
+            display: 'flex',
+            justifyContent: isStory ? 'center' : 'flex-start',
+            color: 'white',
           }}>
-            {emoji}
+            <ViaggioCoverIcon value={coverValue} size={fs.emoji} />
           </div>
         )}
 
@@ -282,8 +283,8 @@ function CardContent({
           }}>
             roamly.app
           </span>
-          <span style={{ fontSize: fs.brand * 1.2, opacity: 0.4 }}>
-            {emoji}
+          <span style={{ opacity: 0.4, color: 'white', display: 'flex' }}>
+            <ViaggioCoverIcon value={coverValue} size={fs.brand * 1.2} />
           </span>
         </div>
 

@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
+import { COVER_ICON_OPTIONS, DEFAULT_COVER_ICON_ID } from '@/lib/viaggio-cover-icons'
 import type { ViaggioConStato } from '@/types'
 
 // ============================================================
@@ -11,9 +13,6 @@ import type { ViaggioConStato } from '@/types'
 // In modalità create: solo Nome obbligatorio (< 60 secondi).
 // In modalità edit: tutti i campi modificabili.
 // ============================================================
-
-// Set emoji predefinite approvate
-export const COVER_EMOJI_OPTIONS = ['✈️', '🌍', '🏝️', '🏔️', '🏙️', '🚂', '🚗', '🎒', '📸', '🌅']
 
 // ------------------------------------------------------------
 // Schema Zod
@@ -90,7 +89,7 @@ export function ViaggioForm({
       paese:        viaggio?.paese        ?? '',
       data_inizio:  viaggio?.data_inizio  ?? '',
       data_fine:    viaggio?.data_fine    ?? '',
-      cover_emoji:  viaggio?.cover_emoji  ?? '✈️',
+      cover_emoji:  viaggio?.cover_emoji  ?? DEFAULT_COVER_ICON_ID,
     },
   })
 
@@ -105,7 +104,7 @@ export function ViaggioForm({
         </div>
       )}
 
-      {/* Emoji picker */}
+      {/* Icona picker */}
       <div className="flex flex-col gap-2">
         <label className="text-sm font-dm-sans font-medium text-roamly-text/70">
           Icona viaggio
@@ -115,25 +114,28 @@ export function ViaggioForm({
           control={control}
           render={({ field }) => (
             <div className="flex gap-2 flex-wrap">
-              {COVER_EMOJI_OPTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => field.onChange(emoji)}
-                  className={`
-                    w-10 h-10 rounded-xl text-xl
-                    flex items-center justify-center
-                    border transition-all duration-150
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-                    ${field.value === emoji
-                      ? 'bg-roamly-g0 border-roamly-g0 shadow-md scale-110'
-                      : 'bg-roamly-g7 border-roamly-g5 hover:border-roamly-g3'
-                    }
-                  `}
-                >
-                  {emoji}
-                </button>
-              ))}
+              {COVER_ICON_OPTIONS.map((opt) => {
+                const Icon = opt.icon
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => field.onChange(opt.value)}
+                    className={`
+                      w-10 h-10 rounded-xl
+                      flex items-center justify-center
+                      border transition-all duration-150
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+                      ${field.value === opt.value
+                        ? 'bg-roamly-g0 border-roamly-g0 shadow-md scale-110 text-white'
+                        : 'bg-roamly-g7 border-roamly-g5 hover:border-roamly-g3 text-roamly-text/60'
+                      }
+                    `}
+                  >
+                    <Icon size={18} />
+                  </button>
+                )
+              })}
             </div>
           )}
         />
@@ -195,7 +197,7 @@ export function ViaggioForm({
       {/* Anteprima selezionata */}
       {!isEdit && (
         <div className="flex items-center gap-3 px-4 py-3 bg-roamly-g7 rounded-xl shadow-roamly">
-          <span className="text-2xl">{selectedEmoji}</span>
+          <ViaggioCoverIcon value={selectedEmoji} size={24} className="text-roamly-g2" />
           <div>
             <p className="font-dm-sans text-sm font-medium text-roamly-text">
               Anteprima viaggio
