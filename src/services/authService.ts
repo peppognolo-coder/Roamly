@@ -114,10 +114,17 @@ export async function getCurrentSession() {
 // ------------------------------------------------------------
 // Eliminazione account
 // Orchestrazione lato client:
-//   1. elimina ogni viaggio dell'utente (riusa deleteViaggio,
-//      che gestisce già Storage fisico + righe foto + cascata)
-//   2. chiama la funzione SQL che pulisce i dati residui non
-//      legati a un viaggio e cancella l'utente da auth.users
+//   1. Trova i viaggi di cui l'utente è proprietario
+//   2. Per ciascuno, conta i membri: se è l'UNICO membro (viaggio
+//      "solo suo"), lo elimina del tutto (riusa deleteViaggio, che
+//      gestisce Storage fisico + righe foto + cascata). Se invece
+//      ci sono altri collaboratori, il viaggio NON viene toccato —
+//      resta a loro disposizione. La proprietà passa automaticamente
+//      al collaboratore più anziano tramite un trigger lato database,
+//      quando la sua riga in viaggio_membri viene rimossa (a cascata,
+//      quando l'account viene eliminato al passo 3).
+//   3. chiama la funzione SQL che pulisce i dati residui non legati
+//      a un viaggio e cancella l'utente da auth.users
 // Se un passaggio fallisce, si interrompe senza proseguire —
 // nessuna cancellazione parziale silenziosa.
 // ------------------------------------------------------------
@@ -125,17 +132,31 @@ export async function getCurrentSession() {
 export async function deleteAccount(
   userId: string
 ): Promise<{ error: string | null }> {
-  const { data: viaggi, error: errViaggi } = await supabase
-    .from('viaggi')
-    .select('id')
+  const { data: viaggiProprietario, error: errViaggi } = await supabase
+    .from('viaggio_membri')
+    .select('viaggio_id')
     .eq('user_id', userId)
+    .eq('ruolo', 'proprietario')
 
   if (errViaggi) {
     return { error: `Impossibile leggere i viaggi: ${errViaggi.message}` }
   }
 
-  for (const v of viaggi ?? []) {
-    const { error } = await deleteViaggio(v.id, userId)
+  for (const { viaggio_id } of viaggiProprietario ?? []) {
+    const { count, error: errCount } = await supabase
+      .from('viaggio_membri')
+      .select('id', { count: 'exact', head: true })
+      .eq('viaggio_id', viaggio_id)
+
+    if (errCount) {
+      return { error: `Impossibile verificare i collaboratori: ${errCount.message}` }
+    }
+
+    // Più di un membro → viaggio condiviso, non lo tocchiamo.
+    // La proprietà passerà automaticamente a un collaboratore.
+    if ((count ?? 1) > 1) continue
+
+    const { error } = await deleteViaggio(viaggio_id)
     if (error) {
       return { error: `Impossibile eliminare tutti i dati: ${error}` }
     }

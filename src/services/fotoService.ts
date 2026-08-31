@@ -94,30 +94,19 @@ export interface RisultatoDeleteStorage {
 
 export async function deleteFilesDaStorage(
   paths: string[],
-  bucket: string = STORAGE_BUCKETS.FOTO_RICORDI,
-  userId?: string   // se fornito, valida che ogni path inizi con '{userId}/'
+  bucket: string = STORAGE_BUCKETS.FOTO_RICORDI
 ): Promise<RisultatoDeleteStorage> {
   if (paths.length === 0) {
     return { eliminati: [], falliti: [] }
   }
 
-  // Validazione ownership path — difesa in profondità.
-  // La policy Storage blocca già le operazioni non autorizzate server-side,
-  // ma validare qui garantisce che il service sia sicuro indipendentemente
-  // da come viene chiamato (principio di minimo privilegio).
-  if (userId) {
-    const prefix = `${userId}/`
-    const pathNonAutorizzati = paths.filter((p) => !p.startsWith(prefix))
-    if (pathNonAutorizzati.length > 0) {
-      return {
-        eliminati: [],
-        falliti: pathNonAutorizzati.map((p) => ({
-          path:  p,
-          error: `Path non autorizzato: non appartiene all'utente corrente`,
-        })),
-      }
-    }
-  }
+  // NOTA collaborazione: la validazione "path deve iniziare con {userId}/"
+  // che viveva qui è stata rimossa — in un viaggio condiviso, chi elimina
+  // un file può essere un collaboratore diverso da chi lo ha caricato
+  // originariamente (il primo segmento del path resta l'uploader originale).
+  // L'autorizzazione reale vive ora nelle policy Storage sul bucket
+  // ricordi-foto, che verificano l'appartenenza al viaggio tramite il
+  // ricordo (secondo segmento del path), non più il solo prefisso utente.
 
   // Supabase Storage supporta delete multiplo in una sola chiamata
   const { data, error } = await supabase.storage
@@ -201,12 +190,14 @@ export async function registraFoto(
   data: Foto | null
   error: string | null
 }> {
-  // Verifica ownership del ricordo — difesa in profondità (Sprint 7A).
+  // Verifica che il ricordo esista — non più un controllo di ownership
+  // stretta: in un viaggio condiviso, un collaboratore può aggiungere
+  // foto anche a ricordi scritti da un altro membro. L'appartenenza
+  // al viaggio è comunque garantita dalla RLS sulla tabella foto.
   const { data: ricordoCheck, error: errCheck } = await supabase
     .from('ricordi')
     .select('id')
     .eq('id', payload.ricordo_id)
-    .eq('user_id', userId)
     .single()
 
   if (errCheck || !ricordoCheck) {
@@ -251,15 +242,13 @@ export async function registraFoto(
 
 export async function setCoverFoto(
   fotoId: string,
-  ricordoId: string,
-  userId: string
+  ricordoId: string
 ): Promise<{ error: string | null }> {
   // 1. Rimuovi cover da tutte le foto del ricordo
   const { error: err1 } = await supabase
     .from('foto')
     .update({ is_cover: false })
     .eq('ricordo_id', ricordoId)
-    .eq('user_id', userId)
 
   if (err1) return { error: err1.message }
 
@@ -268,7 +257,6 @@ export async function setCoverFoto(
     .from('foto')
     .update({ is_cover: true })
     .eq('id', fotoId)
-    .eq('user_id', userId)
 
   if (err2) return { error: err2.message }
   return { error: null }
@@ -442,11 +430,10 @@ export async function getCoversByViaggio(viaggioId: string): Promise<{
 // ------------------------------------------------------------
 
 export async function deleteSingolaFoto(
-  foto: Foto,
-  userId: string
+  foto: Foto
 ): Promise<{ error: string | null }> {
   // 1. Elimina il file fisico
-  const { falliti } = await deleteFilesDaStorage([foto.path], foto.bucket, userId)
+  const { falliti } = await deleteFilesDaStorage([foto.path], foto.bucket)
   if (falliti.length > 0) {
     return { error: `Impossibile eliminare il file: ${falliti[0].error}` }
   }
@@ -470,7 +457,6 @@ export async function deleteSingolaFoto(
       .from('foto')
       .select('id')
       .eq('ricordo_id', foto.ricordo_id)
-      .eq('user_id', userId)
       .order('ordine', { ascending: true })
       .limit(1)
 
@@ -540,7 +526,7 @@ export async function uploadFoto(
     // il principio di difesa in profondità introdotto in Sprint 7A:
     // un solo percorso di cancellazione nel codebase, con validazione
     // ownership del path inclusa.
-    await deleteFilesDaStorage([path], STORAGE_BUCKETS.FOTO_RICORDI, userId)
+    await deleteFilesDaStorage([path], STORAGE_BUCKETS.FOTO_RICORDI)
     return { data: null, error: registraError ?? 'Registrazione foto fallita' }
   }
 

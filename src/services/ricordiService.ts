@@ -153,8 +153,7 @@ export async function updateRicordo(
 // ------------------------------------------------------------
 
 export async function deleteRicordo(
-  ricordoId: string,
-  userId: string    // richiesto per validazione ownership path Storage
+  ricordoId: string
 ): Promise<{
   error: string | null
 }> {
@@ -165,7 +164,7 @@ export async function deleteRicordo(
   // 2. Elimina file fisici da Storage (solo se esistono foto)
   if (foto.length > 0) {
     const paths = foto.map((f) => f.path)
-    const { falliti } = await deleteFilesDaStorage(paths, foto[0].bucket, userId)
+    const { falliti } = await deleteFilesDaStorage(paths, foto[0].bucket)
 
     if (falliti.length > 0) {
       // Blocca: non procedere con la cancellazione del ricordo

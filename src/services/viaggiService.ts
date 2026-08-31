@@ -20,14 +20,13 @@ import {
 // I viaggi senza data sono in fondo.
 // ------------------------------------------------------------
 
-export async function getViaggi(userId: string): Promise<{
+export async function getViaggi(): Promise<{
   data: Viaggio[]
   error: string | null
 }> {
   const { data, error } = await supabase
     .from('viaggi')
     .select('*')
-    .eq('user_id', userId)
     .order('data_inizio', { ascending: false, nullsFirst: false })
 
   if (error) return { data: [], error: error.message }
@@ -119,8 +118,7 @@ export async function updateViaggio(
 // ------------------------------------------------------------
 
 export async function deleteViaggio(
-  viaggioId: string,
-  userId: string    // richiesto per validazione ownership path Storage
+  viaggioId: string
 ): Promise<{
   error: string | null
 }> {
@@ -138,7 +136,7 @@ export async function deleteViaggio(
     }, {})
 
     for (const [bucket, paths] of Object.entries(perBucket)) {
-      const { falliti } = await deleteFilesDaStorage(paths, bucket, userId)
+      const { falliti } = await deleteFilesDaStorage(paths, bucket)
       if (falliti.length > 0) {
         const dettaglio = falliti.map((f) => f.error).join('; ')
         return {
