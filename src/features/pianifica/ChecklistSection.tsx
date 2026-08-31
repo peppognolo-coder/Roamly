@@ -12,7 +12,7 @@ import {
   useToggleChecklistItem,
   useDeleteChecklistItem,
 } from '@/hooks/useCrudChecklist'
-import { calcolaStatisticheChecklist } from '@/lib/checklist-templates'
+import { calcolaStatisticheChecklist, VALIGIA_TEMPLATES, VALIGIA_TEMPLATE_ICON } from '@/lib/checklist-templates'
 import type { TemplateChecklistItem }  from '@/lib/checklist-templates'
 import type { ViaggioConStato }        from '@/types'
 
@@ -79,6 +79,10 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
       ordineBase: base,
     })
     setShowSuggerimenti(false)
+  }
+
+  function handleApplicaTemplate(items: TemplateChecklistItem[]) {
+    handleBatch(items)
   }
 
   const testiEsistenti = items.map((i) => i.testo)
@@ -190,24 +194,49 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                 </>
               )}
 
-              {/* Empty state + suggerimenti prominenti */}
+              {/* Empty state + template tematici */}
               {!isLoadingChecklist && !hasItems && (
                 <div className="flex flex-col items-center gap-3 py-4 text-center">
                   <p className="font-dm-sans text-sm text-roamly-text/40">
-                    La checklist è vuota.
+                    La checklist è vuota. Parti da un template:
                   </p>
+
+                  <div className="grid grid-cols-2 gap-2 w-full">
+                    {VALIGIA_TEMPLATES.map((template) => {
+                      const Icon = VALIGIA_TEMPLATE_ICON[template.id]
+                      return (
+                        <button
+                          key={template.id}
+                          onClick={() => handleApplicaTemplate(template.items)}
+                          disabled={isBatchLoading}
+                          className="
+                            flex flex-col items-center gap-1.5 py-3.5
+                            bg-roamly-g7 rounded-xl
+                            hover:bg-roamly-g6 active:scale-[0.98]
+                            transition-all duration-150
+                            disabled:opacity-50
+                          "
+                        >
+                          <Icon size={18} className="text-roamly-g2" />
+                          <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
+                            {template.label}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+
                   <button
                     onClick={() => setShowSuggerimenti(true)}
                     className="
-                      flex items-center gap-2 px-4 py-2.5
-                      bg-roamly-g0 rounded-xl
-                      font-dm-sans text-sm font-medium text-white
-                      hover:bg-roamly-g1 active:scale-[0.98]
-                      transition-all duration-150
+                      flex items-center gap-2 px-4 py-2 mt-1
+                      font-dm-sans text-xs font-medium text-roamly-g2
+                      hover:text-roamly-g1
+                      transition-colors duration-150
                     "
                   >
-                    <Sparkles size={13} />
-                    <span>Aggiungi suggerimenti</span>
+                    <Sparkles size={12} />
+                    <span>Oppure scegli singole voci</span>
                   </button>
                 </div>
               )}
