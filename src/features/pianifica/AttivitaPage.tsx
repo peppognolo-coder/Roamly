@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { MapPin, Clock, Pencil, ExternalLink } from 'lucide-react'
@@ -10,6 +11,7 @@ import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys }    from '@/lib/queryKeys'
+import { cercaLuoghi }  from '@/lib/geocoding'
 import type { TappaViaggio } from '@/types'
 import 'leaflet/dist/leaflet.css'
 import '@/styles/leaflet-overrides.css'
@@ -75,20 +77,33 @@ function formatGiornoBreve(iso: string): string {
   return label.charAt(0).toUpperCase() + label.slice(1)
 }
 
-function AdattaAiConfini({ punti }: { punti: [number, number][] }) {
+function PosizionaMappa({
+  punti,
+  centroFallback,
+  zoomFallback,
+}: {
+  punti: [number, number][]
+  centroFallback: [number, number] | null
+  zoomFallback: number
+}) {
   const map = useMap()
-  // Si adatta ogni volta che cambia l'insieme di punti VISIBILI —
-  // anche quando si nasconde/mostra un giorno dai filtri, non solo
-  // al primo caricamento.
+  // Priorità: tappe posizionate (adatta ai confini) > centro di
+  // fallback (destinazione geocodificata, poi GPS) quando arriva in
+  // modo asincrono > resta sul default iniziale se nessuno dei due
+  // è ancora disponibile. Reagisce ai cambi perché — a differenza
+  // dei props center/zoom di MapContainer, validi solo al mount —
+  // qui usiamo l'API imperativa di Leaflet per spostare la mappa
+  // anche dopo il primo render (es. quando risolve la geocodifica).
   useEffect(() => {
-    if (punti.length === 0) return
     if (punti.length === 1) {
       map.setView(punti[0], 14)
-    } else {
+    } else if (punti.length > 1) {
       map.fitBounds(L.latLngBounds(punti), { padding: [40, 40] })
+    } else if (centroFallback) {
+      map.setView(centroFallback, zoomFallback)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [punti])
+  }, [punti, centroFallback, zoomFallback])
   return null
 }
 
@@ -150,8 +165,29 @@ export function AttivitaPage() {
   const tappeVisibili = tappeConPosizione.filter((t) => !giorniNascosti.has(chiaveGiorno(t)))
   const punti: [number, number][] = tappeVisibili.map((t) => [t.lat as number, t.lng as number])
 
-  // Se non ci sono ancora tappe posizionate, prova a centrare sulla
-  // posizione dell'utente (richiede permesso, nessun tracciamento).
+  // Centro di fallback quando il viaggio non ha ancora nessuna tappa
+  // posizionata — priorità: destinazione del viaggio (geocodificata),
+  // poi posizione GPS attuale, poi il default fisso (Roma).
+  // Ha senso partire dalla destinazione perché un diario di viaggio
+  // si pianifica spesso da casa, prima di partire — vedere la propria
+  // posizione attuale non aiuterebbe a piazzare le tappe.
+  const queryDestinazione = (viaggio?.destinazione || viaggio?.paese || '').trim()
+
+  const { data: risultatiDestinazione } = useQuery({
+    queryKey: queryKeys.geocoding.search(queryDestinazione.toLowerCase()),
+    queryFn: ({ signal }) => cercaLuoghi(queryDestinazione, signal),
+    enabled: tappeConPosizione.length === 0 && queryDestinazione.length >= 3,
+    staleTime: 1000 * 60 * 60, // 1h — la destinazione di un viaggio non cambia in sessione
+    retry: false,
+  })
+  const centroDestinazione: [number, number] | null = risultatiDestinazione?.[0]
+    ? [risultatiDestinazione[0].lat, risultatiDestinazione[0].lng]
+    : null
+
+  // Se non ci sono ancora tappe posizionate, prova anche a leggere la
+  // posizione GPS attuale come ulteriore fallback (richiede permesso,
+  // nessun tracciamento) — usata solo se la destinazione non è nota
+  // o non è geocodificabile.
   if (tappeConPosizione.length === 0 && !geoloc && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => setGeoloc([pos.coords.latitude, pos.coords.longitude]),
@@ -160,7 +196,9 @@ export function AttivitaPage() {
     )
   }
 
-  const centro = punti.length > 0 ? punti[0] : (geoloc ?? CENTRO_DEFAULT)
+  const centroFallback = centroDestinazione ?? geoloc
+  const centro = punti.length > 0 ? punti[0] : (centroFallback ?? CENTRO_DEFAULT)
+  const zoomIniziale = punti.length > 0 ? 13 : (centroFallback ? 12 : 5)
 
   function handleMapClick(lat: number, lng: number) {
     navigate(`/viaggi/${viaggioId}/tappe/nuova?from=attivita&lat=${lat}&lng=${lng}`)
@@ -229,7 +267,7 @@ export function AttivitaPage() {
             <div className="flex-1 mx-5 mb-5 rounded-2xl overflow-hidden shadow-roamly relative">
               <MapContainer
                 center={centro}
-                zoom={punti.length > 0 ? 13 : 5}
+                zoom={zoomIniziale}
                 style={{ width: '100%', height: '100%' }}
                 scrollWheelZoom
               >
@@ -237,7 +275,7 @@ export function AttivitaPage() {
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
-                <AdattaAiConfini punti={punti} />
+                <PosizionaMappa punti={punti} centroFallback={centroFallback} zoomFallback={12} />
                 <GestoreClick onClick={handleMapClick} />
 
                 {tappeVisibili.map((t) => (
