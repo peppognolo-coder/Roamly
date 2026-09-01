@@ -17,7 +17,7 @@ const OPZIONI = [
     icon: NotebookPen,
     to: '/nuovo-ricordo',
     // in alto a sinistra
-    offset: { x: -104, y: -88 },
+    offset: { x: -86, y: -130 },
   },
   {
     id: 'viaggio',
@@ -25,7 +25,7 @@ const OPZIONI = [
     icon: Plane,
     to: '/viaggi/nuovo',
     // in alto a destra
-    offset: { x: 104, y: -88 },
+    offset: { x: 86, y: -130 },
   },
 ] as const
 
@@ -44,7 +44,12 @@ export function FAB() {
           la barra di navigazione ha backdrop-blur-sm, che in CSS crea un
           nuovo "containing block" per i discendenti fixed — senza il
           portal, lo sfondo resterebbe intrappolato nei confini della barra
-          invece di coprire l'intero schermo. */}
+          invece di coprire l'intero schermo.
+          z-45: esplicitamente sopra la BottomNav (z-40) e sotto FAB/opzioni
+          (z-50) — con z-index identico a quello della barra (com'era prima)
+          l'ordine di stacking dipende dall'ordine nel DOM, che è ambiguo;
+          va reso inequivocabile perché lo sfondo scurisca/sfoci davvero
+          tutta l'app, barra compresa, e non resti sotto di essa. */}
       <AnimatePresence>
         {isOpen && createPortal(
           <motion.div
@@ -53,7 +58,7 @@ export function FAB() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-roamly-g0/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-roamly-g0/70 backdrop-blur-sm z-[45]"
           />,
           document.body
         )}
