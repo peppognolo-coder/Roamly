@@ -110,6 +110,14 @@ export const queryKeys = {
     byViaggio: (viaggioId: string) => ['tappe', 'list', viaggioId] as const,
   },
 
+  // ----------------------------------------------------------
+  // GEOCODING — ricerca luoghi (Nominatim), non legata a Supabase
+  // ----------------------------------------------------------
+  geocoding: {
+    /** ['geocoding', 'search', query] */
+    search: (query: string) => ['geocoding', 'search', query] as const,
+  },
+
   noteViaggio: {
     /** ['note-viaggio'] — root */
     all: ['note-viaggio'] as const,
