@@ -2,12 +2,16 @@ import { forwardRef } from 'react'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  /** Aggiunge "(opzionale)" accanto al label, con lo stesso stile leggero
+   *  usato per gli altri campi opzionali (es. Note) — evita disallineamenti
+   *  di peso/colore tra i vari campi opzionali del form. */
+  optional?: boolean
   error?: string
   hint?: string
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, className = '', id, type, ...props }, ref) => {
+  ({ label, optional, error, hint, className = '', id, type, ...props }, ref) => {
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
 
     // Bug noto iOS Safari: un <input type="date"/"time"> VUOTO viene
@@ -26,6 +30,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className="text-sm font-dm-sans font-medium text-roamly-text/70"
           >
             {label}
+            {optional && (
+              <span className="text-roamly-text/35 font-normal"> (opzionale)</span>
+            )}
           </label>
         )}
         <input
