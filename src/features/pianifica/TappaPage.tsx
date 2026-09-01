@@ -46,6 +46,7 @@ export function TappaPage() {
       nome: data.nome,
       categoria: data.categoria,
       giorno: data.giorno || null,
+      giorno_fine: data.giorno_fine || data.giorno || null,
       ora: data.ora || null,
       indirizzo: data.indirizzo || null,
       note: data.note || null,

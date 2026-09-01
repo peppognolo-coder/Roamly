@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { Landmark, UtensilsCrossed, Car, PartyPopper, MapPin, Plus, Clock } from 'lucide-react'
+import { Landmark, Trees, UtensilsCrossed, Car, PartyPopper, Sparkles, MapPin, Plus, Clock, ExternalLink } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
@@ -13,21 +13,50 @@ import type { CategoriaTappa, TappaViaggio } from '@/types'
 // ============================================================
 // ItinerarioPage — /viaggi/:id/itinerario
 // Le tappe raggruppate per giorno, in ordine — "il percorso".
+// Una tappa con giorno_fine diverso da giorno (multi-giorno)
+// compare in ogni sezione dei giorni che copre.
 // Stesso dato di Attività (mappa), vista diversa.
 // ============================================================
 
 const ICONE_CATEGORIA: Record<CategoriaTappa, LucideIcon> = {
-  visita:     Landmark,
-  ristorante: UtensilsCrossed,
-  trasporto:  Car,
-  svago:      PartyPopper,
-  altro:      MapPin,
+  cultura:   Landmark,
+  natura:    Trees,
+  food:      UtensilsCrossed,
+  svago:     PartyPopper,
+  relax:     Sparkles,
+  trasporto: Car,
+  altro:     MapPin,
 }
 
 function formatGiorno(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
   const label = d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })
   return label.charAt(0).toUpperCase() + label.slice(1)
+}
+
+function formatGiornoBreve(iso: string): string {
+  const d = new Date(iso + 'T00:00:00')
+  return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+}
+
+/** Tutti i giorni ISO coperti da una tappa: da `giorno` a `giorno_fine`
+ *  incluso (o solo `giorno` se `giorno_fine` è assente/uguale). */
+function giorniCoperti(t: TappaViaggio): string[] {
+  if (!t.giorno) return []
+  const fine = t.giorno_fine && t.giorno_fine > t.giorno ? t.giorno_fine : t.giorno
+  const giorni: string[] = []
+  const cursore = new Date(t.giorno + 'T00:00:00')
+  const ultimo = new Date(fine + 'T00:00:00')
+  while (cursore <= ultimo) {
+    giorni.push(cursore.toISOString().slice(0, 10))
+    cursore.setDate(cursore.getDate() + 1)
+  }
+  return giorni
+}
+
+function urlMaps(indirizzo: string, lat?: number | null, lng?: number | null): string {
+  const query = lat != null && lng != null ? `${lat},${lng}` : indirizzo
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
 
 export function ItinerarioPage() {
@@ -39,7 +68,7 @@ export function ItinerarioPage() {
   useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
 
   const giorniConTappe = Array.from(
-    new Set(tappe.filter((t) => t.giorno).map((t) => t.giorno as string))
+    new Set(tappe.flatMap((t) => giorniCoperti(t)))
   ).sort()
 
   const tappeSenzaGiorno = tappe.filter((t) => !t.giorno)
@@ -90,7 +119,7 @@ export function ItinerarioPage() {
                 <GiornoSezione
                   key={giorno}
                   titolo={formatGiorno(giorno)}
-                  tappe={tappe.filter((t) => t.giorno === giorno)}
+                  tappe={tappe.filter((t) => giorniCoperti(t).includes(giorno))}
                   onAggiungi={() => handleAggiungi(giorno)}
                   onTap={(t) => navigate(`/viaggi/${viaggioId}/tappe/${t.id}`)}
                 />
@@ -160,39 +189,70 @@ function GiornoSezione({
       <div className="flex flex-col gap-2">
         {tappe.map((t) => {
           const Icon = ICONE_CATEGORIA[t.categoria]
+          const multiGiorno = !!(t.giorno && t.giorno_fine && t.giorno_fine > t.giorno)
           return (
-            <button
+            <div
               key={t.id}
-              onClick={() => onTap(t)}
               className="
                 flex items-center gap-3 p-3.5
-                bg-white rounded-2xl shadow-roamly text-left
-                active:scale-[0.98] hover:shadow-roamly-lg
-                transition-all duration-150
-                focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+                bg-white rounded-2xl shadow-roamly
+                hover:shadow-roamly-lg transition-all duration-150
               "
             >
-              <div className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g2 shrink-0">
-                <Icon size={16} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
-                  {t.nome}
-                </p>
-                {(t.ora || t.indirizzo) && (
-                  <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate flex items-center gap-1">
-                    {t.ora && (
-                      <span className="flex items-center gap-0.5">
-                        <Clock size={10} />
-                        {t.ora.slice(0, 5)}
-                      </span>
-                    )}
-                    {t.ora && t.indirizzo && <span>·</span>}
-                    {t.indirizzo}
+              <button
+                onClick={() => onTap(t)}
+                className="
+                  flex items-center gap-3 flex-1 min-w-0 text-left
+                  active:scale-[0.98] transition-transform duration-150
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3 rounded-xl
+                "
+              >
+                <div className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g2 shrink-0">
+                  <Icon size={16} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
+                    {t.nome}
                   </p>
-                )}
-              </div>
-            </button>
+                  {(t.ora || t.indirizzo || multiGiorno) && (
+                    <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate flex items-center gap-1">
+                      {t.ora && (
+                        <span className="flex items-center gap-0.5 shrink-0">
+                          <Clock size={10} />
+                          {t.ora.slice(0, 5)}
+                        </span>
+                      )}
+                      {t.ora && multiGiorno && <span>·</span>}
+                      {multiGiorno && (
+                        <span className="shrink-0">
+                          {formatGiornoBreve(t.giorno as string)} – {formatGiornoBreve(t.giorno_fine as string)}
+                        </span>
+                      )}
+                      {(t.ora || multiGiorno) && t.indirizzo && <span>·</span>}
+                      {t.indirizzo && <span className="truncate">{t.indirizzo}</span>}
+                    </p>
+                  )}
+                </div>
+              </button>
+
+              {(t.indirizzo || (t.lat != null && t.lng != null)) && (
+                <a
+                  href={urlMaps(t.indirizzo ?? '', t.lat, t.lng)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  aria-label="Apri in Maps"
+                  className="
+                    shrink-0 w-8 h-8 rounded-full
+                    flex items-center justify-center
+                    text-roamly-g3 hover:bg-roamly-g6
+                    transition-colors duration-150
+                  "
+                >
+                  <ExternalLink size={15} />
+                </a>
+              )}
+            </div>
           )
         })}
       </div>

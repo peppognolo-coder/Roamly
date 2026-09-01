@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
-import { MapPin, Clock, Pencil } from 'lucide-react'
+import { MapPin, Clock, Pencil, ExternalLink } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
@@ -53,6 +53,11 @@ function AdattaAiConfini({ punti }: { punti: [number, number][] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   return null
+}
+
+function urlMaps(indirizzo: string, lat?: number | null, lng?: number | null): string {
+  const query = lat != null && lng != null ? `${lat},${lng}` : indirizzo
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
 
 function GestoreClick({ onClick }: { onClick: (lat: number, lng: number) => void }) {
@@ -144,6 +149,19 @@ export function AttivitaPage() {
                         <Pencil size={11} />
                         Modifica
                       </button>
+                      <a
+                        href={urlMaps(t.indirizzo ?? '', t.lat, t.lng)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="
+                          flex items-center gap-1 mt-1
+                          font-dm-sans text-xs font-medium text-roamly-g2
+                          hover:text-roamly-g1
+                        "
+                      >
+                        <ExternalLink size={11} />
+                        Apri in Maps
+                      </a>
                     </div>
                   </Popup>
                 </Marker>

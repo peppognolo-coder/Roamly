@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import {
   ChevronLeft, ChevronRight, Clock, CalendarDays,
-  Landmark, UtensilsCrossed, Car, PartyPopper, MapPin,
+  Landmark, Trees, UtensilsCrossed, Car, PartyPopper, Sparkles, MapPin,
   Plane, BedDouble, Ticket, Stamp, MoreHorizontal,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -24,7 +24,8 @@ import type { CategoriaTappa, TipoPrenotazione, TappaViaggio, Prenotazione } fro
 // ============================================================
 
 const ICONE_TAPPA: Record<CategoriaTappa, LucideIcon> = {
-  visita: Landmark, ristorante: UtensilsCrossed, trasporto: Car, svago: PartyPopper, altro: MapPin,
+  cultura: Landmark, natura: Trees, food: UtensilsCrossed, svago: PartyPopper,
+  relax: Sparkles, trasporto: Car, altro: MapPin,
 }
 const ICONE_PRENOTAZIONE: Record<TipoPrenotazione, LucideIcon> = {
   trasporto: Plane, alloggio: BedDouble, museo: Landmark, evento: Ticket,
