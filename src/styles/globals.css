@@ -81,3 +81,17 @@ body {
   background-color: var(--color-g5);
   color: var(--color-g0);
 }
+
+/* ============================================================
+   SCROLLBAR NASCOSTA — per righe di chip a scroll orizzontale
+   (es. filtri giorno in Attività) dove la scrollbar è rumore
+   visivo: lo scroll resta funzionante, solo non visibile.
+   ============================================================ */
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
