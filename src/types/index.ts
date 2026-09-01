@@ -243,7 +243,7 @@ export const MOOD_OPTIONS: MoodOption[] = [
 // la vista Attività (pin sulla mappa) — stessa tabella, due viste.
 // ------------------------------------------------------------
 
-export type CategoriaTappa = 'visita' | 'ristorante' | 'trasporto' | 'svago' | 'altro'
+export type CategoriaTappa = 'cultura' | 'natura' | 'food' | 'svago' | 'relax' | 'trasporto' | 'altro'
 
 export interface TappaViaggio {
   id: string
@@ -251,7 +251,8 @@ export interface TappaViaggio {
   viaggio_id: string
   nome: string
   categoria: CategoriaTappa
-  giorno: string | null       // ISO date 'YYYY-MM-DD'
+  giorno: string | null       // ISO date 'YYYY-MM-DD' — inizio
+  giorno_fine: string | null  // ISO date 'YYYY-MM-DD' — fine (uguale a giorno se non specificato)
   ora: string | null          // 'HH:MM:SS'
   lat: number | null
   lng: number | null
@@ -266,11 +267,11 @@ export type NuovaTappaViaggio = Pick<
   'viaggio_id' | 'nome'
 > & Partial<Pick<
   TappaViaggio,
-  'categoria' | 'giorno' | 'ora' | 'lat' | 'lng' | 'indirizzo' | 'note' | 'ordine'
+  'categoria' | 'giorno' | 'giorno_fine' | 'ora' | 'lat' | 'lng' | 'indirizzo' | 'note' | 'ordine'
 >>
 
 export type ModificaTappaViaggio = Partial<
-  Pick<TappaViaggio, 'nome' | 'categoria' | 'giorno' | 'ora' | 'lat' | 'lng' | 'indirizzo' | 'note' | 'ordine'>
+  Pick<TappaViaggio, 'nome' | 'categoria' | 'giorno' | 'giorno_fine' | 'ora' | 'lat' | 'lng' | 'indirizzo' | 'note' | 'ordine'>
 >
 
 // ------------------------------------------------------------
