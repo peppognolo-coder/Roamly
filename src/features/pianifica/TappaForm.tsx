@@ -6,14 +6,18 @@ import { Landmark, Trees, UtensilsCrossed, Car, PartyPopper, Sparkles, MapPin, E
 import type { LucideIcon } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import type { TappaViaggio, CategoriaTappa } from '@/types'
 
 // ============================================================
 // ROAMLY — TappaForm
 // Form condiviso tra creazione e modifica, usato sia da Itinerario
 // che da Attività (mappa) — stessa tabella, stesso form.
-// La posizione (lat/lng) si imposta solo toccando la mappa in
-// Attività — qui è un dato read-only, mostrato come conferma.
+// La posizione (lat/lng) si imposta in due modi: toccando la mappa
+// in Attività (posizioneIniziale, solo in creazione), oppure
+// selezionando un suggerimento nella ricerca luoghi qui sotto — in
+// entrambi i casi arriva a Itinerario, alimentando anche il pin
+// automatico su Attività.
 // ============================================================
 
 const CATEGORIE: { value: CategoriaTappa; label: string; icon: LucideIcon }[] = [
@@ -33,7 +37,9 @@ const tappaFormSchema = z
     giorno: z.string().optional().or(z.literal('')),
     giorno_fine: z.string().optional().or(z.literal('')),
     ora: z.string().optional().or(z.literal('')),
-    indirizzo: z.string().max(120).optional().or(z.literal('')),
+    indirizzo: z.string().max(200).optional().or(z.literal('')),
+    lat: z.number().nullable().optional(),
+    lng: z.number().nullable().optional(),
     note: z.string().max(500).optional().or(z.literal('')),
   })
   .refine(
@@ -88,13 +94,17 @@ export function TappaForm({
       giorno_fine: tappa?.giorno_fine ?? tappa?.giorno ?? giornoIniziale ?? '',
       ora: tappa?.ora?.slice(0, 5) ?? '',
       indirizzo: tappa?.indirizzo ?? '',
+      lat: tappa?.lat ?? posizioneIniziale?.lat ?? null,
+      lng: tappa?.lng ?? posizioneIniziale?.lng ?? null,
       note: tappa?.note ?? '',
     },
   })
 
-  const haPosizione = !!(tappa?.lat && tappa?.lng) || !!posizioneIniziale
   const giornoValue = watch('giorno')
   const indirizzoValue = watch('indirizzo')
+  const latValue = watch('lat')
+  const lngValue = watch('lng')
+  const haPosizione = latValue != null && lngValue != null
 
   // "Giorno fine" segue "Giorno" finché l'utente non la tocca a mano —
   // dopodiché resta libera (es. tappa multi-giorno).
@@ -119,7 +129,7 @@ export function TappaForm({
         <div className="flex items-center gap-2 px-3.5 py-2 bg-roamly-g6 rounded-full w-fit">
           <MapPin size={14} className="text-roamly-g2" />
           <span className="font-dm-sans text-xs font-medium text-roamly-g1">
-            Posizione sulla mappa impostata
+            Posizione impostata — comparirà anche su Attività
           </span>
         </div>
       )}
@@ -186,17 +196,31 @@ export function TappaForm({
       {/* Orario */}
       <Input type="time" label="Orario" optional {...register('ora')} />
 
-      {/* Indirizzo */}
+      {/* Indirizzo / luogo — ricerca con suggerimenti geocoded */}
       <div className="flex flex-col gap-2">
-        <Input
-          label="Indirizzo o luogo"
-          placeholder="Es. Carrer de Mallorca, 401"
-          error={errors.indirizzo?.message}
-          {...register('indirizzo')}
+        <Controller
+          name="indirizzo"
+          control={control}
+          render={({ field }) => (
+            <LuogoSearchInput
+              label="Indirizzo o luogo"
+              placeholder="Es. Sagrada Familia, Barcellona"
+              value={field.value ?? ''}
+              onChangeValue={field.onChange}
+              onSelectLuogo={(luogo) => {
+                setValue('lat', luogo.lat, { shouldValidate: true })
+                setValue('lng', luogo.lng, { shouldValidate: true })
+              }}
+              error={errors.indirizzo?.message}
+            />
+          )}
         />
+        <p className="font-dm-sans text-xs text-roamly-text/40 px-1">
+          Scegli un suggerimento dalla lista per posizionare la tappa sulla mappa in Attività.
+        </p>
         {(indirizzoValue || haPosizione) && (
           <a
-            href={urlMaps(indirizzoValue || '', tappa?.lat ?? posizioneIniziale?.lat, tappa?.lng ?? posizioneIniziale?.lng)}
+            href={urlMaps(indirizzoValue || '', latValue, lngValue)}
             target="_blank"
             rel="noopener noreferrer"
             className="

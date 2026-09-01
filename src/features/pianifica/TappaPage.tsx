@@ -50,9 +50,11 @@ export function TappaPage() {
       ora: data.ora || null,
       indirizzo: data.indirizzo || null,
       note: data.note || null,
-      ...(posizioneIniziale && !isEdit
-        ? { lat: posizioneIniziale.lat, lng: posizioneIniziale.lng }
-        : {}),
+      // lat/lng arrivano dal form: o dal tap sulla mappa in Attività
+      // (posizioneIniziale, precompilato) o dalla ricerca luoghi in
+      // Itinerario — unica fonte di verità, niente più logica separata.
+      lat: data.lat ?? null,
+      lng: data.lng ?? null,
     }
 
     if (isEdit && tappaId) {

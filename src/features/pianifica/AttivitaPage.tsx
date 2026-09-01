@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import { MapPin, Clock, Pencil, ExternalLink } from 'lucide-react'
@@ -10,6 +10,7 @@ import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys }    from '@/lib/queryKeys'
+import type { TappaViaggio } from '@/types'
 import 'leaflet/dist/leaflet.css'
 import '@/styles/leaflet-overrides.css'
 
@@ -17,33 +18,69 @@ import '@/styles/leaflet-overrides.css'
 // AttivitaPage — /viaggi/:id/attivita
 // Mappa con pin delle tappe. Tap su un pin → dettagli.
 // Tap su un punto vuoto → crea una nuova tappa lì.
-// Stesso dato di Itinerario (tappe_viaggio), vista diversa.
+// Stesso dato di Itinerario (tappe_viaggio), vista diversa — le
+// tappe con luogo selezionato dalla ricerca in Itinerario (o
+// posizionate qui a mano) compaiono qui automaticamente, colorate
+// per giorno di visita. Filtri per mostrare/nascondere un giorno
+// alla volta; eliminare/aggiungere resta invariato (form condiviso).
 // ============================================================
 
 const CENTRO_DEFAULT: [number, number] = [41.9028, 12.4964] // Roma
 
-// Marker personalizzato — evita il problema noto delle icone
-// PNG di default di Leaflet che si rompono nei bundle Vite.
-const markerIcon = L.divIcon({
-  className: 'roamly-marker',
-  html: `
-    <div style="
-      width: 30px; height: 30px;
-      background: #0F7EA8;
-      border: 3px solid white;
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
-      box-shadow: 0 2px 8px rgba(12,42,61,0.3);
-    "></div>
-  `,
-  iconSize: [30, 30],
-  iconAnchor: [15, 30],
-  popupAnchor: [0, -32],
-})
+const SENZA_GIORNO = '__senza_giorno__'
+const COLORE_SENZA_GIORNO = '#94A3B8'
+
+// Palette colori per giorno — ciclica, distinguibile a colpo
+// d'occhio anche con molti giorni in un viaggio lungo.
+const PALETTE_GIORNI = [
+  '#0F7EA8', '#FF6B4A', '#3DA35D', '#C084FC',
+  '#F5A623', '#EC4899', '#64748B', '#14B8A6',
+]
+
+function coloreGiorno(indice: number): string {
+  return PALETTE_GIORNI[indice % PALETTE_GIORNI.length]
+}
+
+// Cache dei divIcon per colore — evita di ricrearli ad ogni render
+// (Leaflet non ha bisogno di nuove istanze se il colore non cambia).
+const cacheIcone = new Map<string, L.DivIcon>()
+
+function iconaPerColore(colore: string): L.DivIcon {
+  const esistente = cacheIcone.get(colore)
+  if (esistente) return esistente
+
+  const icona = L.divIcon({
+    className: 'roamly-marker',
+    html: `
+      <div style="
+        width: 30px; height: 30px;
+        background: ${colore};
+        border: 3px solid white;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        box-shadow: 0 2px 8px rgba(12,42,61,0.3);
+      "></div>
+    `,
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -32],
+  })
+  cacheIcone.set(colore, icona)
+  return icona
+}
+
+function formatGiornoBreve(iso: string): string {
+  const d = new Date(iso + 'T00:00:00')
+  const label = d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
 
 function AdattaAiConfini({ punti }: { punti: [number, number][] }) {
   const map = useMap()
-  useMemo(() => {
+  // Si adatta ogni volta che cambia l'insieme di punti VISIBILI —
+  // anche quando si nasconde/mostra un giorno dai filtri, non solo
+  // al primo caricamento.
+  useEffect(() => {
     if (punti.length === 0) return
     if (punti.length === 1) {
       map.setView(punti[0], 14)
@@ -51,7 +88,7 @@ function AdattaAiConfini({ punti }: { punti: [number, number][] }) {
       map.fitBounds(L.latLngBounds(punti), { padding: [40, 40] })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [punti])
   return null
 }
 
@@ -75,15 +112,47 @@ export function AttivitaPage() {
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [], isLoading } = useTappe(viaggioId)
   const [geoloc, setGeoloc] = useState<[number, number] | null>(null)
+  const [giorniNascosti, setGiorniNascosti] = useState<Set<string>>(new Set())
 
   useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
 
   const tappeConPosizione = tappe.filter((t) => t.lat != null && t.lng != null)
-  const punti: [number, number][] = tappeConPosizione.map((t) => [t.lat as number, t.lng as number])
+
+  // Giorni distinti tra le tappe posizionate, in ordine — alimenta
+  // sia la palette colori (indice = colore) sia i chip filtro.
+  const giorniOrdinati = useMemo(
+    () => Array.from(new Set(
+      tappeConPosizione.filter((t) => t.giorno).map((t) => t.giorno as string)
+    )).sort(),
+    [tappeConPosizione]
+  )
+  const haSenzaGiorno = tappeConPosizione.some((t) => !t.giorno)
+  const mostraFiltri = giorniOrdinati.length + (haSenzaGiorno ? 1 : 0) > 1
+
+  function chiaveGiorno(t: TappaViaggio): string {
+    return t.giorno ?? SENZA_GIORNO
+  }
+  function coloreTappa(t: TappaViaggio): string {
+    if (!t.giorno) return COLORE_SENZA_GIORNO
+    const indice = giorniOrdinati.indexOf(t.giorno)
+    return indice >= 0 ? coloreGiorno(indice) : COLORE_SENZA_GIORNO
+  }
+
+  function toggleGiorno(chiave: string) {
+    setGiorniNascosti((prev) => {
+      const next = new Set(prev)
+      if (next.has(chiave)) next.delete(chiave)
+      else next.add(chiave)
+      return next
+    })
+  }
+
+  const tappeVisibili = tappeConPosizione.filter((t) => !giorniNascosti.has(chiaveGiorno(t)))
+  const punti: [number, number][] = tappeVisibili.map((t) => [t.lat as number, t.lng as number])
 
   // Se non ci sono ancora tappe posizionate, prova a centrare sulla
   // posizione dell'utente (richiede permesso, nessun tracciamento).
-  if (punti.length === 0 && !geoloc && navigator.geolocation) {
+  if (tappeConPosizione.length === 0 && !geoloc && navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => setGeoloc([pos.coords.latitude, pos.coords.longitude]),
       () => { /* permesso negato o non disponibile — resta sul default */ },
@@ -106,82 +175,152 @@ export function AttivitaPage() {
         {isLoading ? (
           <div className="flex-1 mx-5 mb-5 rounded-2xl bg-roamly-g6 animate-pulse" />
         ) : (
-          <div className="flex-1 mx-5 mb-5 rounded-2xl overflow-hidden shadow-roamly relative">
-            <MapContainer
-              center={centro}
-              zoom={punti.length > 0 ? 13 : 5}
-              style={{ width: '100%', height: '100%' }}
-              scrollWheelZoom
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-              <AdattaAiConfini punti={punti} />
-              <GestoreClick onClick={handleMapClick} />
-
-              {tappeConPosizione.map((t) => (
-                <Marker key={t.id} position={[t.lat as number, t.lng as number]} icon={markerIcon}>
-                  <Popup>
-                    <div className="p-3.5 flex flex-col gap-1.5">
-                      <p className="font-dm-sans text-sm font-semibold text-roamly-g0">
-                        {t.nome}
-                      </p>
-                      {(t.ora || t.indirizzo) && (
-                        <p className="font-dm-sans text-xs text-roamly-text/50 flex items-center gap-1">
-                          {t.ora && (
-                            <span className="flex items-center gap-0.5">
-                              <Clock size={10} />
-                              {t.ora.slice(0, 5)}
-                            </span>
-                          )}
-                          {t.indirizzo}
-                        </p>
-                      )}
-                      <button
-                        onClick={() => navigate(`/viaggi/${viaggioId}/tappe/${t.id}?from=attivita`)}
-                        className="
-                          flex items-center gap-1 mt-1.5
-                          font-dm-sans text-xs font-medium text-roamly-g2
-                          hover:text-roamly-g1
-                        "
-                      >
-                        <Pencil size={11} />
-                        Modifica
-                      </button>
-                      <a
-                        href={urlMaps(t.indirizzo ?? '', t.lat, t.lng)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="
-                          flex items-center gap-1 mt-1
-                          font-dm-sans text-xs font-medium text-roamly-g2
-                          hover:text-roamly-g1
-                        "
-                      >
-                        <ExternalLink size={11} />
-                        Apri in Maps
-                      </a>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
-            </MapContainer>
-
-            {tappeConPosizione.length === 0 && (
-              <div className="
-                absolute bottom-4 left-1/2 -translate-x-1/2
-                flex items-center gap-2 px-4 py-2.5
-                bg-white/95 backdrop-blur-sm rounded-full shadow-roamly-lg
-                pointer-events-none
-              ">
-                <MapPin size={14} className="text-roamly-g3" />
-                <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
-                  Tocca la mappa per aggiungere una tappa
-                </span>
+          <>
+            {mostraFiltri && (
+              <div className="flex gap-2 px-5 pb-3 overflow-x-auto no-scrollbar">
+                {giorniOrdinati.map((giorno, i) => {
+                  const attivo = !giorniNascosti.has(giorno)
+                  const colore = coloreGiorno(i)
+                  return (
+                    <button
+                      key={giorno}
+                      onClick={() => toggleGiorno(giorno)}
+                      className={`
+                        shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                        border font-dm-sans text-xs font-medium
+                        transition-all duration-150
+                        ${attivo
+                          ? 'bg-white border-roamly-g5 text-roamly-text shadow-roamly'
+                          : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/35'
+                        }
+                      `}
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ background: attivo ? colore : '#CBD5E1' }}
+                      />
+                      {formatGiornoBreve(giorno)}
+                    </button>
+                  )
+                })}
+                {haSenzaGiorno && (
+                  <button
+                    onClick={() => toggleGiorno(SENZA_GIORNO)}
+                    className={`
+                      shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full
+                      border font-dm-sans text-xs font-medium
+                      transition-all duration-150
+                      ${!giorniNascosti.has(SENZA_GIORNO)
+                        ? 'bg-white border-roamly-g5 text-roamly-text shadow-roamly'
+                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/35'
+                      }
+                    `}
+                  >
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ background: !giorniNascosti.has(SENZA_GIORNO) ? COLORE_SENZA_GIORNO : '#CBD5E1' }}
+                    />
+                    Senza giorno
+                  </button>
+                )}
               </div>
             )}
-          </div>
+
+            <div className="flex-1 mx-5 mb-5 rounded-2xl overflow-hidden shadow-roamly relative">
+              <MapContainer
+                center={centro}
+                zoom={punti.length > 0 ? 13 : 5}
+                style={{ width: '100%', height: '100%' }}
+                scrollWheelZoom
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                <AdattaAiConfini punti={punti} />
+                <GestoreClick onClick={handleMapClick} />
+
+                {tappeVisibili.map((t) => (
+                  <Marker
+                    key={t.id}
+                    position={[t.lat as number, t.lng as number]}
+                    icon={iconaPerColore(coloreTappa(t))}
+                  >
+                    <Popup>
+                      <div className="p-3.5 flex flex-col gap-1.5">
+                        <p className="font-dm-sans text-sm font-semibold text-roamly-g0">
+                          {t.nome}
+                        </p>
+                        {(t.ora || t.indirizzo) && (
+                          <p className="font-dm-sans text-xs text-roamly-text/50 flex items-center gap-1">
+                            {t.ora && (
+                              <span className="flex items-center gap-0.5">
+                                <Clock size={10} />
+                                {t.ora.slice(0, 5)}
+                              </span>
+                            )}
+                            {t.indirizzo}
+                          </p>
+                        )}
+                        <button
+                          onClick={() => navigate(`/viaggi/${viaggioId}/tappe/${t.id}?from=attivita`)}
+                          className="
+                            flex items-center gap-1 mt-1.5
+                            font-dm-sans text-xs font-medium text-roamly-g2
+                            hover:text-roamly-g1
+                          "
+                        >
+                          <Pencil size={11} />
+                          Modifica
+                        </button>
+                        <a
+                          href={urlMaps(t.indirizzo ?? '', t.lat, t.lng)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="
+                            flex items-center gap-1 mt-1
+                            font-dm-sans text-xs font-medium text-roamly-g2
+                            hover:text-roamly-g1
+                          "
+                        >
+                          <ExternalLink size={11} />
+                          Apri in Maps
+                        </a>
+                      </div>
+                    </Popup>
+                  </Marker>
+                ))}
+              </MapContainer>
+
+              {tappeConPosizione.length === 0 && (
+                <div className="
+                  absolute bottom-4 left-1/2 -translate-x-1/2
+                  flex items-center gap-2 px-4 py-2.5
+                  bg-white/95 backdrop-blur-sm rounded-full shadow-roamly-lg
+                  pointer-events-none
+                ">
+                  <MapPin size={14} className="text-roamly-g3" />
+                  <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
+                    Tocca la mappa per aggiungere una tappa
+                  </span>
+                </div>
+              )}
+
+              {tappeConPosizione.length > 0 && tappeVisibili.length === 0 && (
+                <div className="
+                  absolute bottom-4 left-1/2 -translate-x-1/2
+                  flex items-center gap-2 px-4 py-2.5
+                  bg-white/95 backdrop-blur-sm rounded-full shadow-roamly-lg
+                  pointer-events-none
+                ">
+                  <MapPin size={14} className="text-roamly-g3" />
+                  <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
+                    Tutti i giorni sono nascosti — riattivane uno dai filtri
+                  </span>
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
       </AnimatedPage>
