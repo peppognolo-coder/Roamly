@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Check, NotebookPen, Heart, Star, UserPlus, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -33,6 +33,7 @@ import type { ViaggioFormData } from './ViaggioForm'
 export function ViaggioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const { data: viaggio, isLoading } = useViaggio(id)
   const { data: stats } = useStatisticheViaggio(id)
@@ -55,7 +56,12 @@ export function ViaggioDetailPage() {
 
   const [isEditing, setIsEditing]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  const [tab, setTab]                 = useState<'ricordi' | 'racconto' | 'pianifica'>('racconto')
+  // Tab iniziale: legge ?tab= dall'URL (es. link dal prompt viaggio imminente
+  // in Home) per aprire direttamente su Pianifica; altrimenti default Racconto.
+  const tabIniziale = searchParams.get('tab')
+  const [tab, setTab] = useState<'ricordi' | 'racconto' | 'pianifica'>(
+    tabIniziale === 'pianifica' || tabIniziale === 'ricordi' ? tabIniziale : 'racconto'
+  )
   const [showShare, setShowShare]     = useState(false)
 
   // Chiude il form solo dopo che la mutation è completata con successo.
