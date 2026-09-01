@@ -5,6 +5,7 @@ import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
 import { Button }            from '@/components/ui/Button'
 import { ViaggioAttivoCard } from './ViaggioAttivoCard'
+import { PromptViaggioImminenteCard } from './PromptViaggioImminenteCard'
 import { UltimiRicordiSection } from './UltimiRicordiSection'
 import { QuickStatsSection }  from './QuickStatsSection'
 import { RicordoDelGiornoCard, RicordoDelGiornoCardSkeleton } from '@/components/ricordi/RicordoDelGiornoCard'
@@ -129,6 +130,9 @@ export function HomePage() {
         {/* ── Contenuto principale ── */}
         {!isFirstVisit && (
           <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
+
+            {/* Q4 — Prompt viaggio imminente (contestuale, dismissibile) */}
+            <PromptViaggioImminenteCard viaggio={viaggioAttivo} />
 
             {/* Viaggio attivo */}
             <motion.div
