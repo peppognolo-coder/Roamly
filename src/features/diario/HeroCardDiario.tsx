@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
+import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
+import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 
@@ -28,6 +30,7 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
   const navigate = useNavigate()
   const moodOption = MOOD_OPTIONS.find((m) => m.value === ricordo.mood)
   const gradient = MOOD_GRADIENT[ricordo.mood] ?? 'from-roamly-g5 to-roamly-g7'
+  const { autore } = useAutoreRicordo(ricordo)
 
   const [ry, rm, rd] = ricordo.data.split('-').map(Number)
   const dataFormattata = new Date(ry, rm - 1, rd).toLocaleDateString('it-IT', {
@@ -83,7 +86,7 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
 
       {/* Contenuto testuale */}
       <div className="p-4 flex flex-col gap-2">
-        {/* Mood + data */}
+        {/* Mood + data + autore (se collaborativo) */}
         <div className="flex items-center gap-2">
           <span className="
             font-dm-sans text-[10px] font-semibold uppercase tracking-wider
@@ -95,6 +98,12 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
           <span className="font-dm-mono text-[10px] text-roamly-text/35">
             {dataFormattata}
           </span>
+          {autore && (
+            <>
+              <span className="text-roamly-text/20 text-xs">·</span>
+              <AutoreBadge nome={autore.nome} avatarUrl={autore.avatarUrl} size="xs" />
+            </>
+          )}
         </div>
 
         {/* Titolo */}
