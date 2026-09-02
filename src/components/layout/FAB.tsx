@@ -43,6 +43,17 @@ const OPZIONI = [
 // rifatta a mano con una transizione CSS pura (doppio render:
 // prima a opacità 0, poi a 1 al frame successivo), senza alcuna
 // dipendenza da framer-motion per questo elemento specifico.
+//
+// z-[35], SOTTO la BottomNav (z-40): la barra, essendo fixed
+// con z-index esplicito, crea un proprio "stacking context" —
+// tutto ciò che ci sta dentro (incluso il FAB e le due bolle a
+// z-50) resta confrontato con elementi esterni usando lo z-index
+// della barra stessa (40), non quello dei suoi discendenti. Uno
+// sfondo con z-index maggiore di 40 finirebbe quindi per coprire
+// l'intera barra, bottoni compresi, invece che restarne sotto.
+// Tenendolo sotto la barra, l'intera BottomNav (incluso il "+")
+// resta sempre nitida sopra lo sfondo scurito — solo il contenuto
+// della pagina dietro viene sfocato.
 // ------------------------------------------------------------
 function FabBackdrop({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [visibile, setVisibile] = useState(false)
@@ -62,7 +73,7 @@ function FabBackdrop({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
     <div
       onClick={onClose}
       className={`
-        fixed inset-0 z-[45]
+        fixed inset-0 z-[35]
         bg-roamly-g0/70 backdrop-blur-sm
         transition-opacity duration-150
         ${visibile ? 'opacity-100' : 'opacity-0'}
