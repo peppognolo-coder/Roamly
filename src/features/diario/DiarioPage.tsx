@@ -36,6 +36,7 @@ export function DiarioPage() {
     isEmptyConFiltri,
     totaleFiltrati,
     totaleRicordi,
+    haViaggi,
   } = useDiario(filtri)
 
   // IDs per il collapse — stabile, memoizzato
@@ -85,7 +86,7 @@ export function DiarioPage() {
         )}
 
         {/* ── Empty state: nessun ricordo ── */}
-        {!isLoading && isEmpty && <DiarioVuoto />}
+        {!isLoading && isEmpty && <DiarioVuoto haViaggi={haViaggi} />}
 
         {/* ── Empty state: filtri azzerano tutto ── */}
         {!isLoading && isEmptyConFiltri && (
