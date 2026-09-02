@@ -58,7 +58,7 @@ export function FAB() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-roamly-g0/70 backdrop-blur-sm z-[45]"
+            className="fixed inset-0 bg-red-500 z-[45]"
           />,
           document.body
         )}
