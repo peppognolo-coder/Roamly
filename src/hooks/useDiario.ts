@@ -39,6 +39,9 @@ export interface OutputUseDiario {
   isEmptyConFiltri: boolean     // true = filtri azzerano tutti i risultati
   totaleFiltrati: number
   totaleRicordi: number
+  haViaggi: boolean             // true = l'utente ha almeno un viaggio — distingue
+                                 // "nessun viaggio ancora" da "viaggi sì, ricordi no"
+                                 // per lo stato vuoto del Diario
 }
 
 export function useDiario(filtri: FiltriDiario): OutputUseDiario {
@@ -104,5 +107,6 @@ export function useDiario(filtri: FiltriDiario): OutputUseDiario {
     isEmptyConFiltri:  !haNessunRicordo && filtriAttivi && filtrati === 0,
     totaleFiltrati:    filtrati,
     totaleRicordi:     totale,
+    haViaggi:          (viaggi?.length ?? 0) > 0,
   }
 }
