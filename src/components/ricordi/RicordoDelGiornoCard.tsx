@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { NotebookPen, Heart, ChevronRight } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
+import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
+import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 
@@ -42,6 +44,7 @@ export function RicordoDelGiornoCard({
   const navigate = useNavigate()
   const moodOption = MOOD_OPTIONS.find((m) => m.value === ricordo.mood)
   const gradient = MOOD_GRADIENT[ricordo.mood] ?? 'from-roamly-g7 to-roamly-g6'
+  const { autore } = useAutoreRicordo(ricordo)
 
   const [ry, rm, rd] = ricordo.data.split('-').map(Number)
   const dataFormattata = new Date(ry, rm - 1, rd).toLocaleDateString('it-IT', {
@@ -107,6 +110,12 @@ export function RicordoDelGiornoCard({
           <span className="font-dm-mono text-[10px] text-roamly-text/30 shrink-0">
             {dataFormattata}
           </span>
+          {autore && (
+            <>
+              <span className="text-roamly-text/20 text-[10px]">·</span>
+              <AutoreBadge nome={autore.nome} avatarUrl={autore.avatarUrl} size="xs" />
+            </>
+          )}
         </div>
       </div>
 
