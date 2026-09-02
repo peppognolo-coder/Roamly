@@ -10,6 +10,8 @@ import { RicordoForm }    from './RicordoForm'
 import { useRicordo }     from '@/hooks/useRicordi'
 import { useViaggi }      from '@/hooks/useViaggi'
 import { useUpdateRicordo, useDeleteRicordo, useTogglePreferito } from '@/hooks/useCrudRicordo'
+import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
+import { AutoreBadge }    from '@/components/ricordi/AutoreBadge'
 import { MOOD_OPTIONS }   from '@/types'
 import type { RicordoFormData } from './RicordoForm'
 import { FotoGalleria }    from './FotoGalleria'
@@ -44,6 +46,7 @@ export function RicordoDetailPage() {
   const { deleteRicordo, isLoading: isDeleting, error: deleteError } =
     useDeleteRicordo(viaggioId)
   const { toggle: togglePreferito } = useTogglePreferito(viaggioId)
+  const { autore } = useAutoreRicordo(ricordo)
 
   const [isEditing, setIsEditing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -222,6 +225,16 @@ export function RicordoDetailPage() {
                   <span className="ml-auto text-lg">⭐</span>
                 )}
               </div>
+
+              {/* Autore — solo su viaggi con più collaboratori */}
+              {autore && (
+                <AutoreBadge
+                  nome={autore.nome}
+                  testoOverride={autore.seiTu ? 'Aggiunto da te' : `Aggiunto da ${autore.nome}`}
+                  avatarUrl={autore.avatarUrl}
+                  size="sm"
+                />
+              )}
 
               {/* Titolo */}
               <h1 className="font-lora text-h1 text-roamly-g0 leading-snug">

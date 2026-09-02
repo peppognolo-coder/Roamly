@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
+import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
+import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import type { Ricordo } from '@/types'
 
 // ============================================================
@@ -33,6 +35,7 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
   const navigate = useNavigate()
   const moodOption = MOOD_OPTIONS.find((m) => m.value === ricordo.mood)
   const gradient = MOOD_GRADIENT[ricordo.mood] ?? 'from-roamly-g7 to-roamly-g6'
+  const { autore } = useAutoreRicordo(ricordo)
 
   function handleClick() {
     if (onClick) {
@@ -121,7 +124,7 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
           </p>
         )}
 
-        {/* Riga inferiore: luogo + data */}
+        {/* Riga inferiore: luogo + autore (se collaborativo) + data */}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           {ricordo.luogo && (
             <span className="flex items-center gap-1 font-dm-sans text-xs text-roamly-text/40">
@@ -133,8 +136,11 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
               {ricordo.luogo}
             </span>
           )}
-          <span className="font-dm-mono text-[10px] text-roamly-text/30 ml-auto">
-            {dataFormattata}
+          <span className="flex items-center gap-2 ml-auto shrink-0">
+            {autore && <AutoreBadge nome={autore.nome} avatarUrl={autore.avatarUrl} size="xs" />}
+            <span className="font-dm-mono text-[10px] text-roamly-text/30">
+              {dataFormattata}
+            </span>
           </span>
         </div>
       </div>
