@@ -40,29 +40,21 @@ export function FAB() {
 
   return (
     <>
-      {/* Sfondo — tap per chiudere. Renderizzato via portal in document.body:
-          la barra di navigazione ha backdrop-blur-sm, che in CSS crea un
-          nuovo "containing block" per i discendenti fixed — senza il
-          portal, lo sfondo resterebbe intrappolato nei confini della barra
-          invece di coprire l'intero schermo.
-          z-45: esplicitamente sopra la BottomNav (z-40) e sotto FAB/opzioni
-          (z-50) — con z-index identico a quello della barra (com'era prima)
-          l'ordine di stacking dipende dall'ordine nel DOM, che è ambiguo;
-          va reso inequivocabile perché lo sfondo scurisca/sfoci davvero
-          tutta l'app, barra compresa, e non resti sotto di essa. */}
-      <AnimatePresence>
-        {isOpen && createPortal(
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-red-500 z-[45]"
-          />,
-          document.body
-        )}
-      </AnimatePresence>
+      {/* Sfondo — tap per chiudere. Renderizzato via portal in document.body.
+          TEST DIAGNOSTICO 2: elemento grezzo, senza framer-motion/AnimatePresence,
+          per isolare se il problema è nel portal o nell'animazione. */}
+      {isOpen && createPortal(
+        <div
+          onClick={() => setIsOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'red',
+            zIndex: 9999,
+          }}
+        />,
+        document.body
+      )}
 
       {/* Opzioni a raggiera */}
       <AnimatePresence>
