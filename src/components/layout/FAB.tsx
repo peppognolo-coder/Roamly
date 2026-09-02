@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -29,6 +29,49 @@ const OPZIONI = [
   },
 ] as const
 
+// ------------------------------------------------------------
+// FabBackdrop — sfondo scuro/sfocato dietro al menu a raggiera.
+// Portato in document.body con createPortal, così scavalca
+// il backdrop-blur-sm della BottomNav (che altrimenti
+// intrappolerebbe un discendente fixed nei propri confini).
+//
+// Volutamente SENZA AnimatePresence/framer-motion: su alcuni
+// dispositivi (confermato via test) la combinazione
+// AnimatePresence + createPortal non renderizza affatto
+// l'elemento — né visivamente né ai fini del tap — mentre il
+// portal "nudo" funziona sempre. La dissolvenza in entrata è
+// rifatta a mano con una transizione CSS pura (doppio render:
+// prima a opacità 0, poi a 1 al frame successivo), senza alcuna
+// dipendenza da framer-motion per questo elemento specifico.
+// ------------------------------------------------------------
+function FabBackdrop({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [visibile, setVisibile] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) {
+      setVisibile(false)
+      return
+    }
+    const frame = requestAnimationFrame(() => setVisibile(true))
+    return () => cancelAnimationFrame(frame)
+  }, [isOpen])
+
+  if (!isOpen) return null
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      className={`
+        fixed inset-0 z-[45]
+        bg-roamly-g0/70 backdrop-blur-sm
+        transition-opacity duration-150
+        ${visibile ? 'opacity-100' : 'opacity-0'}
+      `}
+    />,
+    document.body
+  )
+}
+
 export function FAB() {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
@@ -40,21 +83,7 @@ export function FAB() {
 
   return (
     <>
-      {/* Sfondo — tap per chiudere. Renderizzato via portal in document.body.
-          TEST DIAGNOSTICO 2: elemento grezzo, senza framer-motion/AnimatePresence,
-          per isolare se il problema è nel portal o nell'animazione. */}
-      {isOpen && createPortal(
-        <div
-          onClick={() => setIsOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'red',
-            zIndex: 9999,
-          }}
-        />,
-        document.body
-      )}
+      <FabBackdrop isOpen={isOpen} onClose={() => setIsOpen(false)} />
 
       {/* Opzioni a raggiera */}
       <AnimatePresence>
