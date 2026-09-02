@@ -12,8 +12,20 @@ import { Button } from '@/components/ui/Button'
 
 // ---- A. Nessun ricordo in assoluto -------------------------
 
-export function DiarioVuoto() {
+export function DiarioVuoto({ haViaggi }: { haViaggi: boolean }) {
   const navigate = useNavigate()
+
+  // Due casi distinti: chi non ha ancora nessun viaggio va spinto a
+  // crearne uno (un ricordo deve appartenere a un viaggio); chi ha
+  // già viaggi ma zero ricordi va spinto a scrivere, non a pianificare
+  // un altro viaggio — altrimenti il messaggio è fuorviante.
+  const titolo = haViaggi
+    ? ['Il tuo diario è ancora', 'tutto da scrivere.']
+    : ['Nessun viaggio ancora', 'da raccontare.']
+
+  const sottotitolo = haViaggi
+    ? 'Hai già dei viaggi pronti — inizia a raccontarli con il tuo primo ricordo.'
+    : (<>Ogni viaggio che hai vissuto merita<br />di essere ricordato. Inizia dal primo.</>)
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-16 text-center px-4">
@@ -27,19 +39,18 @@ export function DiarioVuoto() {
 
       <div className="flex flex-col gap-2">
         <p className="font-lora text-xl font-semibold text-roamly-g0">
-          Il tuo diario è ancora
+          {titolo[0]}
         </p>
         <p className="font-lora text-xl font-semibold text-roamly-g0">
-          tutto da scrivere.
+          {titolo[1]}
         </p>
         <p className="font-dm-sans text-sm text-roamly-text/50 mt-2 leading-relaxed">
-          Ogni viaggio che hai vissuto merita
-          <br />di essere ricordato. Inizia dal primo.
+          {sottotitolo}
         </p>
       </div>
 
-      <Button onClick={() => navigate('/viaggi/nuovo')} size="lg">
-        Crea il tuo primo viaggio
+      <Button onClick={() => navigate(haViaggi ? '/nuovo-ricordo' : '/viaggi/nuovo')} size="lg">
+        {haViaggi ? 'Scrivi il tuo primo ricordo' : 'Crea il tuo primo viaggio'}
       </Button>
     </div>
   )
