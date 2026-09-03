@@ -6,6 +6,7 @@ import {
   createChecklistItemsBatch,
   updateChecklistItem,
   deleteChecklistItem,
+  reorderChecklistItems,
 } from '@/services/checklistService'
 import { useAuth } from '@/hooks/useAuth'
 import type { ChecklistItem } from '@/types'
@@ -195,5 +196,73 @@ export function useDeleteChecklistItem(viaggioId: string) {
     isLoading:  mutation.isPending,
     error,
     clearError: () => setError(null),
+  }
+}
+
+// ------------------------------------------------------------
+// useReorderChecklist — drag-and-drop
+// Aggiornamento ottimistico: la cache riflette subito il nuovo
+// ordine (drag fluido), il salvataggio batch parte in background.
+// Rollback allo snapshot precedente in caso di errore di rete.
+// Stesso pattern di useToggleChecklistItem.
+// ------------------------------------------------------------
+
+export function useReorderChecklist(viaggioId: string) {
+  const queryClient = useQueryClient()
+  const [error, setError] = useState<string | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: (items: { id: string; ordine: number }[]) =>
+      reorderChecklistItems(items),
+
+    onMutate: async (items) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.checklist.byViaggio(viaggioId),
+      })
+
+      const snapshot = queryClient.getQueryData<ChecklistItem[]>(
+        queryKeys.checklist.byViaggio(viaggioId)
+      )
+
+      const nuovoOrdine = new Map(items.map((i) => [i.id, i.ordine]))
+      queryClient.setQueryData<ChecklistItem[]>(
+        queryKeys.checklist.byViaggio(viaggioId),
+        (old) =>
+          old
+            ?.map((item) => ({
+              ...item,
+              ordine: nuovoOrdine.get(item.id) ?? item.ordine,
+            }))
+            .sort((a, b) => a.ordine - b.ordine)
+      )
+
+      return { snapshot }
+    },
+
+    onSuccess: (result) => {
+      if (result.error) setError('Impossibile salvare il nuovo ordine.')
+      else setError(null)
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.snapshot) {
+        queryClient.setQueryData(
+          queryKeys.checklist.byViaggio(viaggioId),
+          context.snapshot
+        )
+      }
+      setError('Impossibile salvare il nuovo ordine.')
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.checklist.byViaggio(viaggioId),
+      })
+    },
+  })
+
+  return {
+    reorder: (items: { id: string; ordine: number }[]) => mutation.mutate(items),
+    error,
   }
 }
