@@ -41,6 +41,10 @@ export function useCreateTappa(viaggioId: string, redirectTo: string) {
     },
     onSuccess: (result) => {
       if (result.error) {
+        // Log dell'errore reale di Supabase in console — il messaggio a
+        // schermo resta generico per l'utente, ma qui in dev/debug si
+        // vede subito la causa esatta (RLS, constraint, colonna mancante...).
+        console.error('Errore creazione tappa:', result.error)
         setError('Impossibile salvare la tappa. Riprova.')
         return
       }
@@ -49,7 +53,10 @@ export function useCreateTappa(viaggioId: string, redirectTo: string) {
       showSuccess('Tappa aggiunta')
       navigate(redirectTo)
     },
-    onError: () => setError('Impossibile salvare la tappa. Riprova.'),
+    onError: (err) => {
+      console.error('Errore creazione tappa:', err)
+      setError('Impossibile salvare la tappa. Riprova.')
+    },
   })
 
   return {
