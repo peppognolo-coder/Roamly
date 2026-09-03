@@ -42,11 +42,30 @@ interface RigaDaNotificare {
   auth_key: string
 }
 
-Deno.serve(async (req) => {
-  // Protezione minima: solo chiamate autenticate col service role
-  // (pg_cron la invoca già con l'header giusto — vedi SQL scheduling)
+// Verifica il chiamante decodificando il JWT e controllando il claim
+// "role" — più robusto di un confronto testuale diretto con la
+// variabile d'ambiente (che può fallire per spazi invisibili nel
+// copia-incolla, o se la chiave viene rigenerata/ruotata).
+function chiamataAutorizzata(req: Request): boolean {
   const auth = req.headers.get('Authorization')
-  if (auth !== `Bearer ${serviceRoleKey}`) {
+  if (!auth?.startsWith('Bearer ')) return false
+
+  const token = auth.slice('Bearer '.length).trim()
+  const parti = token.split('.')
+  if (parti.length !== 3) return false
+
+  try {
+    const payloadBase64 = parti[1].replace(/-/g, '+').replace(/_/g, '/')
+    const payloadJson = atob(payloadBase64.padEnd(payloadBase64.length + (4 - payloadBase64.length % 4) % 4, '='))
+    const payload = JSON.parse(payloadJson)
+    return payload.role === 'service_role'
+  } catch {
+    return false
+  }
+}
+
+Deno.serve(async (req) => {
+  if (!chiamataAutorizzata(req)) {
     return new Response('Non autorizzato', { status: 401 })
   }
 
