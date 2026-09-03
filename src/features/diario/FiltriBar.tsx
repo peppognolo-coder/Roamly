@@ -1,11 +1,13 @@
-import { Heart } from 'lucide-react'
+import { Heart, Search, X } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Mood } from '@/types'
 import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
+import { haFiltriAttivi } from '@/lib/diario-utils'
 import type { FiltriDiario, AutoreFiltro } from '@/lib/diario-utils'
 
 // ============================================================
-// FiltriBar — pill filtri nel Diario
+// FiltriBar — ricerca + pill filtri nel Diario
+// Ricerca: campo testo libero su titolo/racconto/luogo
 // Mood: multi-select
 // Preferiti: toggle singolo
 // Autore: multi-select — visibile solo se esistono almeno 2
@@ -15,6 +17,8 @@ import type { FiltriDiario, AutoreFiltro } from '@/lib/diario-utils'
 
 interface FiltriBarProps {
   filtri: FiltriDiario
+  ricercaInput: string
+  onRicercaChange: (valore: string) => void
   onToggleMood: (mood: Mood) => void
   onTogglePreferiti: () => void
   onToggleAutore: (userId: string) => void
@@ -26,6 +30,8 @@ interface FiltriBarProps {
 
 export function FiltriBar({
   filtri,
+  ricercaInput,
+  onRicercaChange,
   onToggleMood,
   onTogglePreferiti,
   onToggleAutore,
@@ -34,12 +40,47 @@ export function FiltriBar({
   totaleRicordi,
   autoriDisponibili,
 }: FiltriBarProps) {
-  const haNessunFiltro = filtri.mood.length === 0 && !filtri.soloPreferiti && filtri.autori.length === 0
-  const mostraContatore = !haNessunFiltro
+  const mostraContatore = haFiltriAttivi(filtri)
   const mostraFiltroAutori = autoriDisponibili.length > 1
 
   return (
     <div className="flex flex-col gap-2">
+      {/* Campo ricerca */}
+      <div className="relative">
+        <Search
+          size={15}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-roamly-text/30 pointer-events-none"
+        />
+        <input
+          type="text"
+          inputMode="search"
+          value={ricercaInput}
+          onChange={(e) => onRicercaChange(e.target.value)}
+          placeholder="Cerca nei tuoi ricordi..."
+          className="
+            w-full pl-9 pr-9 py-2.5
+            bg-roamly-g7 border border-roamly-g6 rounded-xl
+            font-dm-sans text-sm text-roamly-text placeholder:text-roamly-text/35
+            focus:outline-none focus:border-roamly-g3 focus:bg-white
+            transition-colors duration-150
+          "
+        />
+        {ricercaInput && (
+          <button
+            onClick={() => onRicercaChange('')}
+            aria-label="Cancella ricerca"
+            className="
+              absolute right-2.5 top-1/2 -translate-y-1/2
+              w-5 h-5 rounded-full flex items-center justify-center
+              text-roamly-text/30 hover:text-roamly-text/60 hover:bg-roamly-g5
+              transition-colors duration-150
+            "
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
+
       {/* Riga pill */}
       <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5">
 

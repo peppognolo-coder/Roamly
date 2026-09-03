@@ -26,7 +26,7 @@ import { useCollapseViaggi }     from '@/hooks/useCollapseViaggi'
 // ============================================================
 
 export function DiarioPage() {
-  const { filtri, toggleMood, togglePreferiti, toggleAutore, resetFiltri } = useFiltriDiario()
+  const { filtri, ricercaInput, setRicercaInput, toggleMood, togglePreferiti, toggleAutore, resetFiltri } = useFiltriDiario()
 
   const {
     sezioni,
@@ -70,6 +70,8 @@ export function DiarioPage() {
           </h1>
           <FiltriBar
             filtri={filtri}
+            ricercaInput={ricercaInput}
+            onRicercaChange={setRicercaInput}
             onToggleMood={toggleMood}
             onTogglePreferiti={togglePreferiti}
             onToggleAutore={toggleAutore}
