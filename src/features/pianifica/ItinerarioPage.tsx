@@ -8,6 +8,7 @@ import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys }    from '@/lib/queryKeys'
+import { isoDateLocale } from '@/lib/viaggi-utils'
 import type { CategoriaTappa, TappaViaggio } from '@/types'
 
 // ============================================================
@@ -48,7 +49,7 @@ function giorniCoperti(t: TappaViaggio): string[] {
   const cursore = new Date(t.giorno + 'T00:00:00')
   const ultimo = new Date(fine + 'T00:00:00')
   while (cursore <= ultimo) {
-    giorni.push(cursore.toISOString().slice(0, 10))
+    giorni.push(isoDateLocale(cursore))
     cursore.setDate(cursore.getDate() + 1)
   }
   return giorni
