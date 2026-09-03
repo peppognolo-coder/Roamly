@@ -1,5 +1,5 @@
 import type { ChecklistItem } from '@/types'
-import { FileText, BatteryCharging, Pill, Shirt, Package, Waves, Mountain, Building2, Globe } from 'lucide-react'
+import { FileText, BatteryCharging, Pill, Shirt, Package, Waves, Mountain, Building2, Globe, Snowflake, Flower2, Sun, Leaf } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 // ============================================================
@@ -114,6 +114,119 @@ export const VALIGIA_TEMPLATE_ICON: Record<ValigiaTemplateId, LucideIcon> = {
   montagna: Mountain,
   citta:    Building2,
   estero:   Globe,
+}
+
+// ------------------------------------------------------------
+// Suggerimenti stagionali — dedotti dal viaggio stesso (data_inizio
+// + paese), non scelti a mano dall'utente come i template sopra.
+//
+// Stagione: dedotta dal mese di data_inizio secondo le stagioni
+// meteorologiche standard (DIC-FEB inverno, ecc.), poi capovolta se
+// il paese ricade nell'emisfero sud (a dicembre in Argentina è estate).
+//
+// LIMITE NOTO: `paese` è un campo testo libero inserito dall'utente
+// in fase di creazione viaggio, non una geocodifica — il confronto
+// con PAESI_EMISFERO_SUD è un semplice match testuale case-insensitive
+// su un elenco dei paesi più comuni dell'emisfero sud. Refusi, nomi
+// alternativi ("USA" vs "Stati Uniti") o paesi non in elenco ricadono
+// nel default emisfero nord — ragionevole per l'utenza tipica di
+// Roamly, ma non infallibile. Nessuna chiamata di geocodifica qui:
+// tutto calcolato client-side dai dati già presenti sul viaggio.
+// ------------------------------------------------------------
+
+export type Stagione = 'inverno' | 'primavera' | 'estate' | 'autunno'
+
+const PAESI_EMISFERO_SUD = [
+  'argentina', 'australia', 'brasile', 'cile', 'sudafrica', 'sud africa',
+  'nuova zelanda', 'perù', 'peru', 'uruguay', 'bolivia', 'paraguay',
+  'zimbabwe', 'namibia', 'botswana', 'mozambico', 'madagascar',
+  'zambia', 'angola', 'fiji', 'ecuador',
+]
+
+function isEmisferoSud(paese: string | null): boolean {
+  if (!paese) return false
+  const normalizzato = paese.trim().toLowerCase()
+  return PAESI_EMISFERO_SUD.some((p) => normalizzato.includes(p))
+}
+
+function stagioneDaMese(mese: number, emisferoSud: boolean): Stagione {
+  // mese: 1-12. Stagioni meteorologiche standard emisfero nord.
+  const stagioneNord: Stagione =
+    mese === 12 || mese <= 2 ? 'inverno' :
+    mese <= 5 ? 'primavera' :
+    mese <= 8 ? 'estate' :
+    'autunno'
+
+  if (!emisferoSud) return stagioneNord
+
+  // Emisfero sud: stagioni capovolte di 6 mesi.
+  const OPPOSTA: Record<Stagione, Stagione> = {
+    inverno: 'estate',
+    estate: 'inverno',
+    primavera: 'autunno',
+    autunno: 'primavera',
+  }
+  return OPPOSTA[stagioneNord]
+}
+
+export const STAGIONE_LABEL: Record<Stagione, string> = {
+  inverno:   'Inverno',
+  primavera: 'Primavera',
+  estate:    'Estate',
+  autunno:   'Autunno',
+}
+
+export const STAGIONE_ICON: Record<Stagione, LucideIcon> = {
+  inverno:   Snowflake,
+  primavera: Flower2,
+  estate:    Sun,
+  autunno:   Leaf,
+}
+
+export const SUGGERIMENTI_STAGIONALI: Record<Stagione, TemplateChecklistItem[]> = {
+  inverno: [
+    { testo: 'Piumino o giacca pesante',   categoria: 'abbigliamento' },
+    { testo: 'Sciarpa, guanti e berretto', categoria: 'abbigliamento' },
+    { testo: 'Maglioni pesanti',           categoria: 'abbigliamento' },
+    { testo: 'Calzini termici',            categoria: 'abbigliamento' },
+    { testo: 'Balsamo labbra',             categoria: 'salute' },
+  ],
+  primavera: [
+    { testo: 'Giacca leggera impermeabile', categoria: 'abbigliamento' },
+    { testo: 'Ombrello pieghevole',         categoria: 'varie' },
+    { testo: 'Strati leggeri (a cipolla)',  categoria: 'abbigliamento' },
+  ],
+  estate: [
+    { testo: 'Costume da bagno',            categoria: 'abbigliamento' },
+    { testo: 'Crema solare',                categoria: 'salute' },
+    { testo: 'Occhiali da sole',            categoria: 'varie' },
+    { testo: 'Cappello',                    categoria: 'abbigliamento' },
+    { testo: 'Abiti leggeri e traspiranti', categoria: 'abbigliamento' },
+  ],
+  autunno: [
+    { testo: 'Giacca a vento',              categoria: 'abbigliamento' },
+    { testo: 'Ombrello',                    categoria: 'varie' },
+    { testo: 'Strati intermedi',            categoria: 'abbigliamento' },
+  ],
+}
+
+// ------------------------------------------------------------
+// getSuggerimentiStagionali
+// null se il viaggio non ha ancora una data di inizio impostata
+// (nessuna stagione deducibile).
+// ------------------------------------------------------------
+
+export function getSuggerimentiStagionali(
+  dataInizio: string | null,
+  paese: string | null
+): { stagione: Stagione; items: TemplateChecklistItem[] } | null {
+  if (!dataInizio) return null
+
+  const mese = Number(dataInizio.slice(5, 7))
+  if (!mese || mese < 1 || mese > 12) return null
+
+  const stagione = stagioneDaMese(mese, isEmisferoSud(paese))
+  return { stagione, items: SUGGERIMENTI_STAGIONALI[stagione] }
 }
 
 export const CATEGORIA_LABEL: Record<CategoriaChecklist, string> = {
