@@ -1,4 +1,5 @@
 import type { Ricordo, ViaggioConStato, Mood } from '@/types'
+import type { MembroConProfilo } from '@/services/membriService'
 
 // ============================================================
 // ROAMLY — diario-utils
@@ -23,6 +24,7 @@ import type { Ricordo, ViaggioConStato, Mood } from '@/types'
 export interface FiltriDiario {
   mood: Mood[]
   soloPreferiti: boolean
+  autori: string[]   // user_id — vuoto = tutti
 }
 
 export interface GiornoTimeline {
@@ -55,7 +57,9 @@ export function applicaFiltri(
     const passaMood = filtri.mood.length === 0 || filtri.mood.includes(r.mood)
     // Filtro preferiti: passa se il toggle è off, o se il ricordo è preferito
     const passaPreferiti = !filtri.soloPreferiti || r.preferito
-    return passaMood && passaPreferiti
+    // Filtro autore: passa se nessun autore selezionato, o se chi ha scritto è tra quelli
+    const passaAutore = filtri.autori.length === 0 || filtri.autori.includes(r.user_id)
+    return passaMood && passaPreferiti && passaAutore
   })
 }
 
@@ -191,5 +195,49 @@ export function calcolaTotaliDiario(sezioni: SezioneViaggio[]): {
 // ------------------------------------------------------------
 
 export function haFiltriAttivi(filtri: FiltriDiario): boolean {
-  return filtri.mood.length > 0 || filtri.soloPreferiti
+  return filtri.mood.length > 0 || filtri.soloPreferiti || filtri.autori.length > 0
+}
+
+// ------------------------------------------------------------
+// estraiAutoriDistinti
+// Elenco di autori selezionabili come filtro — solo persone che
+// hanno effettivamente scritto almeno un ricordo, e solo su viaggi
+// con più di un membro (su un viaggio solitario "filtrare per
+// persona" non avrebbe alcun senso). "Tu" viene sempre primo.
+// ------------------------------------------------------------
+
+export interface AutoreFiltro {
+  userId: string
+  nome: string
+  avatarUrl: string | null
+}
+
+export function estraiAutoriDistinti(
+  ricordiPerViaggio: Map<string, Ricordo[]>,
+  membriPerViaggio: Map<string, MembroConProfilo[]>,
+  mioUserId: string | undefined
+): AutoreFiltro[] {
+  const mappa = new Map<string, AutoreFiltro>()
+
+  for (const [viaggioId, ricordi] of ricordiPerViaggio) {
+    const membri = membriPerViaggio.get(viaggioId) ?? []
+    if (membri.length <= 1) continue // non collaborativo — nessun filtro persona qui
+
+    for (const r of ricordi) {
+      if (mappa.has(r.user_id)) continue
+      const membro = membri.find((m) => m.user_id === r.user_id)
+      const seiTu = r.user_id === mioUserId
+      mappa.set(r.user_id, {
+        userId: r.user_id,
+        nome: seiTu ? 'Tu' : (membro?.display_name?.trim() || 'Un collaboratore'),
+        avatarUrl: membro?.avatar_url ?? null,
+      })
+    }
+  }
+
+  return Array.from(mappa.values()).sort((a, b) => {
+    if (a.nome === 'Tu') return -1
+    if (b.nome === 'Tu') return 1
+    return a.nome.localeCompare(b.nome)
+  })
 }

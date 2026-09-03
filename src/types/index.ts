@@ -32,6 +32,8 @@ export interface Profilo {
   display_name: string | null
   avatar_url: string | null
   bio: string | null
+  notifiche_prenotazioni: boolean
+  notifiche_anticipo_giorni: number   // 1 · 3 · 7 giorni prima
   created_at: string
 }
 

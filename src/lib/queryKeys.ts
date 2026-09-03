@@ -118,6 +118,16 @@ export const queryKeys = {
     search: (query: string) => ['geocoding', 'search', query] as const,
   },
 
+  reazioni: {
+    /** ['reazioni', 'list', ricordoId] */
+    byRicordo: (ricordoId: string) => ['reazioni', 'list', ricordoId] as const,
+  },
+
+  tappeNascoste: {
+    /** ['tappe-nascoste', userId] — tappe nascoste dall'utente corrente (tutte, ogni viaggio) */
+    mie: ['tappe-nascoste'] as const,
+  },
+
   noteViaggio: {
     /** ['note-viaggio'] — root */
     all: ['note-viaggio'] as const,

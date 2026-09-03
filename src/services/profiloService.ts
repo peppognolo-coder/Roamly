@@ -43,6 +43,8 @@ export type AggiornamentoProfilo = {
   display_name?: string
   bio?: string | null
   avatar_url?: string | null
+  notifiche_prenotazioni?: boolean
+  notifiche_anticipo_giorni?: number
 }
 
 export async function aggiornaProfilo(

@@ -12,6 +12,7 @@ import { haFiltriAttivi } from '@/lib/diario-utils'
 const FILTRI_INIZIALI: FiltriDiario = {
   mood: [],
   soloPreferiti: false,
+  autori: [],
 }
 
 export function useFiltriDiario() {
@@ -29,6 +30,18 @@ export function useFiltriDiario() {
     })
   }, [])
 
+  const toggleAutore = useCallback((userId: string) => {
+    setFiltri((prev) => {
+      const presente = prev.autori.includes(userId)
+      return {
+        ...prev,
+        autori: presente
+          ? prev.autori.filter((id) => id !== userId)
+          : [...prev.autori, userId],
+      }
+    })
+  }, [])
+
   const togglePreferiti = useCallback(() => {
     setFiltri((prev) => ({ ...prev, soloPreferiti: !prev.soloPreferiti }))
   }, [])
@@ -40,6 +53,7 @@ export function useFiltriDiario() {
   return {
     filtri,
     toggleMood,
+    toggleAutore,
     togglePreferiti,
     resetFiltri,
     haNessunFiltro: !haFiltriAttivi(filtri),
