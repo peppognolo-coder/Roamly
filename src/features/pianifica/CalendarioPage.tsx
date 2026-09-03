@@ -15,6 +15,7 @@ import { usePrenotazioni } from '@/hooks/usePrenotazioni'
 import { useTappeNascoste } from '@/hooks/useTappeNascoste'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys } from '@/lib/queryKeys'
+import { isoDateLocale } from '@/lib/viaggi-utils'
 import type { CategoriaTappa, TipoPrenotazione, TappaViaggio, Prenotazione } from '@/types'
 
 // ============================================================
@@ -39,10 +40,6 @@ type EventoGiorno =
 
 const GIORNI_SETTIMANA = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
 
-function isoDate(d: Date): string {
-  return d.toISOString().slice(0, 10)
-}
-
 /** Tutti i giorni ISO coperti da una tappa: da `giorno` a `giorno_fine`
  *  incluso (o solo `giorno` se `giorno_fine` è assente/uguale) —
  *  stessa logica di ItinerarioPage, così una tappa multi-giorno
@@ -54,7 +51,7 @@ function giorniCoperti(t: TappaViaggio): string[] {
   const cursore = new Date(t.giorno + 'T00:00:00')
   const ultimo = new Date(fine + 'T00:00:00')
   while (cursore <= ultimo) {
-    giorni.push(cursore.toISOString().slice(0, 10))
+    giorni.push(isoDateLocale(cursore))
     cursore.setDate(cursore.getDate() + 1)
   }
   return giorni
@@ -172,7 +169,7 @@ export function CalendarioPage() {
             </div>
             <div className="grid grid-cols-7 gap-y-1">
               {griglia.map((d, i) => {
-                const iso = isoDate(d)
+                const iso = isoDateLocale(d)
                 const fuoriMese = d.getMonth() !== mese.getMonth()
                 const haEventi = eventiPerGiorno.has(iso)
                 const selezionato = giornoSelezionato === iso
