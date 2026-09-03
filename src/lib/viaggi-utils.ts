@@ -1,6 +1,27 @@
 import type { Viaggio, ViaggioConStato, StatoViaggio } from '@/types'
 
 // ------------------------------------------------------------
+// isoDateLocale
+// Converte un oggetto Date in stringa 'YYYY-MM-DD' usando i
+// componenti data LOCALI (anno/mese/giorno), non UTC.
+//
+// Non usare `date.toISOString().slice(0, 10)`: toISOString()
+// converte prima in UTC, quindi una mezzanotte locale in Italia
+// (UTC+1/+2) diventa le 22:00-23:00 del giorno PRIMA in UTC —
+// la stringa risultante è sistematicamente sfalsata di un giorno.
+// Bug reale riscontrato in CalendarioPage e ItinerarioPage: le
+// tappe/prenotazioni comparivano un giorno prima di quello giusto.
+// Stesso principio di `oggiLocale()` in ricordi-utils.ts.
+// ------------------------------------------------------------
+
+export function isoDateLocale(d: Date): string {
+  const anno = d.getFullYear()
+  const mese = String(d.getMonth() + 1).padStart(2, '0')
+  const giorno = String(d.getDate()).padStart(2, '0')
+  return `${anno}-${mese}-${giorno}`
+}
+
+// ------------------------------------------------------------
 // getStatoEffettivo
 // Calcola lo stato di un viaggio:
 //   - se stato IS NOT NULL → override manuale, usa quello
