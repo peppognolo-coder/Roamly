@@ -1,9 +1,16 @@
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
 import type { ChecklistItem as ChecklistItemType } from '@/types'
 
 // ============================================================
 // ChecklistItemRow — singolo item della checklist
-// Toggle completato + pulsante elimina
+// Toggle completato + pulsante elimina + maniglia di trascinamento
 // Nessun dialog di conferma — l'eliminazione è immediata.
+//
+// Drag-and-drop: solo la maniglia (icona GripVertical) attiva il
+// listener di dnd-kit — checkbox e pulsante elimina restano tap
+// normali, senza rischio di attivare un drag per sbaglio.
 // ============================================================
 
 interface ChecklistItemRowProps {
@@ -19,16 +26,51 @@ export function ChecklistItemRow({
   onDelete,
   isToggling,
 }: ChecklistItemRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
   return (
-    <div className={`
-      flex items-center gap-3 px-3 py-2.5
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`
+      flex items-center gap-2 px-2 py-2.5
       rounded-xl border
       transition-all duration-150
       ${item.completato
         ? 'bg-roamly-g7 border-roamly-g6'
         : 'bg-white border-roamly-g6'
       }
+      ${isDragging ? 'shadow-roamly-lg' : ''}
     `}>
+      {/* Maniglia drag */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="
+          w-6 h-6 shrink-0 rounded-md
+          flex items-center justify-center
+          text-roamly-text/20 hover:text-roamly-text/40
+          cursor-grab active:cursor-grabbing
+          touch-none
+        "
+        aria-label="Trascina per riordinare"
+      >
+        <GripVertical size={15} />
+      </button>
+
       {/* Checkbox */}
       <button
         onClick={() => onToggle(item.id, item.completato)}

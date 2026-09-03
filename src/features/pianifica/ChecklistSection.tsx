@@ -1,6 +1,20 @@
 import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, Sparkles } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { ChecklistItemRow } from './ChecklistItemRow'
 import { ChecklistInput }   from './ChecklistInput'
@@ -11,6 +25,7 @@ import {
   useCreateChecklistItemsBatch,
   useToggleChecklistItem,
   useDeleteChecklistItem,
+  useReorderChecklist,
 } from '@/hooks/useCrudChecklist'
 import { calcolaStatisticheChecklist, VALIGIA_TEMPLATES, VALIGIA_TEMPLATE_ICON } from '@/lib/checklist-templates'
 import type { TemplateChecklistItem }  from '@/lib/checklist-templates'
@@ -50,6 +65,29 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
   const { createBatch, isLoading: isBatchLoading } = useCreateChecklistItemsBatch(viaggio.id)
   const { toggle, isLoading: isToggling }          = useToggleChecklistItem(viaggio.id)
   const { deleteItem }                             = useDeleteChecklistItem(viaggio.id)
+  const { reorder }                                = useReorderChecklist(viaggio.id)
+
+  // Sensori drag: PointerSensor per mouse/trackpad, TouchSensor per
+  // mobile — un piccolo delay+tolleranza sul touch evita che uno
+  // scroll verticale della pagina venga scambiato per un drag.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 150, tolerance: 5 },
+    })
+  )
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const oldIndex = items.findIndex((i) => i.id === active.id)
+    const newIndex = items.findIndex((i) => i.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const riordinati = arrayMove(items, oldIndex, newIndex)
+    reorder(riordinati.map((item, i) => ({ id: item.id, ordine: i })))
+  }
 
   const stats = calcolaStatisticheChecklist(items)
 
@@ -181,15 +219,26 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    {items.map((item) => (
-                      <ChecklistItemRow
-                        key={item.id}
-                        item={item}
-                        onToggle={toggle}
-                        onDelete={deleteItem}
-                        isToggling={isToggling}
-                      />
-                    ))}
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={items.map((i) => i.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {items.map((item) => (
+                          <ChecklistItemRow
+                            key={item.id}
+                            item={item}
+                            onToggle={toggle}
+                            onDelete={deleteItem}
+                            isToggling={isToggling}
+                          />
+                        ))}
+                      </SortableContext>
+                    </DndContext>
                   </div>
                 </>
               )}
