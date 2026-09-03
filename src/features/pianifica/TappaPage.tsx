@@ -41,11 +41,13 @@ export function TappaPage() {
     : undefined
 
   function handleSubmit(data: TappaFormData) {
+    const giorno = data.giorno || null
+
     const payload = {
       viaggio_id: viaggioId ?? '',
       nome: data.nome,
       categoria: data.categoria,
-      giorno: data.giorno || null,
+      giorno,
       giorno_fine: data.giorno_fine || data.giorno || null,
       ora: data.ora || null,
       indirizzo: data.indirizzo || null,
@@ -60,7 +62,12 @@ export function TappaPage() {
     if (isEdit && tappaId) {
       updateTappa(tappaId, payload)
     } else {
-      createTappa(payload)
+      // `ordine` va sempre calcolato e passato esplicitamente in creazione
+      // — stesso pattern già usato per la Checklist (vedi useCrudChecklist).
+      // Senza questo campo l'insert può fallire se la colonna `ordine` in
+      // tappe_viaggio è NOT NULL senza un DEFAULT lato database.
+      const ordine = (tappe ?? []).filter((t) => t.giorno === giorno).length
+      createTappa({ ...payload, ordine })
     }
   }
 
