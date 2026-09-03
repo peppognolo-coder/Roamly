@@ -25,6 +25,7 @@ export interface FiltriDiario {
   mood: Mood[]
   soloPreferiti: boolean
   autori: string[]   // user_id — vuoto = tutti
+  ricerca: string     // testo libero — vuoto = nessun filtro testo
 }
 
 export interface GiornoTimeline {
@@ -52,6 +53,8 @@ export function applicaFiltri(
   ricordi: Ricordo[],
   filtri: FiltriDiario
 ): Ricordo[] {
+  const ricercaNormalizzata = filtri.ricerca.trim().toLowerCase()
+
   return ricordi.filter((r) => {
     // Filtro mood: passa se nessun mood selezionato, o se il mood del ricordo è tra quelli
     const passaMood = filtri.mood.length === 0 || filtri.mood.includes(r.mood)
@@ -59,7 +62,12 @@ export function applicaFiltri(
     const passaPreferiti = !filtri.soloPreferiti || r.preferito
     // Filtro autore: passa se nessun autore selezionato, o se chi ha scritto è tra quelli
     const passaAutore = filtri.autori.length === 0 || filtri.autori.includes(r.user_id)
-    return passaMood && passaPreferiti && passaAutore
+    // Filtro ricerca: passa se vuoto, o se il testo compare in titolo/racconto/luogo
+    // (case-insensitive, sottostringa semplice — nessun full-text index lato DB,
+    // filtro puramente client-side sui ricordi già in cache).
+    const passaRicerca = ricercaNormalizzata === '' || [r.titolo, r.testo, r.luogo]
+      .some((campo) => campo?.toLowerCase().includes(ricercaNormalizzata))
+    return passaMood && passaPreferiti && passaAutore && passaRicerca
   })
 }
 
@@ -195,7 +203,10 @@ export function calcolaTotaliDiario(sezioni: SezioneViaggio[]): {
 // ------------------------------------------------------------
 
 export function haFiltriAttivi(filtri: FiltriDiario): boolean {
-  return filtri.mood.length > 0 || filtri.soloPreferiti || filtri.autori.length > 0
+  return filtri.mood.length > 0
+    || filtri.soloPreferiti
+    || filtri.autori.length > 0
+    || filtri.ricerca.trim().length > 0
 }
 
 // ------------------------------------------------------------
