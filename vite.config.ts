@@ -67,6 +67,12 @@ export default defineConfig({
 
       // ── Workbox ─────────────────────────────────────────────
       workbox: {
+        // Push handler custom (public/sw-push.js) — Workbox gestisce
+        // solo caching/precache di suo; gli event listener 'push' e
+        // 'notificationclick' per le notifiche (blocco Notifiche, N2)
+        // vivono in un file a parte, importato nel SW generato.
+        importScripts: ['sw-push.js'],
+
         // Precache tutti gli asset statici generati da Vite
         // (JS chunks, CSS, font, icone già in includeAssets)
         // png escluse: le icone PWA vengono aggiunte automaticamente dal manifest
