@@ -30,9 +30,11 @@ import { useNavigate }       from 'react-router-dom'
 // Saluto in base all'ora del giorno
 function getSaluto(): string {
   const ora = new Date().getHours()
+  if (ora < 5) return 'Buonanotte'
   if (ora < 12) return 'Buongiorno'
   if (ora < 18) return 'Buon pomeriggio'
-  return 'Buonasera'
+  if (ora < 23) return 'Buonasera'
+  return 'Buonanotte'
 }
 
 // Data odierna formattata
