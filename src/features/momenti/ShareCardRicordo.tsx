@@ -1,276 +1,212 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { AnimatePresence, motion }  from 'framer-motion'
-import { toPng }                   from 'html-to-image'
-import { ViaggioCoverIcon }         from '@/components/ui/ViaggioCoverIcon'
-import { formatDataViaggio }        from '@/lib/viaggi-utils'
-import { calcolaDurataViaggio }     from '@/lib/viaggi-utils'
-import { urlToDataUrl }             from '@/lib/share-utils'
-import type { ViaggioConStato }     from '@/types'
+import { AnimatePresence, motion } from 'framer-motion'
+import { toPng } from 'html-to-image'
+import { urlToDataUrl } from '@/lib/share-utils'
+import { MOOD_OPTIONS } from '@/types'
+import type { Ricordo, ViaggioConStato } from '@/types'
 
 // ============================================================
-// ShareCardViaggio — genera e scarica una share card del viaggio
-//
-// Flusso:
-//   1. Mostra modal con anteprima card (scalata al 35%)
-//   2. Selector formato: Story 9:16 · Square 1:1
-//   3. Export PNG via html-to-image sul DOM a dimensioni reali
-//   4. Download automatico + pulsante Condividi (Web Share API)
-//
-// NOTA immagini crossorigin: vedi urlToDataUrl in lib/share-utils.
+// ShareCardRicordo — genera e scarica una share card di un ricordo
+// Stesso pattern di ShareCardViaggio: anteprima scalata, due
+// formati (Story 9:16 · Square 1:1), export PNG via html-to-image,
+// download + Web Share API. Vedi ShareCardViaggio per le note
+// tecniche complete su questo approccio.
 // ============================================================
 
-interface ShareCardViaggioProps {
-  viaggio:     ViaggioConStato
-  coverUrl?:   string | null   // thumbnailSignedUrl da useCoverViaggio
-  numRicordi:  number
-  numFoto:     number
-  onClose:     () => void
+interface ShareCardRicordoProps {
+  ricordo:   Ricordo
+  viaggio?:  ViaggioConStato | null
+  coverUrl?: string | null   // signed URL della foto di copertina del ricordo, se presente
+  onClose:   () => void
 }
 
 type Formato = 'story' | 'square'
 
-// Dimensioni reali del PNG esportato
 const DIMENSIONI: Record<Formato, { w: number; h: number }> = {
   story:  { w: 1080, h: 1920 },
   square: { w: 1080, h: 1080 },
 }
 
-// Scala dell'anteprima in-screen (la card reale è 1080px)
 const SCALA_ANTEPRIMA = 0.28
 
-// Converte URL remota in dataURL per html-to-image (bypass CORS canvas)
-// — vedi src/lib/share-utils.ts (urlToDataUrl), importata sopra.
+// Gradient per mood — coerente con RicordoCard/HeroCardDiario (qui
+// come colori hex diretti, servono per lo sfondo della card esportata)
+const MOOD_COLORI: Record<string, [string, string]> = {
+  felice:       ['#F5A623', '#C77800'],
+  meravigliato: ['#EC4899', '#9D1D63'],
+  sereno:       ['#0F7EA8', '#0C2A3D'],
+  entusiasta:   ['#FF6B4A', '#C23A1E'],
+  ispirato:     ['#C084FC', '#6B21A8'],
+}
 
 // ============================================================
-// CardContent — il contenuto visivo della card (usato per anteprima e export)
+// CardContent — il contenuto visivo della card (anteprima + export)
 // ============================================================
 
 interface CardContentProps {
-  viaggio:    ViaggioConStato
-  coverData:  string | null      // dataURL della cover (o null)
-  numRicordi: number
-  numFoto:    number
+  ricordo:    Ricordo
+  viaggio?:   ViaggioConStato | null
+  coverData:  string | null
   formato:    Formato
-  // Dimensioni passate esplicitamente (anteprima vs export)
   width:      number
   height:     number
 }
 
-function CardContent({
-  viaggio,
-  coverData,
-  numRicordi,
-  numFoto,
-  formato,
-  width,
-  height,
-}: CardContentProps) {
-  const durataGiorni = calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine)
-  const dataStr      = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
-  const coverValue   = viaggio.cover_emoji
-  const isStory      = formato === 'story'
+function CardContent({ ricordo, viaggio, coverData, formato, width, height }: CardContentProps) {
+  const moodOption = MOOD_OPTIONS.find((m) => m.value === ricordo.mood)
+  const [colA, colB] = MOOD_COLORI[ricordo.mood] ?? MOOD_COLORI.sereno
+  const isStory = formato === 'story'
 
-  // Font sizes scalati sulla larghezza reale (1080px base)
+  const [ry, rm, rd] = ricordo.data.split('-').map(Number)
+  const dataStr = new Date(ry, rm - 1, rd).toLocaleDateString('it-IT', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  })
+
   const scale = width / 1080
   const fs = {
     tag:    Math.round(22 * scale),
-    nome:   Math.round(isStory ? 72 * scale : 60 * scale),
-    dest:   Math.round(36 * scale),
-    date:   Math.round(28 * scale),
-    stat:   Math.round(60 * scale),
-    label:  Math.round(22 * scale),
+    titolo: Math.round(isStory ? 64 * scale : 52 * scale),
+    testo:  Math.round(30 * scale),
+    meta:   Math.round(26 * scale),
     brand:  Math.round(24 * scale),
-    emoji:  Math.round(isStory ? 140 * scale : 110 * scale),
+    emoji:  Math.round(isStory ? 120 * scale : 96 * scale),
   }
-  const gap   = Math.round(20 * scale)
   const pad   = Math.round(60 * scale)
   const padSm = Math.round(40 * scale)
+  const gap   = Math.round(20 * scale)
+
+  // Estratto breve del testo — una card non è la pagina intera
+  const estrattoTesto = ricordo.testo && ricordo.testo.length > 160
+    ? ricordo.testo.slice(0, 160).trim() + '…'
+    : ricordo.testo
+
   return (
     <div
       style={{
-        width,
-        height,
+        width, height,
         position: 'relative',
         overflow: 'hidden',
-        background: '#0C2A3D',
+        background: coverData ? '#0C2A3D' : `linear-gradient(160deg, ${colA} 0%, ${colB} 100%)`,
         fontFamily: "'DM Sans', sans-serif",
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* ── Background foto cover ── */}
+      {/* ── Background foto, se presente ── */}
       {coverData && (
         <>
           <img
             src={coverData}
             alt=""
             style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
+              position: 'absolute', inset: 0,
+              width: '100%', height: '100%',
               objectFit: 'cover',
-              opacity: 0.35,
+              opacity: 0.4,
             }}
           />
-          {/* Gradient overlay — più scuro ai bordi */}
           <div style={{
             position: 'absolute',
             inset: 0,
             background: isStory
-              ? 'linear-gradient(to bottom, rgba(4,52,44,0.5) 0%, rgba(4,52,44,0.1) 35%, rgba(4,52,44,0.15) 65%, rgba(4,52,44,0.85) 100%)'
-              : 'linear-gradient(135deg, rgba(4,52,44,0.6) 0%, rgba(4,52,44,0.2) 50%, rgba(4,52,44,0.7) 100%)',
+              ? 'linear-gradient(to bottom, rgba(12,42,61,0.55) 0%, rgba(12,42,61,0.15) 35%, rgba(12,42,61,0.2) 60%, rgba(12,42,61,0.9) 100%)'
+              : 'linear-gradient(135deg, rgba(12,42,61,0.65) 0%, rgba(12,42,61,0.25) 50%, rgba(12,42,61,0.75) 100%)',
           }} />
         </>
       )}
 
       {/* ── Contenuto ── */}
       <div style={{
-        position: 'relative',
-        zIndex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        padding: pad,
-        gap,
+        position: 'relative', zIndex: 1,
+        display: 'flex', flexDirection: 'column',
+        height: '100%', padding: pad, gap,
       }}>
 
-        {/* Header: tag Roamly */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: Math.round(10 * scale),
-        }}>
+        {/* Header brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: Math.round(10 * scale) }}>
           <div style={{
-            width:  Math.round(36 * scale),
-            height: Math.round(36 * scale),
+            width: Math.round(36 * scale), height: Math.round(36 * scale),
             borderRadius: Math.round(8 * scale),
-            background: 'rgba(255,255,255,0.15)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            background: 'rgba(255,255,255,0.18)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: Math.round(18 * scale),
           }}>
             📖
           </div>
           <span style={{
-            fontSize: fs.brand,
-            color: 'rgba(255,255,255,0.7)',
-            fontWeight: 500,
-            letterSpacing: '0.05em',
+            fontSize: fs.brand, color: 'rgba(255,255,255,0.75)',
+            fontWeight: 500, letterSpacing: '0.05em',
           }}>
             Roamly
           </span>
         </div>
 
-        {/* Spacer story */}
+        {/* Spacer superiore su story */}
         {isStory && <div style={{ flex: 1 }} />}
 
-        {/* Emoji/icona viaggio — solo se no cover */}
+        {/* Emoji mood grande — solo se nessuna foto */}
         {!coverData && (
-          <div style={{
-            display: 'flex',
-            justifyContent: isStory ? 'center' : 'flex-start',
-            color: 'white',
-          }}>
-            <ViaggioCoverIcon value={coverValue} size={fs.emoji} />
+          <div style={{ display: 'flex', justifyContent: isStory ? 'center' : 'flex-start' }}>
+            <span style={{ fontSize: fs.emoji, lineHeight: 1 }}>{moodOption?.emoji}</span>
           </div>
         )}
 
-        {/* Nome viaggio */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: Math.round(8 * scale) }}>
+        {/* Titolo + testo */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: Math.round(14 * scale) }}>
           <h1 style={{
-            fontSize: fs.nome,
-            fontWeight: 700,
-            color: '#ffffff',
-            lineHeight: 1.1,
-            margin: 0,
+            fontSize: fs.titolo, fontWeight: 700, color: '#ffffff',
+            lineHeight: 1.15, margin: 0,
             fontFamily: "'Lora', Georgia, serif",
-            textShadow: '0 2px 12px rgba(0,0,0,0.3)',
+            textShadow: '0 2px 12px rgba(0,0,0,0.35)',
           }}>
-            {viaggio.nome}
+            {ricordo.titolo}
           </h1>
 
-          {/* Destinazione */}
-          {(viaggio.destinazione || viaggio.paese) && (
+          {estrattoTesto && (
             <p style={{
-              fontSize: fs.dest,
-              color: 'rgba(255,255,255,0.8)',
+              fontSize: fs.testo,
+              color: 'rgba(255,255,255,0.85)',
+              lineHeight: 1.5,
               margin: 0,
-              fontWeight: 400,
+              fontStyle: 'italic',
             }}>
-              {[viaggio.destinazione, viaggio.paese].filter(Boolean).join(', ')}
+              “{estrattoTesto}”
             </p>
           )}
-
-          {/* Date */}
-          <p style={{
-            fontSize: fs.date,
-            color: 'rgba(255,255,255,0.6)',
-            margin: 0,
-            fontWeight: 400,
-            letterSpacing: '0.02em',
-          }}>
-            {dataStr}
-          </p>
         </div>
 
-        {/* Spacer */}
+        {/* Spacer inferiore su square */}
         {!isStory && <div style={{ flex: 1 }} />}
 
-        {/* Statistiche */}
+        {/* Meta: mood label + luogo + data */}
         <div style={{
-          display: 'flex',
-          gap: Math.round(isStory ? 48 * scale : 40 * scale),
-          alignItems: 'flex-end',
-          paddingTop: Math.round(24 * scale),
-          borderTop: '1px solid rgba(255,255,255,0.15)',
+          display: 'flex', flexDirection: 'column', gap: Math.round(6 * scale),
+          paddingTop: Math.round(20 * scale),
+          borderTop: '1px solid rgba(255,255,255,0.2)',
         }}>
-          {[
-            { valore: durataGiorni ?? '—', etichetta: durataGiorni === 1 ? 'giorno' : 'giorni' },
-            { valore: numRicordi, etichetta: numRicordi === 1 ? 'ricordo' : 'ricordi' },
-            { valore: numFoto, etichetta: numFoto === 1 ? 'foto' : 'foto' },
-          ].map(({ valore, etichetta }) => (
-            <div key={etichetta} style={{ display: 'flex', flexDirection: 'column', gap: Math.round(4 * scale) }}>
-              <span style={{
-                fontSize: fs.stat,
-                fontWeight: 700,
-                color: '#ffffff',
-                lineHeight: 1,
-                fontFamily: "'DM Mono', monospace",
-              }}>
-                {valore}
-              </span>
-              <span style={{
-                fontSize: fs.label,
-                color: 'rgba(255,255,255,0.55)',
-                fontWeight: 400,
-                letterSpacing: '0.04em',
-              }}>
-                {etichetta}
-              </span>
-            </div>
-          ))}
+          {ricordo.luogo && (
+            <span style={{ fontSize: fs.meta, color: 'rgba(255,255,255,0.85)', fontWeight: 500 }}>
+              📍 {ricordo.luogo}
+            </span>
+          )}
+          <span style={{ fontSize: fs.meta, color: 'rgba(255,255,255,0.55)' }}>
+            {moodOption?.label} · {dataStr}
+          </span>
         </div>
 
         {/* Footer brand */}
         <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           paddingTop: padSm,
         }}>
+          <span style={{ fontSize: fs.brand, color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}>
+            {viaggio ? `Da: ${viaggio.nome}` : ''}
+          </span>
           <span style={{
-            fontSize: fs.brand,
-            color: 'rgba(255,255,255,0.4)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const,
-            fontWeight: 500,
+            fontSize: fs.brand, color: 'rgba(255,255,255,0.4)',
+            letterSpacing: '0.1em', textTransform: 'uppercase' as const, fontWeight: 500,
           }}>
             roamly.app
-          </span>
-          <span style={{ opacity: 0.4, color: 'white', display: 'flex' }}>
-            <ViaggioCoverIcon value={coverValue} size={fs.brand * 1.2} />
           </span>
         </div>
 
@@ -280,23 +216,16 @@ function CardContent({
 }
 
 // ============================================================
-// ShareCardViaggio — modal principale
+// ShareCardRicordo — modal principale
 // ============================================================
 
-export function ShareCardViaggio({
-  viaggio,
-  coverUrl,
-  numRicordi,
-  numFoto,
-  onClose,
-}: ShareCardViaggioProps) {
-  const [formato, setFormato]         = useState<Formato>('story')
+export function ShareCardRicordo({ ricordo, viaggio, coverUrl, onClose }: ShareCardRicordoProps) {
+  const [formato, setFormato]         = useState<Formato>('square')
   const [coverData, setCoverData]     = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exported, setExported]       = useState<string | null>(null)
   const exportRef                     = useRef<HTMLDivElement>(null)
 
-  // Converte la cover in dataURL al mount / cambio URL
   useEffect(() => {
     if (!coverUrl) { setCoverData(null); return }
     urlToDataUrl(coverUrl).then(setCoverData)
@@ -304,53 +233,47 @@ export function ShareCardViaggio({
 
   const dim = DIMENSIONI[formato]
 
-  // Export PNG — opera sul DOM a dimensioni reali (non scalate)
   const handleExport = useCallback(async () => {
     if (!exportRef.current || isExporting) return
     setIsExporting(true)
 
     try {
-      // Forza il font Google Fonts nella card prima dell'export
       await document.fonts.ready
 
       const dataUrl = await toPng(exportRef.current, {
         width:  dim.w,
         height: dim.h,
-        pixelRatio: 1,   // già a risoluzione piena
-        // Esclude elementi non visibili (il ref è hidden off-screen)
+        pixelRatio: 1,
         filter: (node) => node !== document.body,
       })
 
       setExported(dataUrl)
 
-      // Download automatico
       const a = document.createElement('a')
       a.href     = dataUrl
-      a.download = `roamly-${viaggio.nome.toLowerCase().replace(/\s+/g, '-')}-${formato}.png`
+      a.download = `roamly-${ricordo.titolo.toLowerCase().replace(/\s+/g, '-')}-${formato}.png`
       a.click()
     } catch (err) {
       console.error('Export fallito:', err)
     } finally {
       setIsExporting(false)
     }
-  }, [dim, formato, viaggio.nome, isExporting])
+  }, [dim, formato, ricordo.titolo, isExporting])
 
-  // Web Share API — disponibile su mobile (iOS 15+, Android Chrome)
   const handleShare = useCallback(async () => {
     if (!exported) return
     try {
       const resp  = await fetch(exported)
       const blob  = await resp.blob()
-      const file  = new File([blob], `roamly-${viaggio.nome}.png`, { type: 'image/png' })
-      await navigator.share({ files: [file], title: viaggio.nome })
+      const file  = new File([blob], `roamly-${ricordo.titolo}.png`, { type: 'image/png' })
+      await navigator.share({ files: [file], title: ricordo.titolo })
     } catch {
-      // Fallback: riapre download
       const a = document.createElement('a')
       a.href     = exported
-      a.download = `roamly-${viaggio.nome}.png`
+      a.download = `roamly-${ricordo.titolo}.png`
       a.click()
     }
-  }, [exported, viaggio.nome])
+  }, [exported, ricordo.titolo])
 
   const anteprimaW = Math.round(dim.w * SCALA_ANTEPRIMA)
   const anteprimaH = Math.round(dim.h * SCALA_ANTEPRIMA)
@@ -373,10 +296,7 @@ export function ShareCardViaggio({
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="
-          fixed bottom-0 left-0 right-0 z-50
-          flex justify-center
-        "
+        className="fixed bottom-0 left-0 right-0 z-50 flex justify-center"
       >
         <div className="
           w-full max-w-[430px]
@@ -394,7 +314,7 @@ export function ShareCardViaggio({
           {/* Header */}
           <div className="flex items-center justify-between px-5 pt-2 pb-4 shrink-0">
             <h2 className="font-lora text-xl font-semibold text-roamly-g0">
-              Condividi viaggio
+              Condividi ricordo
             </h2>
             <button
               onClick={onClose}
@@ -428,7 +348,6 @@ export function ShareCardViaggio({
                   }
                 `}
               >
-                {/* Icona formato */}
                 <div className={`
                   border-2 rounded-md
                   ${formato === f ? 'border-roamly-g2' : 'border-roamly-g5'}
@@ -450,14 +369,12 @@ export function ShareCardViaggio({
               <div style={{
                 transform: `scale(${SCALA_ANTEPRIMA})`,
                 transformOrigin: 'top left',
-                width: dim.w,
-                height: dim.h,
+                width: dim.w, height: dim.h,
               }}>
                 <CardContent
+                  ricordo={ricordo}
                   viaggio={viaggio}
                   coverData={coverData}
-                  numRicordi={numRicordi}
-                  numFoto={numFoto}
                   formato={formato}
                   width={dim.w}
                   height={dim.h}
@@ -468,8 +385,6 @@ export function ShareCardViaggio({
 
           {/* Azioni */}
           <div className="flex flex-col gap-3 px-5 pb-8 shrink-0">
-
-            {/* Scarica PNG */}
             <button
               onClick={handleExport}
               disabled={isExporting}
@@ -499,7 +414,6 @@ export function ShareCardViaggio({
               )}
             </button>
 
-            {/* Condividi — solo se Web Share API disponibile */}
             {canShare && exported && (
               <button
                 onClick={handleShare}
@@ -522,26 +436,15 @@ export function ShareCardViaggio({
                 <span>Condividi</span>
               </button>
             )}
-
           </div>
 
           {/* Card a dimensioni reali — off-screen per export */}
-          <div
-            style={{
-              position: 'fixed',
-              top: -9999,
-              left: -9999,
-              width: dim.w,
-              height: dim.h,
-              pointerEvents: 'none',
-            }}
-          >
+          <div style={{ position: 'fixed', top: -9999, left: -9999, width: dim.w, height: dim.h, pointerEvents: 'none' }}>
             <div ref={exportRef} style={{ width: dim.w, height: dim.h }}>
               <CardContent
+                ricordo={ricordo}
                 viaggio={viaggio}
                 coverData={coverData}
-                numRicordi={numRicordi}
-                numFoto={numFoto}
                 formato={formato}
                 width={dim.w}
                 height={dim.h}

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import {
-  UserCog, BarChart3, Trophy, HelpCircle, Info, ChevronRight, Clock,
+  UserCog, BarChart3, Trophy, HelpCircle, Info, ChevronRight, Clock, Bell,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
@@ -38,6 +38,13 @@ const VOCI: VoceHub[] = [
     descrizione: 'Viaggi, ricordi e paesi visitati',
     icon: BarChart3,
     path: '/profilo/statistiche',
+  },
+  {
+    id: 'notifiche',
+    label: 'Notifiche',
+    descrizione: 'Promemoria per le tue prenotazioni',
+    icon: Bell,
+    path: '/profilo/notifiche',
   },
   {
     id: 'traguardi',

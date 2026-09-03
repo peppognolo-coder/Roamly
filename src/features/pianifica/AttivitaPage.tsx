@@ -3,12 +3,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
-import { MapPin, Clock, Pencil, ExternalLink } from 'lucide-react'
+import { MapPin, Clock, Pencil, ExternalLink, EyeOff, Eye } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
+import { useTappeNascoste } from '@/hooks/useTappeNascoste'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys }    from '@/lib/queryKeys'
 import { cercaLuoghi }  from '@/lib/geocoding'
@@ -25,6 +26,11 @@ import '@/styles/leaflet-overrides.css'
 // posizionate qui a mano) compaiono qui automaticamente, colorate
 // per giorno di visita. Filtri per mostrare/nascondere un giorno
 // alla volta; eliminare/aggiungere resta invariato (form condiviso).
+//
+// "Nascondi per me" (useTappeNascoste) è diverso dai filtri giorno:
+// i filtri sono temporanei, per sessione; nascondere è una
+// preferenza personale salvata, che resta per gli accessi futuri
+// ma non tocca la tappa per gli altri membri né in Itinerario.
 // ============================================================
 
 const CENTRO_DEFAULT: [number, number] = [41.9028, 12.4964] // Roma
@@ -126,22 +132,26 @@ export function AttivitaPage() {
   const navigate = useNavigate()
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [], isLoading } = useTappe(viaggioId)
+  const { idNascosti, nascondiTappa, mostraTappa } = useTappeNascoste()
   const [geoloc, setGeoloc] = useState<[number, number] | null>(null)
   const [giorniNascosti, setGiorniNascosti] = useState<Set<string>>(new Set())
+  const [mostraElencoNascoste, setMostraElencoNascoste] = useState(false)
 
   useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
 
   const tappeConPosizione = tappe.filter((t) => t.lat != null && t.lng != null)
+  const tappeNascostePersonali = tappeConPosizione.filter((t) => idNascosti.has(t.id))
+  const tappeBase = tappeConPosizione.filter((t) => !idNascosti.has(t.id))
 
-  // Giorni distinti tra le tappe posizionate, in ordine — alimenta
+  // Giorni distinti tra le tappe posizionate E visibili — alimenta
   // sia la palette colori (indice = colore) sia i chip filtro.
   const giorniOrdinati = useMemo(
     () => Array.from(new Set(
-      tappeConPosizione.filter((t) => t.giorno).map((t) => t.giorno as string)
+      tappeBase.filter((t) => t.giorno).map((t) => t.giorno as string)
     )).sort(),
-    [tappeConPosizione]
+    [tappeBase]
   )
-  const haSenzaGiorno = tappeConPosizione.some((t) => !t.giorno)
+  const haSenzaGiorno = tappeBase.some((t) => !t.giorno)
   const mostraFiltri = giorniOrdinati.length + (haSenzaGiorno ? 1 : 0) > 1
 
   function chiaveGiorno(t: TappaViaggio): string {
@@ -162,7 +172,7 @@ export function AttivitaPage() {
     })
   }
 
-  const tappeVisibili = tappeConPosizione.filter((t) => !giorniNascosti.has(chiaveGiorno(t)))
+  const tappeVisibili = tappeBase.filter((t) => !giorniNascosti.has(chiaveGiorno(t)))
   const punti: [number, number][] = tappeVisibili.map((t) => [t.lat as number, t.lng as number])
 
   // Centro di fallback quando il viaggio non ha ancora nessuna tappa
@@ -264,6 +274,43 @@ export function AttivitaPage() {
               </div>
             )}
 
+            {tappeNascostePersonali.length > 0 && (
+              <div className="px-5 pb-3">
+                <button
+                  onClick={() => setMostraElencoNascoste((v) => !v)}
+                  className="
+                    flex items-center gap-1.5 font-dm-sans text-xs font-medium
+                    text-roamly-text/40 hover:text-roamly-text/60
+                  "
+                >
+                  <EyeOff size={12} />
+                  {tappeNascostePersonali.length} nascoste per te
+                </button>
+                {mostraElencoNascoste && (
+                  <div className="mt-2 flex flex-col gap-1.5 bg-white rounded-2xl shadow-roamly p-3">
+                    {tappeNascostePersonali.map((t) => (
+                      <div key={t.id} className="flex items-center justify-between gap-2">
+                        <span className="font-dm-sans text-xs text-roamly-text/70 truncate">
+                          {t.nome}
+                        </span>
+                        <button
+                          onClick={() => mostraTappa(t.id)}
+                          className="
+                            shrink-0 flex items-center gap-1
+                            font-dm-sans text-xs font-medium text-roamly-g2
+                            hover:text-roamly-g1
+                          "
+                        >
+                          <Eye size={11} />
+                          Mostra
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex-1 mx-5 mb-5 rounded-2xl overflow-hidden shadow-roamly relative">
               <MapContainer
                 center={centro}
@@ -324,6 +371,17 @@ export function AttivitaPage() {
                           <ExternalLink size={11} />
                           Apri in Maps
                         </a>
+                        <button
+                          onClick={() => nascondiTappa(t.id)}
+                          className="
+                            flex items-center gap-1 mt-1
+                            font-dm-sans text-xs font-medium text-roamly-text/40
+                            hover:text-roamly-text/60
+                          "
+                        >
+                          <EyeOff size={11} />
+                          Nascondi per me
+                        </button>
                       </div>
                     </Popup>
                   </Marker>
@@ -344,7 +402,7 @@ export function AttivitaPage() {
                 </div>
               )}
 
-              {tappeConPosizione.length > 0 && tappeVisibili.length === 0 && (
+              {tappeBase.length > 0 && tappeVisibili.length === 0 && (
                 <div className="
                   absolute bottom-4 left-1/2 -translate-x-1/2
                   flex items-center gap-2 px-4 py-2.5
@@ -354,6 +412,20 @@ export function AttivitaPage() {
                   <MapPin size={14} className="text-roamly-g3" />
                   <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
                     Tutti i giorni sono nascosti — riattivane uno dai filtri
+                  </span>
+                </div>
+              )}
+
+              {tappeConPosizione.length > 0 && tappeBase.length === 0 && (
+                <div className="
+                  absolute bottom-4 left-1/2 -translate-x-1/2
+                  flex items-center gap-2 px-4 py-2.5
+                  bg-white/95 backdrop-blur-sm rounded-full shadow-roamly-lg
+                  pointer-events-none
+                ">
+                  <EyeOff size={14} className="text-roamly-g3" />
+                  <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
+                    Hai nascosto tutte le tappe — ripristinale qui sopra
                   </span>
                 </div>
               )}

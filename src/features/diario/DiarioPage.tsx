@@ -26,7 +26,7 @@ import { useCollapseViaggi }     from '@/hooks/useCollapseViaggi'
 // ============================================================
 
 export function DiarioPage() {
-  const { filtri, toggleMood, togglePreferiti, resetFiltri } = useFiltriDiario()
+  const { filtri, toggleMood, togglePreferiti, toggleAutore, resetFiltri } = useFiltriDiario()
 
   const {
     sezioni,
@@ -37,6 +37,7 @@ export function DiarioPage() {
     totaleFiltrati,
     totaleRicordi,
     haViaggi,
+    autoriDisponibili,
   } = useDiario(filtri)
 
   // IDs per il collapse — stabile, memoizzato
@@ -71,9 +72,11 @@ export function DiarioPage() {
             filtri={filtri}
             onToggleMood={toggleMood}
             onTogglePreferiti={togglePreferiti}
+            onToggleAutore={toggleAutore}
             onReset={resetFiltri}
             totaleFiltrati={totaleFiltrati}
             totaleRicordi={totaleRicordi}
+            autoriDisponibili={autoriDisponibili}
           />
         </header>
 

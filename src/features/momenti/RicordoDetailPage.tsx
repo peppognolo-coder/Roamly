@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Heart } from 'lucide-react'
+import { Heart, Share2 } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }     from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -11,7 +11,10 @@ import { useRicordo }     from '@/hooks/useRicordi'
 import { useViaggi }      from '@/hooks/useViaggi'
 import { useUpdateRicordo, useDeleteRicordo, useTogglePreferito } from '@/hooks/useCrudRicordo'
 import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
+import { useFotoRicordo } from '@/hooks/useFoto'
 import { AutoreBadge }    from '@/components/ricordi/AutoreBadge'
+import { ShareCardRicordo } from './ShareCardRicordo'
+import { ReazioniRicordo } from '@/components/ricordi/ReazioniRicordo'
 import { MOOD_OPTIONS }   from '@/types'
 import type { RicordoFormData } from './RicordoForm'
 import { FotoGalleria }    from './FotoGalleria'
@@ -47,9 +50,11 @@ export function RicordoDetailPage() {
     useDeleteRicordo(viaggioId)
   const { toggle: togglePreferito } = useTogglePreferito(viaggioId)
   const { autore } = useAutoreRicordo(ricordo)
+  const { data: foto } = useFotoRicordo(ricordo?.id)
 
   const [isEditing, setIsEditing] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [showShare, setShowShare] = useState(false)
 
   // Chiude il form solo dopo mutation completata con successo
   useEffect(() => {
@@ -130,6 +135,18 @@ export function RicordoDetailPage() {
             </svg>
           </button>
           <div className="flex-1" />
+          <button
+            onClick={() => setShowShare(true)}
+            className="
+              w-9 h-9 rounded-xl flex items-center justify-center
+              bg-roamly-g7 shadow-roamly
+              hover:bg-roamly-g6 active:scale-[0.98]
+              transition-all duration-150
+            "
+            aria-label="Condividi ricordo"
+          >
+            <Share2 size={16} className="text-roamly-text/60" />
+          </button>
           <button
             onClick={() => togglePreferito(ricordo.id, ricordo.preferito)}
             className="
@@ -272,6 +289,11 @@ export function RicordoDetailPage() {
             />
           )}
 
+          {/* ── Reazioni — solo su viaggi collaborativi ── */}
+          {!isEditing && (
+            <ReazioniRicordo ricordoId={ricordo.id} viaggioId={viaggioId} />
+          )}
+
           {/* ── Form modifica ── */}
           {isEditing && (
             <div className="bg-white rounded-2xl border border-roamly-g5 p-5">
@@ -340,6 +362,15 @@ export function RicordoDetailPage() {
       </div>
       </AnimatedPage>
       <BottomNav />
+      {/* Share Card modal */}
+      {showShare && (
+        <ShareCardRicordo
+          ricordo={ricordo}
+          viaggio={viaggio}
+          coverUrl={foto?.find((f) => f.is_cover)?.signedUrl ?? foto?.[0]?.signedUrl ?? null}
+          onClose={() => setShowShare(false)}
+        />
+      )}
     </PageLayout>
   )
 }

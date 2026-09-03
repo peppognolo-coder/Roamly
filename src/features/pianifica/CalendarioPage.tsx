@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import {
   ChevronLeft, ChevronRight, Clock, CalendarDays,
   Landmark, Trees, UtensilsCrossed, Car, PartyPopper, Sparkles, MapPin,
-  Plane, BedDouble, Ticket, Stamp, MoreHorizontal,
+  Plane, BedDouble, Ticket, Stamp, MoreHorizontal, EyeOff, Eye,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
@@ -12,6 +12,7 @@ import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useTappe }     from '@/hooks/useTappe'
 import { usePrenotazioni } from '@/hooks/usePrenotazioni'
+import { useTappeNascoste } from '@/hooks/useTappeNascoste'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys } from '@/lib/queryKeys'
 import type { CategoriaTappa, TipoPrenotazione, TappaViaggio, Prenotazione } from '@/types'
@@ -42,6 +43,23 @@ function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
+/** Tutti i giorni ISO coperti da una tappa: da `giorno` a `giorno_fine`
+ *  incluso (o solo `giorno` se `giorno_fine` è assente/uguale) —
+ *  stessa logica di ItinerarioPage, così una tappa multi-giorno
+ *  compare in agenda in ogni giorno che copre, non solo il primo. */
+function giorniCoperti(t: TappaViaggio): string[] {
+  if (!t.giorno) return []
+  const fine = t.giorno_fine && t.giorno_fine > t.giorno ? t.giorno_fine : t.giorno
+  const giorni: string[] = []
+  const cursore = new Date(t.giorno + 'T00:00:00')
+  const ultimo = new Date(fine + 'T00:00:00')
+  while (cursore <= ultimo) {
+    giorni.push(cursore.toISOString().slice(0, 10))
+    cursore.setDate(cursore.getDate() + 1)
+  }
+  return giorni
+}
+
 function inizioSettimana(d: Date): Date {
   const giorno = (d.getDay() + 6) % 7 // 0 = lunedì
   const r = new Date(d)
@@ -66,17 +84,23 @@ export function CalendarioPage() {
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [] } = useTappe(viaggioId)
   const { data: prenotazioni = [] } = usePrenotazioni(viaggioId)
+  const { idNascosti, nascondiTappa, mostraTappa } = useTappeNascoste()
+  const [mostraElencoNascoste, setMostraElencoNascoste] = useState(false)
 
   useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
   useRealtimeSync('wallet', 'viaggio_id', viaggioId, [queryKeys.prenotazioni.byViaggio(viaggioId ?? '')])
 
+  const tappeNascostePersonali = tappe.filter((t) => idNascosti.has(t.id))
+  const tappeVisibiliCalendario = tappe.filter((t) => !idNascosti.has(t.id))
+
   const eventiPerGiorno = useMemo(() => {
     const mappa = new Map<string, EventoGiorno[]>()
-    for (const t of tappe) {
-      if (!t.giorno) continue
-      const lista = mappa.get(t.giorno) ?? []
-      lista.push({ kind: 'tappa', data: t })
-      mappa.set(t.giorno, lista)
+    for (const t of tappeVisibiliCalendario) {
+      for (const giorno of giorniCoperti(t)) {
+        const lista = mappa.get(giorno) ?? []
+        lista.push({ kind: 'tappa', data: t })
+        mappa.set(giorno, lista)
+      }
     }
     for (const p of prenotazioni) {
       if (!p.data) continue
@@ -85,7 +109,7 @@ export function CalendarioPage() {
       mappa.set(p.data, lista)
     }
     return mappa
-  }, [tappe, prenotazioni])
+  }, [tappeVisibiliCalendario, prenotazioni])
 
   const meseIniziale = useMemo(() => {
     if (viaggio?.data_inizio) return new Date(viaggio.data_inizio + 'T00:00:00')
@@ -212,56 +236,133 @@ export function CalendarioPage() {
                         {new Date(giorno + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}
                       </p>
                     )}
-                    {eventi
-                      .slice()
-                      .sort((a, b) => {
+                    {(() => {
+                      const ordinati = eventi.slice().sort((a, b) => {
                         const oraA = a.kind === 'tappa' ? a.data.ora : null
                         const oraB = b.kind === 'tappa' ? b.data.ora : null
                         return (oraA ?? '99:99').localeCompare(oraB ?? '99:99')
                       })
-                      .map((ev) => {
+                      const conOrario   = ordinati.filter((ev) => ev.kind === 'tappa' && ev.data.ora)
+                      const senzaOrario = ordinati.filter((ev) => !(ev.kind === 'tappa' && ev.data.ora))
+
+                      const renderEvento = (ev: EventoGiorno) => {
                         const Icon = ev.kind === 'tappa'
                           ? ICONE_TAPPA[ev.data.categoria]
                           : ICONE_PRENOTAZIONE[ev.data.tipo]
                         const ora = ev.kind === 'tappa' ? ev.data.ora : null
 
                         return (
-                          <button
+                          <div
                             key={`${ev.kind}-${ev.data.id}`}
-                            onClick={() => handleTapEvento(ev)}
                             className="
                               flex items-center gap-3 p-3.5
-                              bg-white rounded-2xl shadow-roamly text-left
-                              active:scale-[0.98] hover:shadow-roamly-lg
-                              transition-all duration-150
-                              focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+                              bg-white rounded-2xl shadow-roamly
+                              hover:shadow-roamly-lg transition-all duration-150
                             "
                           >
-                            <div className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g2 shrink-0">
-                              <Icon size={16} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
-                                {ev.data.nome}
-                              </p>
-                              <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 flex items-center gap-1">
-                                {ora && (
-                                  <span className="flex items-center gap-0.5">
-                                    <Clock size={10} />
-                                    {ora.slice(0, 5)}
-                                  </span>
-                                )}
-                                <span>{ev.kind === 'tappa' ? 'Tappa' : 'Prenotazione'}</span>
-                              </p>
-                            </div>
-                          </button>
+                            <button
+                              onClick={() => handleTapEvento(ev)}
+                              className="
+                                flex items-center gap-3 flex-1 min-w-0 text-left
+                                active:scale-[0.98] transition-transform duration-150
+                                focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3 rounded-xl
+                              "
+                            >
+                              <div className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g2 shrink-0">
+                                <Icon size={16} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
+                                  {ev.data.nome}
+                                </p>
+                                <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 flex items-center gap-1">
+                                  {ora && (
+                                    <span className="flex items-center gap-0.5">
+                                      <Clock size={10} />
+                                      {ora.slice(0, 5)}
+                                    </span>
+                                  )}
+                                  <span>{ev.kind === 'tappa' ? 'Tappa' : 'Prenotazione'}</span>
+                                </p>
+                              </div>
+                            </button>
+
+                            {ev.kind === 'tappa' && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); nascondiTappa(ev.data.id) }}
+                                aria-label="Nascondi per me"
+                                className="
+                                  shrink-0 w-8 h-8 rounded-full
+                                  flex items-center justify-center
+                                  text-roamly-text/30 hover:bg-roamly-g6 hover:text-roamly-text/60
+                                  transition-colors duration-150
+                                "
+                              >
+                                <EyeOff size={14} />
+                              </button>
+                            )}
+                          </div>
                         )
-                      })}
+                      }
+
+                      return (
+                        <>
+                          {conOrario.map(renderEvento)}
+                          {senzaOrario.length > 0 && (
+                            <>
+                              {conOrario.length > 0 && (
+                                <p className="font-dm-sans text-[11px] font-medium text-roamly-text/30 uppercase tracking-wider px-1 pt-1">
+                                  Senza orario
+                                </p>
+                              )}
+                              {senzaOrario.map(renderEvento)}
+                            </>
+                          )}
+                        </>
+                      )
+                    })()}
                   </div>
                 )
               ))
             )}
           </div>
+
+          {tappeNascostePersonali.length > 0 && (
+            <div>
+              <button
+                onClick={() => setMostraElencoNascoste((v) => !v)}
+                className="
+                  flex items-center gap-1.5 font-dm-sans text-xs font-medium
+                  text-roamly-text/40 hover:text-roamly-text/60
+                "
+              >
+                <EyeOff size={12} />
+                {tappeNascostePersonali.length} nascoste per te
+              </button>
+              {mostraElencoNascoste && (
+                <div className="mt-2 flex flex-col gap-1.5 bg-white rounded-2xl shadow-roamly p-3">
+                  {tappeNascostePersonali.map((t) => (
+                    <div key={t.id} className="flex items-center justify-between gap-2">
+                      <span className="font-dm-sans text-xs text-roamly-text/70 truncate">
+                        {t.nome}
+                      </span>
+                      <button
+                        onClick={() => mostraTappa(t.id)}
+                        className="
+                          shrink-0 flex items-center gap-1
+                          font-dm-sans text-xs font-medium text-roamly-g2
+                          hover:text-roamly-g1
+                        "
+                      >
+                        <Eye size={11} />
+                        Mostra
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>

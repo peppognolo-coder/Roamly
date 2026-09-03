@@ -12,6 +12,7 @@ import { RicordoDetailPage }  from '@/features/momenti/RicordoDetailPage'
 import { PianificaPage }      from '@/features/pianifica/PianificaPage'
 import { ProfiloPage }        from '@/features/profilo/ProfiloPage'
 import { ImpostazioniAccountPage } from '@/features/profilo/ImpostazioniAccountPage'
+import { NotificheSettingsPage } from '@/features/profilo/NotificheSettingsPage'
 import { StatistichePage }    from '@/features/profilo/StatistichePage'
 import { ViaggiPage }         from '@/features/viaggi/ViaggiPage'
 import { ViaggioDetailPage }  from '@/features/viaggi/ViaggioDetailPage'
@@ -89,6 +90,10 @@ export const router = createBrowserRouter([
   {
     path: '/profilo/impostazioni',
     element: <Protected><ImpostazioniAccountPage /></Protected>,
+  },
+  {
+    path: '/profilo/notifiche',
+    element: <Protected><NotificheSettingsPage /></Protected>,
   },
   {
     path: '/profilo/statistiche',
