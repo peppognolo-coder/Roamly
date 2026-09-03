@@ -3,29 +3,42 @@ import { createBrowserRouter } from 'react-router-dom'
 import { AuthGuard }  from '@/components/auth/AuthGuard'
 import { GuestGuard } from '@/components/auth/GuestGuard'
 
-// Pages
-import { AuthPage }           from '@/features/auth/AuthPage'
-import { HomePage }           from '@/features/home/HomePage'
-import { DiarioPage }         from '@/features/diario/DiarioPage'
-import { NuovoRicordoPage }   from '@/features/momenti/NuovoRicordoPage'
-import { RicordoDetailPage }  from '@/features/momenti/RicordoDetailPage'
-import { PianificaPage }      from '@/features/pianifica/PianificaPage'
-import { ProfiloPage }        from '@/features/profilo/ProfiloPage'
-import { ImpostazioniAccountPage } from '@/features/profilo/ImpostazioniAccountPage'
-import { NotificheSettingsPage } from '@/features/profilo/NotificheSettingsPage'
-import { StatistichePage }    from '@/features/profilo/StatistichePage'
-import { ViaggiPage }         from '@/features/viaggi/ViaggiPage'
-import { ViaggioDetailPage }  from '@/features/viaggi/ViaggioDetailPage'
-import { NuovoViaggioPage }   from '@/features/viaggi/NuovoViaggioPage'
-import { ValigiaPage }        from '@/features/pianifica/ValigiaPage'
-import { PrenotazioniPage }   from '@/features/pianifica/PrenotazioniPage'
-import { PrenotazionePage }   from '@/features/pianifica/PrenotazionePage'
-import { ItinerarioPage }     from '@/features/pianifica/ItinerarioPage'
-import { TappaPage }          from '@/features/pianifica/TappaPage'
-import { CalendarioPage }     from '@/features/pianifica/CalendarioPage'
-import { NoteViaggioPage }    from '@/features/pianifica/NoteViaggioPage'
-import { InvitoPage }         from '@/features/inviti/InvitoPage'
-import { MembriPage }         from '@/features/inviti/MembriPage'
+// ============================================================
+// Code splitting per route.
+// Restano EAGER solo AuthPage e HomePage — i due schermi che
+// praticamente ogni sessione tocca subito (gate di login, poi
+// home). Tutto il resto è lazy: ogni pagina diventa un chunk
+// separato scaricato solo quando l'utente ci naviga davvero,
+// invece di pesare sul bundle iniziale per tutti.
+// Stesso pattern già in uso per AttivitaPage (Leaflet) — qui
+// esteso al resto del router.
+// ============================================================
+
+// Pages — eager (primo paint)
+import { AuthPage } from '@/features/auth/AuthPage'
+import { HomePage } from '@/features/home/HomePage'
+
+// Pages — lazy
+const DiarioPage             = lazy(() => import('@/features/diario/DiarioPage').then((m) => ({ default: m.DiarioPage })))
+const NuovoRicordoPage       = lazy(() => import('@/features/momenti/NuovoRicordoPage').then((m) => ({ default: m.NuovoRicordoPage })))
+const RicordoDetailPage      = lazy(() => import('@/features/momenti/RicordoDetailPage').then((m) => ({ default: m.RicordoDetailPage })))
+const PianificaPage          = lazy(() => import('@/features/pianifica/PianificaPage').then((m) => ({ default: m.PianificaPage })))
+const ProfiloPage            = lazy(() => import('@/features/profilo/ProfiloPage').then((m) => ({ default: m.ProfiloPage })))
+const ImpostazioniAccountPage = lazy(() => import('@/features/profilo/ImpostazioniAccountPage').then((m) => ({ default: m.ImpostazioniAccountPage })))
+const NotificheSettingsPage  = lazy(() => import('@/features/profilo/NotificheSettingsPage').then((m) => ({ default: m.NotificheSettingsPage })))
+const StatistichePage        = lazy(() => import('@/features/profilo/StatistichePage').then((m) => ({ default: m.StatistichePage })))
+const ViaggiPage             = lazy(() => import('@/features/viaggi/ViaggiPage').then((m) => ({ default: m.ViaggiPage })))
+const ViaggioDetailPage      = lazy(() => import('@/features/viaggi/ViaggioDetailPage').then((m) => ({ default: m.ViaggioDetailPage })))
+const NuovoViaggioPage       = lazy(() => import('@/features/viaggi/NuovoViaggioPage').then((m) => ({ default: m.NuovoViaggioPage })))
+const ValigiaPage            = lazy(() => import('@/features/pianifica/ValigiaPage').then((m) => ({ default: m.ValigiaPage })))
+const PrenotazioniPage       = lazy(() => import('@/features/pianifica/PrenotazioniPage').then((m) => ({ default: m.PrenotazioniPage })))
+const PrenotazionePage       = lazy(() => import('@/features/pianifica/PrenotazionePage').then((m) => ({ default: m.PrenotazionePage })))
+const ItinerarioPage         = lazy(() => import('@/features/pianifica/ItinerarioPage').then((m) => ({ default: m.ItinerarioPage })))
+const TappaPage              = lazy(() => import('@/features/pianifica/TappaPage').then((m) => ({ default: m.TappaPage })))
+const CalendarioPage         = lazy(() => import('@/features/pianifica/CalendarioPage').then((m) => ({ default: m.CalendarioPage })))
+const NoteViaggioPage        = lazy(() => import('@/features/pianifica/NoteViaggioPage').then((m) => ({ default: m.NoteViaggioPage })))
+const InvitoPage             = lazy(() => import('@/features/inviti/InvitoPage').then((m) => ({ default: m.InvitoPage })))
+const MembriPage             = lazy(() => import('@/features/inviti/MembriPage').then((m) => ({ default: m.MembriPage })))
 
 // AttivitaPage carica Leaflet (~150 KB) — lazy, così pesa solo per
 // chi apre davvero la mappa, non su ogni utente al primo avvio.
@@ -33,7 +46,7 @@ const AttivitaPage = lazy(() =>
   import('@/features/pianifica/AttivitaPage').then((m) => ({ default: m.AttivitaPage }))
 )
 
-function MapLoadingFallback() {
+function PageLoadingFallback() {
   return (
     <div className="min-h-screen bg-roamly-bg flex items-center justify-center">
       <div className="w-6 h-6 rounded-full border-2 border-roamly-g3 border-t-transparent animate-spin" />
@@ -42,7 +55,11 @@ function MapLoadingFallback() {
 }
 
 function Protected({ children }: { children: React.ReactNode }) {
-  return <AuthGuard>{children}</AuthGuard>
+  return (
+    <AuthGuard>
+      <Suspense fallback={<PageLoadingFallback />}>{children}</Suspense>
+    </AuthGuard>
+  )
 }
 
 function Public({ children }: { children: React.ReactNode }) {
@@ -53,7 +70,11 @@ export const router = createBrowserRouter([
   // ── Libera (funziona sia autenticati che no) ──────────────
   {
     path: '/invito/:token',
-    element: <InvitoPage />,
+    element: (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <InvitoPage />
+      </Suspense>
+    ),
   },
 
   // ── Pubbliche (solo per utenti NON autenticati) ──────────
@@ -140,13 +161,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/viaggi/:id/attivita',
-    element: (
-      <Protected>
-        <Suspense fallback={<MapLoadingFallback />}>
-          <AttivitaPage />
-        </Suspense>
-      </Protected>
-    ),
+    element: <Protected><AttivitaPage /></Protected>,
   },
   // NOTA: /tappe/nuova deve precedere /tappe/:tappaId
   {
