@@ -51,7 +51,9 @@ export function useCreateTappa(viaggioId: string, redirectTo: string) {
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.tappe.byViaggio(viaggioId) })
       showSuccess('Tappa aggiunta')
-      navigate(redirectTo)
+      // replace: evita che il back-button dopo il salvataggio
+      // riporti al form invece che alla lista
+      navigate(redirectTo, { replace: true })
     },
     onError: (err) => {
       console.error('Errore creazione tappa:', err)
@@ -83,7 +85,7 @@ export function useUpdateTappa(viaggioId: string, redirectTo: string) {
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.tappe.byViaggio(viaggioId) })
       showSuccess('Tappa aggiornata')
-      navigate(redirectTo)
+      navigate(redirectTo, { replace: true })
     },
     onError: () => setError('Impossibile aggiornare la tappa. Riprova.'),
   })
@@ -112,7 +114,7 @@ export function useDeleteTappa(viaggioId: string, redirectTo: string) {
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.tappe.byViaggio(viaggioId) })
       showSuccess('Tappa eliminata')
-      navigate(redirectTo)
+      navigate(redirectTo, { replace: true })
     },
     onError: () => setError('Impossibile eliminare la tappa. Riprova.'),
   })

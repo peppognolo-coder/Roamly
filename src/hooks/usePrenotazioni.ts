@@ -48,7 +48,9 @@ export function useCreatePrenotazione(viaggioId: string) {
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.prenotazioni.byViaggio(viaggioId) })
       showSuccess('Prenotazione aggiunta')
-      navigate(`/viaggi/${viaggioId}/prenotazioni`)
+      // replace: evita che il back-button dopo il salvataggio
+      // riporti al form invece che alla lista
+      navigate(`/viaggi/${viaggioId}/prenotazioni`, { replace: true })
     },
     onError: () => setError('Impossibile salvare la prenotazione. Riprova.'),
   })
@@ -77,7 +79,7 @@ export function useUpdatePrenotazione(viaggioId: string) {
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.prenotazioni.byViaggio(viaggioId) })
       showSuccess('Prenotazione aggiornata')
-      navigate(`/viaggi/${viaggioId}/prenotazioni`)
+      navigate(`/viaggi/${viaggioId}/prenotazioni`, { replace: true })
     },
     onError: () => setError('Impossibile aggiornare la prenotazione. Riprova.'),
   })
@@ -106,7 +108,7 @@ export function useDeletePrenotazione(viaggioId: string) {
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.prenotazioni.byViaggio(viaggioId) })
       showSuccess('Prenotazione eliminata')
-      navigate(`/viaggi/${viaggioId}/prenotazioni`)
+      navigate(`/viaggi/${viaggioId}/prenotazioni`, { replace: true })
     },
     onError: () => setError('Impossibile eliminare la prenotazione. Riprova.'),
   })
