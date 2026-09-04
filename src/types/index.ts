@@ -48,6 +48,9 @@ export interface Viaggio {
   nome: string
   destinazione: string | null
   paese: string | null
+  paese_codice: string | null   // ISO 3166-1 alpha-2 maiuscolo (es. "GR") — da geocoding, null per viaggi creati prima di questa colonna
+  destinazione_lat: number | null   // da geocoding, usate per dare priorità ai risultati vicini quando si cerca una tappa
+  destinazione_lng: number | null
   data_inizio: string | null   // ISO date string 'YYYY-MM-DD'
   data_fine: string | null     // ISO date string 'YYYY-MM-DD'
   stato: StatoViaggio | null   // null = derivato dalle date; valorizzato = override manuale
@@ -68,6 +71,9 @@ export type NuovoViaggio = Pick<
   | 'nome'
   | 'destinazione'
   | 'paese'
+  | 'paese_codice'
+  | 'destinazione_lat'
+  | 'destinazione_lng'
   | 'data_inizio'
   | 'data_fine'
   | 'cover_emoji'
