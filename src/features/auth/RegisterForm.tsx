@@ -1,10 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Mail, Check } from 'lucide-react'
+import { Mail, Check, Gift } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useRegister } from '@/hooks/useAuthActions'
+import { salvaReferralInSospeso } from '@/lib/referral-utils'
 
 // ============================================================
 // Schema Zod — Registrazione
@@ -31,6 +32,7 @@ const registerSchema = z
       .email('Inserisci un\'email valida'),
     password: passwordSchema,
     confirm_password: z.string().min(1, 'Conferma la password'),
+    referral_code: z.string().trim().optional(),
   })
   .refine((data) => data.password === data.confirm_password, {
     path: ['confirm_password'],
@@ -126,6 +128,9 @@ export function RegisterForm() {
 
   async function onSubmit(data: RegisterFormData) {
     clearError()
+    if (data.referral_code) {
+      salvaReferralInSospeso(data.referral_code)
+    }
     await doRegister(data.email, data.password, data.full_name)
   }
 
@@ -178,7 +183,20 @@ export function RegisterForm() {
           error={errors.confirm_password?.message}
           {...register('confirm_password')}
         />
+        <Input
+          label="Codice invito (facoltativo)"
+          type="text"
+          placeholder="ABCD1234"
+          autoComplete="off"
+          error={errors.referral_code?.message}
+          {...register('referral_code')}
+        />
       </div>
+
+      <p className="font-dm-sans text-xs text-roamly-text/40 -mt-2 flex items-center gap-1">
+        <Gift size={12} className="shrink-0" />
+        Hai un codice di un amico? Inseriscilo e ricevete entrambi dei crediti.
+      </p>
 
       <Button
         onClick={handleSubmit(onSubmit)}
