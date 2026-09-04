@@ -55,11 +55,37 @@ webpush.setVapidDetails(vapidSubject, vapidPublicKey, vapidPrivateKey)
 interface RigaDaNotificare {
   prenotazione_id: string
   nome: string
+  tipo: string
   data: string
   user_id: string
   endpoint: string
   p256dh: string
   auth_key: string
+}
+
+// Titolo e apertura del messaggio per categoria — tono pulito,
+// senza emoji. "altro" e qualsiasi tipo non riconosciuto usano
+// il messaggio generico di fallback.
+const TESTI_PER_TIPO: Record<string, { titolo: string; apertura: string }> = {
+  trasporto: { titolo: 'Trasporto in partenza', apertura: 'Parte' },
+  alloggio:  { titolo: 'Check-in in arrivo',     apertura: 'Check-in per' },
+  museo:     { titolo: 'Visita in programma',    apertura: 'Visita a' },
+  evento:    { titolo: 'Evento in arrivo',        apertura: 'Evento' },
+  food:      { titolo: 'Prenotazione al ristorante', apertura: 'Tavolo per' },
+  visto:     { titolo: 'Scadenza documento',      apertura: 'Scadenza per' },
+  altro:     { titolo: 'Promemoria di viaggio',   apertura: 'Promemoria per' },
+}
+
+function costruisciMessaggio(riga: RigaDaNotificare): { title: string; body: string } {
+  const testi = TESTI_PER_TIPO[riga.tipo] ?? TESTI_PER_TIPO.altro
+  const dataFormattata = new Date(riga.data + 'T00:00:00').toLocaleDateString('it-IT', {
+    day: 'numeric', month: 'long',
+  })
+
+  return {
+    title: testi.titolo,
+    body: `${testi.apertura} ${riga.nome} — ${dataFormattata}`,
+  }
 }
 
 // Le secret key non sono JWT: niente più da decodificare, o l'header
@@ -108,11 +134,8 @@ Deno.serve(async (req) => {
       keys: { p256dh: riga.p256dh, auth: riga.auth_key },
     }
 
-    const payload = JSON.stringify({
-      title: 'Promemoria Roamly',
-      body: `${riga.nome} — ${new Date(riga.data + 'T00:00:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' })}`,
-      url: '/',
-    })
+    const { title, body } = costruisciMessaggio(riga)
+    const payload = JSON.stringify({ title, body, url: '/' })
 
     try {
       await webpush.sendNotification(subscription, payload)
