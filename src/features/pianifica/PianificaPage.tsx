@@ -62,7 +62,7 @@ export function PianificaPage() {
                       px-4 pt-1 pb-3
                     ">
                       {/* Card viaggio (navigazione a dettaglio) */}
-                      <ViaggioCard viaggio={viaggio} />
+                      <ViaggioCard viaggio={viaggio} linkTab="pianifica" />
 
                       {/* Divisore */}
                       <div className="h-px bg-roamly-g6 mx-0 my-1" />
