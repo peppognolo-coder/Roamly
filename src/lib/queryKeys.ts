@@ -27,6 +27,17 @@ export const queryKeys = {
   },
 
   // ----------------------------------------------------------
+  // CREDITI
+  // ----------------------------------------------------------
+  crediti: {
+    /** ['crediti', 'storico', userId] */
+    storico: (userId: string) => ['crediti', 'storico', userId] as const,
+
+    /** ['crediti', 'referral', userId] */
+    referral: (userId: string) => ['crediti', 'referral', userId] as const,
+  },
+
+  // ----------------------------------------------------------
   // VIAGGI
   // ----------------------------------------------------------
   viaggi: {
