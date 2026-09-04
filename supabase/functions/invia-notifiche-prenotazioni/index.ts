@@ -12,20 +12,40 @@
 //   3. Segna l'invio in notifiche_inviate per non ripeterlo
 //   4. Se una subscription risulta scaduta (410/404), la rimuove
 //
-// Variabili d'ambiente richieste (Secrets della function):
-//   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY  → già disponibili
-//     automaticamente in ogni Edge Function Supabase
-//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY      → generate con
+// Variabili d'ambiente richieste:
+//   SUPABASE_URL, SUPABASE_SECRET_KEYS  → già disponibili
+//     automaticamente in ogni Edge Function Supabase.
+//     SUPABASE_SECRET_KEYS è un JSON { nomeChiave: valore } con
+//     tutte le secret key del progetto — usiamo quella chiamata
+//     "cron_notifiche", creata in Settings > API Keys.
+//   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY  → generate con
 //     `npx web-push generate-vapid-keys` (vedi N2)
-//   VAPID_SUBJECT                            → "mailto:tua@email.it"
+//   VAPID_SUBJECT                        → "mailto:tua@email.it"
 //     (richiesto dallo standard Web Push, identifica il mittente)
+//
+// Autenticazione del chiamante:
+//   pg_cron invia la secret key "cron_notifiche" nell'header
+//   `apikey` (NON più `Authorization: Bearer`, perché le secret
+//   key non sono JWT — vedi cron.alter_job aggiornato).
+//   La stessa chiave viene anche usata per creare il client
+//   Supabase interno che bypassa RLS.
 // ============================================================
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+const secretKeys = JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS') ?? '{}') as Record<string, string>
+const cronSecretKey = secretKeys['cron_notifiche']
+
+if (!cronSecretKey) {
+  throw new Error(
+    'Secret key "cron_notifiche" non trovata in SUPABASE_SECRET_KEYS. ' +
+    'Verifica di averla creata in Settings > API Keys con questo nome esatto.'
+  )
+}
+
 const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')!
 const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')!
 const vapidSubject = Deno.env.get('VAPID_SUBJECT')!
@@ -42,26 +62,22 @@ interface RigaDaNotificare {
   auth_key: string
 }
 
-// Verifica il chiamante decodificando il JWT e controllando il claim
-// "role" — più robusto di un confronto testuale diretto con la
-// variabile d'ambiente (che può fallire per spazi invisibili nel
-// copia-incolla, o se la chiave viene rigenerata/ruotata).
+// Le secret key non sono JWT: niente più da decodificare, o l'header
+// `apikey` corrisponde esattamente alla secret key attesa o la
+// richiesta è rifiutata. Confronto in "tempo costante" per evitare
+// che un attaccante possa dedurre la chiave misurando quanto ci
+// mette a rispondere un confronto carattere-per-carattere ingenuo.
 function chiamataAutorizzata(req: Request): boolean {
-  const auth = req.headers.get('Authorization')
-  if (!auth?.startsWith('Bearer ')) return false
+  const apiKey = req.headers.get('apikey')
+  if (!apiKey) return false
 
-  const token = auth.slice('Bearer '.length).trim()
-  const parti = token.split('.')
-  if (parti.length !== 3) return false
+  const a = new TextEncoder().encode(apiKey)
+  const b = new TextEncoder().encode(cronSecretKey)
+  if (a.length !== b.length) return false
 
-  try {
-    const payloadBase64 = parti[1].replace(/-/g, '+').replace(/_/g, '/')
-    const payloadJson = atob(payloadBase64.padEnd(payloadBase64.length + (4 - payloadBase64.length % 4) % 4, '='))
-    const payload = JSON.parse(payloadJson)
-    return payload.role === 'service_role'
-  } catch {
-    return false
-  }
+  let diff = 0
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i]
+  return diff === 0
 }
 
 Deno.serve(async (req) => {
@@ -69,7 +85,7 @@ Deno.serve(async (req) => {
     return new Response('Non autorizzato', { status: 401 })
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey)
+  const supabase = createClient(supabaseUrl, cronSecretKey)
 
   // Prenotazioni in scadenza esattamente tra N giorni, dove N è
   // l'anticipo scelto da ciascun membro — join su viaggio_membri
