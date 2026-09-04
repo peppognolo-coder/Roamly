@@ -34,6 +34,7 @@ export interface Profilo {
   bio: string | null
   notifiche_prenotazioni: boolean
   notifiche_anticipo_giorni: number   // 1 · 3 · 7 giorni prima
+  crediti: number
   created_at: string
 }
 
