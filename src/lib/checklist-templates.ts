@@ -250,11 +250,37 @@ export function getSuggerimentiDaPrenotazioni(
   prenotazioni: Prenotazione[]
 ): TemplateChecklistItem[] {
   const items: TemplateChecklistItem[] = []
+
+  // Trasporto: il consiglio dipende dal sottotipo già scelto in fase
+  // di prenotazione (dettaglio.sottotipo — aereo/treno/bus/auto/altro),
+  // non più generico per l'intera categoria "trasporto".
+  const sottotipiTrasporto = new Set(
+    prenotazioni
+      .filter((p) => p.tipo === 'trasporto')
+      .map((p) => p.dettaglio?.sottotipo ?? 'altro')
+  )
+
+  if (sottotipiTrasporto.has('aereo')) {
+    items.push({ testo: "Documenti di viaggio e carta d'imbarco", categoria: 'documenti' })
+    items.push({ testo: 'Liquidi in valigia a norma (max 100ml)', categoria: 'documenti' })
+    items.push({ testo: 'Bagaglio a mano conforme alle misure', categoria: 'varie' })
+  }
+  if (sottotipiTrasporto.has('treno')) {
+    items.push({ testo: 'Biglietto treno (stampato o su app)', categoria: 'documenti' })
+  }
+  if (sottotipiTrasporto.has('bus')) {
+    items.push({ testo: 'Biglietto bus (stampato o su app)', categoria: 'documenti' })
+  }
+  if (sottotipiTrasporto.has('auto')) {
+    items.push({ testo: 'Patente di guida', categoria: 'documenti' })
+    items.push({ testo: 'Documenti del veicolo e assicurazione', categoria: 'documenti' })
+  }
+  if (sottotipiTrasporto.has('altro')) {
+    items.push({ testo: 'Documenti di viaggio', categoria: 'documenti' })
+  }
+
   const tipiPresenti = new Set(prenotazioni.map((p) => p.tipo))
 
-  if (tipiPresenti.has('trasporto')) {
-    items.push({ testo: "Documenti di viaggio e carta d'imbarco", categoria: 'documenti' })
-  }
   if (tipiPresenti.has('alloggio')) {
     items.push({ testo: 'Conferma alloggio (scaricata o stampata)', categoria: 'documenti' })
   }
