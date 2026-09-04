@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import type { TappaViaggio, CategoriaTappa } from '@/types'
+import type { BiasGeocoding } from '@/lib/geocoding'
 
 // ============================================================
 // ROAMLY — TappaForm
@@ -56,6 +57,8 @@ interface TappaFormProps {
   giornoIniziale?: string
   /** Coordinate dal tap sulla mappa (arrivo da Attività) — solo in creazione */
   posizioneIniziale?: { lat: number; lng: number }
+  /** Priorità di ricerca verso la destinazione del viaggio — vedi BiasGeocoding */
+  bias?: BiasGeocoding
   onSubmit: (data: TappaFormData) => void
   isLoading: boolean
   error?: string | null
@@ -73,6 +76,7 @@ export function TappaForm({
   tappa,
   giornoIniziale,
   posizioneIniziale,
+  bias,
   onSubmit,
   isLoading,
   error,
@@ -207,6 +211,7 @@ export function TappaForm({
               placeholder="Es. Sagrada Familia, Barcellona"
               value={field.value ?? ''}
               onChangeValue={field.onChange}
+              bias={bias}
               onSelectLuogo={(luogo) => {
                 setValue('lat', luogo.lat, { shouldValidate: true })
                 setValue('lng', luogo.lng, { shouldValidate: true })

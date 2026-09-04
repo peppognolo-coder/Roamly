@@ -176,23 +176,29 @@ export function AttivitaPage() {
   const punti: [number, number][] = tappeVisibili.map((t) => [t.lat as number, t.lng as number])
 
   // Centro di fallback quando il viaggio non ha ancora nessuna tappa
-  // posizionata — priorità: destinazione del viaggio (geocodificata),
-  // poi posizione GPS attuale, poi il default fisso (Roma).
+  // posizionata — priorità: coordinate della destinazione già salvate
+  // sul viaggio (nessuna chiamata di rete), poi geocodifica testuale
+  // "al volo" per i viaggi senza coordinate salvate (creati prima di
+  // questa colonna, o destinazione digitata senza selezionare un
+  // suggerimento), poi posizione GPS attuale, poi il default fisso (Roma).
   // Ha senso partire dalla destinazione perché un diario di viaggio
   // si pianifica spesso da casa, prima di partire — vedere la propria
   // posizione attuale non aiuterebbe a piazzare le tappe.
+  const haCoordinateSalvate = viaggio?.destinazione_lat != null && viaggio?.destinazione_lng != null
   const queryDestinazione = (viaggio?.destinazione || viaggio?.paese || '').trim()
 
   const { data: risultatiDestinazione } = useQuery({
     queryKey: queryKeys.geocoding.search(queryDestinazione.toLowerCase()),
     queryFn: ({ signal }) => cercaLuoghi(queryDestinazione, signal),
-    enabled: tappeConPosizione.length === 0 && queryDestinazione.length >= 3,
+    enabled: tappeConPosizione.length === 0 && !haCoordinateSalvate && queryDestinazione.length >= 3,
     staleTime: 1000 * 60 * 60, // 1h — la destinazione di un viaggio non cambia in sessione
     retry: false,
   })
-  const centroDestinazione: [number, number] | null = risultatiDestinazione?.[0]
-    ? [risultatiDestinazione[0].lat, risultatiDestinazione[0].lng]
-    : null
+  const centroDestinazione: [number, number] | null = haCoordinateSalvate
+    ? [viaggio!.destinazione_lat as number, viaggio!.destinazione_lng as number]
+    : risultatiDestinazione?.[0]
+      ? [risultatiDestinazione[0].lat, risultatiDestinazione[0].lng]
+      : null
 
   // Se non ci sono ancora tappe posizionate, prova anche a leggere la
   // posizione GPS attuale come ulteriore fallback (richiede permesso,

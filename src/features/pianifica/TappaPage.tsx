@@ -8,6 +8,7 @@ import { Button }       from '@/components/ui/Button'
 import { TappaForm } from './TappaForm'
 import type { TappaFormData } from './TappaForm'
 import { useTappe, useCreateTappa, useUpdateTappa, useDeleteTappa } from '@/hooks/useTappe'
+import { useViaggio } from '@/hooks/useViaggi'
 
 // ============================================================
 // TappaPage — /viaggi/:id/tappe/nuova (create)
@@ -29,6 +30,16 @@ export function TappaPage() {
 
   const { data: tappe } = useTappe(viaggioId)
   const tappa = isEdit ? tappe?.find((t) => t.id === tappaId) : undefined
+
+  // Solo per la priorità di ricerca luoghi (bias) — non serve altro dal
+  // viaggio qui. Già in cache se si arriva da Itinerario/Attività/Pianifica,
+  // altrimenti una query leggera in più.
+  const { data: viaggio } = useViaggio(viaggioId)
+  const bias = {
+    lat: viaggio?.destinazione_lat,
+    lng: viaggio?.destinazione_lng,
+    codicePaese: viaggio?.paese_codice,
+  }
 
   const { createTappa, isLoading: isCreating, error: createError } = useCreateTappa(viaggioId ?? '', redirectTo)
   const { updateTappa, isLoading: isUpdating, error: updateError } = useUpdateTappa(viaggioId ?? '', redirectTo)
@@ -90,6 +101,7 @@ export function TappaPage() {
             tappa={tappa}
             giornoIniziale={giornoParam ?? undefined}
             posizioneIniziale={posizioneIniziale}
+            bias={bias}
             onSubmit={handleSubmit}
             isLoading={isCreating || isUpdating}
             error={createError ?? updateError}
