@@ -124,18 +124,28 @@ export const VALIGIA_TEMPLATE_ICON: Record<ValigiaTemplateId, LucideIcon> = {
 // meteorologiche standard (DIC-FEB inverno, ecc.), poi capovolta se
 // il paese ricade nell'emisfero sud (a dicembre in Argentina è estate).
 //
-// LIMITE NOTO: `paese` è un campo testo libero inserito dall'utente
-// in fase di creazione viaggio, non una geocodifica — il confronto
-// con PAESI_EMISFERO_SUD è un semplice match testuale case-insensitive
-// su un elenco dei paesi più comuni dell'emisfero sud. Refusi, nomi
-// alternativi ("USA" vs "Stati Uniti") o paesi non in elenco ricadono
-// nel default emisfero nord — ragionevole per l'utenza tipica di
-// Roamly, ma non infallibile. Nessuna chiamata di geocodifica qui:
-// tutto calcolato client-side dai dati già presenti sul viaggio.
+// Riconoscimento emisfero — due percorsi, in ordine di priorità:
+//   1. paese_codice (ISO 3166-1 alpha-2, es. "AR") — scritto in
+//      automatico quando la destinazione viene scelta dal suggerimento
+//      di ricerca luogo (geocoding Nominatim). Confronto esatto,
+//      affidabile al 100%.
+//   2. paese (testo libero) — fallback per i viaggi creati prima
+//      dell'introduzione di paese_codice, o se corretto a mano dopo
+//      la selezione. Match testuale case-insensitive su un elenco dei
+//      paesi più comuni dell'emisfero sud: funziona se scritto in modo
+//      riconoscibile, ma refusi o nomi alternativi ("USA" vs "Stati
+//      Uniti") ricadono nel default emisfero nord.
 // ------------------------------------------------------------
 
 export type Stagione = 'inverno' | 'primavera' | 'estate' | 'autunno'
 
+// ISO 3166-1 alpha-2 — confronto esatto, nessuna ambiguità testuale.
+const CODICI_EMISFERO_SUD = new Set([
+  'AR', 'AU', 'BR', 'CL', 'ZA', 'NZ', 'PE', 'UY', 'BO', 'PY',
+  'ZW', 'NA', 'BW', 'MZ', 'MG', 'ZM', 'AO', 'FJ', 'EC', 'PG',
+])
+
+// Fallback testuale — solo per viaggi senza paese_codice.
 const PAESI_EMISFERO_SUD = [
   'argentina', 'australia', 'brasile', 'cile', 'sudafrica', 'sud africa',
   'nuova zelanda', 'perù', 'peru', 'uruguay', 'bolivia', 'paraguay',
@@ -143,7 +153,8 @@ const PAESI_EMISFERO_SUD = [
   'zambia', 'angola', 'fiji', 'ecuador',
 ]
 
-function isEmisferoSud(paese: string | null): boolean {
+function isEmisferoSud(paese: string | null, paeseCodice?: string | null): boolean {
+  if (paeseCodice) return CODICI_EMISFERO_SUD.has(paeseCodice.toUpperCase())
   if (!paese) return false
   const normalizzato = paese.trim().toLowerCase()
   return PAESI_EMISFERO_SUD.some((p) => normalizzato.includes(p))
@@ -228,14 +239,15 @@ export const SUGGERIMENTI_STAGIONALI: Record<Stagione, TemplateChecklistItem[]> 
 
 export function getSuggerimentiStagionali(
   dataInizio: string | null,
-  paese: string | null
+  paese: string | null,
+  paeseCodice?: string | null
 ): { stagione: Stagione; items: TemplateChecklistItem[] } | null {
   if (!dataInizio) return null
 
   const mese = Number(dataInizio.slice(5, 7))
   if (!mese || mese < 1 || mese > 12) return null
 
-  const stagione = stagioneDaMese(mese, isEmisferoSud(paese))
+  const stagione = stagioneDaMese(mese, isEmisferoSud(paese, paeseCodice))
   return { stagione, items: SUGGERIMENTI_STAGIONALI[stagione] }
 }
 
@@ -332,13 +344,13 @@ export interface BloccoSuggerimenti {
 }
 
 export function costruisciBlocchiSuggerimenti(
-  viaggio: Pick<ViaggioConStato, 'data_inizio' | 'paese' | 'destinazione'>,
+  viaggio: Pick<ViaggioConStato, 'data_inizio' | 'paese' | 'paese_codice' | 'destinazione'>,
   prenotazioni: Prenotazione[],
   tappe: TappaViaggio[]
 ): BloccoSuggerimenti[] {
   const blocchi: BloccoSuggerimenti[] = []
 
-  const stagionale = getSuggerimentiStagionali(viaggio.data_inizio, viaggio.paese)
+  const stagionale = getSuggerimentiStagionali(viaggio.data_inizio, viaggio.paese, viaggio.paese_codice)
   if (stagionale && stagionale.items.length > 0) {
     const luogo = viaggio.destinazione ? ` a ${viaggio.destinazione}` : ''
     blocchi.push({
