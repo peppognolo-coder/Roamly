@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
+import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { COVER_ICON_OPTIONS, DEFAULT_COVER_ICON_ID } from '@/lib/viaggio-cover-icons'
 import type { ViaggioConStato } from '@/types'
 
@@ -27,6 +28,15 @@ const viaFormSchema = z
       .trim(),
     destinazione: z.string().max(80).trim().optional().or(z.literal('')),
     paese:        z.string().max(60).trim().optional().or(z.literal('')),
+    // Nessun input visibile — scritto in automatico alla selezione di
+    // un suggerimento di ricerca luogo (LuogoSearchInput → onSelectLuogo),
+    // usato per un riconoscimento affidabile dell'emisfero nei
+    // suggerimenti stagionali della Valigia.
+    paese_codice: z.string().max(2).trim().optional().or(z.literal('')),
+    // Idem — coordinate della destinazione, usate per dare priorità ai
+    // risultati vicini quando si cerca una tappa da aggiungere al viaggio.
+    destinazione_lat: z.number().nullable().optional(),
+    destinazione_lng: z.number().nullable().optional(),
     data_inizio:  z.string().optional().or(z.literal('')),
     data_fine:    z.string().optional().or(z.literal('')),
     cover_emoji:  z.string().optional(),
@@ -78,6 +88,7 @@ export function ViaggioForm({
     handleSubmit,
     control,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<ViaggioFormData>({
     resolver: zodResolver(viaFormSchema),
@@ -87,6 +98,9 @@ export function ViaggioForm({
       nome:         viaggio?.nome         ?? '',
       destinazione: viaggio?.destinazione ?? '',
       paese:        viaggio?.paese        ?? '',
+      paese_codice: viaggio?.paese_codice ?? '',
+      destinazione_lat: viaggio?.destinazione_lat ?? null,
+      destinazione_lng: viaggio?.destinazione_lng ?? null,
       data_inizio:  viaggio?.data_inizio  ?? '',
       data_fine:    viaggio?.data_fine    ?? '',
       cover_emoji:  viaggio?.cover_emoji  ?? DEFAULT_COVER_ICON_ID,
@@ -155,12 +169,29 @@ export function ViaggioForm({
       <div className="flex flex-col gap-4">
         <div className="flex gap-3">
           <div className="flex-1">
-            <Input
-              label="Destinazione"
-              type="text"
-              placeholder="Es. Santorini"
-              error={errors.destinazione?.message}
-              {...register('destinazione')}
+            <Controller
+              name="destinazione"
+              control={control}
+              render={({ field }) => (
+                <LuogoSearchInput
+                  label="Destinazione"
+                  placeholder="Es. Santorini"
+                  value={field.value ?? ''}
+                  onChangeValue={field.onChange}
+                  onSelectLuogo={(luogo) => {
+                    // Etichetta breve (solo il primo pezzo, es. "Manchester"
+                    // invece del display_name completo e verboso di
+                    // Nominatim) — sovrascrive quanto appena scritto da
+                    // onChangeValue qui sopra, nello stesso handler.
+                    field.onChange(luogo.label.split(',')[0].trim())
+                    if (luogo.paese)       setValue('paese', luogo.paese)
+                    if (luogo.codicePaese) setValue('paese_codice', luogo.codicePaese)
+                    setValue('destinazione_lat', luogo.lat)
+                    setValue('destinazione_lng', luogo.lng)
+                  }}
+                  error={errors.destinazione?.message}
+                />
+              )}
             />
           </div>
           <div className="flex-1">
@@ -169,7 +200,13 @@ export function ViaggioForm({
               type="text"
               placeholder="Es. Grecia"
               error={errors.paese?.message}
-              {...register('paese')}
+              {...register('paese', {
+                // Se il paese viene corretto a mano dopo una selezione
+                // automatica, il codice ISO associato non è più
+                // affidabile — meglio azzerarlo che tenerne uno stantio
+                // (si torna al fallback testuale per l'emisfero).
+                onChange: () => setValue('paese_codice', ''),
+              })}
             />
           </div>
         </div>
