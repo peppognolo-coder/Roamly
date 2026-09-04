@@ -19,12 +19,12 @@ import type { NuovaPrenotazione, ModificaPrenotazione } from '@/types'
 // l'hook onSuccess, non nel componente chiamante.
 // ============================================================
 
-export function usePrenotazioni(viaggioId: string | undefined) {
+export function usePrenotazioni(viaggioId: string | undefined, enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.prenotazioni.byViaggio(viaggioId ?? ''),
     queryFn: () => getPrenotazioni(viaggioId as string),
     select: (result) => result.data,
-    enabled: !!viaggioId,
+    enabled: !!viaggioId && enabled,
   })
 }
 
