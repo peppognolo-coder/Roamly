@@ -69,19 +69,6 @@ interface RigaDaNotificare {
 // mette a rispondere un confronto carattere-per-carattere ingenuo.
 function chiamataAutorizzata(req: Request): boolean {
   const apiKey = req.headers.get('apikey')
-
-  // --- DEBUG TEMPORANEO: da rimuovere una volta risolto il 401 ---
-  console.log('DEBUG apikey ricevuta:', {
-    presente: apiKey !== null,
-    lunghezzaRicevuta: apiKey?.length ?? 0,
-    lunghezzaAttesa: cronSecretKey.length,
-    inizioRicevuto: apiKey?.slice(0, 12) ?? null,
-    inizioAtteso: cronSecretKey.slice(0, 12),
-    fineRicevuta: apiKey?.slice(-4) ?? null,
-    fineAttesa: cronSecretKey.slice(-4),
-  })
-  // --- FINE DEBUG TEMPORANEO ---
-
   if (!apiKey) return false
 
   const a = new TextEncoder().encode(apiKey)
