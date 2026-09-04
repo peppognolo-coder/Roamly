@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 import { Check, NotebookPen, Heart, Star, UserPlus, Users } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
+import { AvatarStack } from '@/components/ui/AvatarStack'
 import { PageLayout }       from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }        from '@/components/layout/BottomNav'
@@ -12,7 +13,7 @@ import { ViaggioForm }      from './ViaggioForm'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import { useViaggio, useStatisticheViaggio } from '@/hooks/useViaggi'
 import { useUpdateViaggio, useDeleteViaggio } from '@/hooks/useCrudViaggio'
-import { useMioRuolo }      from '@/hooks/useMembri'
+import { useMioRuolo, useMembriViaggio } from '@/hooks/useMembri'
 import { useInvitoLink }    from '@/hooks/useInviti'
 import { useRealtimeSync }  from '@/hooks/useRealtimeSync'
 import { queryKeys }        from '@/lib/queryKeys'
@@ -49,6 +50,7 @@ export function ViaggioDetailPage() {
     useUpdateViaggio(id ?? '')
   const { deleteViaggio, isLoading: isDeleting, error: deleteError } = useDeleteViaggio()
   const { data: mioRuolo } = useMioRuolo(id)
+  const { data: membri } = useMembriViaggio(id)
   const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(id ?? '', viaggio?.nome ?? '')
 
   useRealtimeSync('viaggi', 'id', id, [queryKeys.viaggi.detail(id ?? '')])
@@ -173,19 +175,34 @@ export function ViaggioDetailPage() {
               </button>
             )}
             {mioRuolo && (
-              <button
-                onClick={() => navigate(`/viaggi/${id}/membri`)}
-                className="
-                  w-9 h-9 rounded-xl flex items-center justify-center
-                  bg-roamly-g6
-                  hover:bg-roamly-g5 active:scale-[0.98]
-                  transition-all duration-150
-                "
-                aria-label="Membri del viaggio"
-                title="Membri"
-              >
-                <Users size={16} className="text-roamly-g1" />
-              </button>
+              (membri?.length ?? 0) > 1 ? (
+                <button
+                  onClick={() => navigate(`/viaggi/${id}/membri`)}
+                  className="
+                    rounded-xl p-0.5
+                    hover:bg-roamly-g6 active:scale-[0.98]
+                    transition-all duration-150
+                  "
+                  aria-label="Membri del viaggio"
+                  title="Membri"
+                >
+                  <AvatarStack viaggioId={id ?? ''} size="md" maxVisible={3} />
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate(`/viaggi/${id}/membri`)}
+                  className="
+                    w-9 h-9 rounded-xl flex items-center justify-center
+                    bg-roamly-g6
+                    hover:bg-roamly-g5 active:scale-[0.98]
+                    transition-all duration-150
+                  "
+                  aria-label="Membri del viaggio"
+                  title="Membri"
+                >
+                  <Users size={16} className="text-roamly-g1" />
+                </button>
+              )
             )}
             <button
               onClick={() => setShowShare(true)}

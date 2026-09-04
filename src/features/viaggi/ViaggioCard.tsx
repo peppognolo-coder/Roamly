@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronRight } from 'lucide-react'
 import { StatoBadge } from './StatoBadge'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
+import { AvatarStack } from '@/components/ui/AvatarStack'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
 import type { ViaggioConStato } from '@/types'
 
@@ -66,9 +67,12 @@ export function ViaggioCard({ viaggio, linkTab }: ViaggioCardProps) {
           </p>
         )}
 
-        <p className="font-dm-mono text-xs text-roamly-text/35 mt-1">
-          {dataFormattata}
-        </p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="font-dm-mono text-xs text-roamly-text/35">
+            {dataFormattata}
+          </p>
+          <AvatarStack viaggioId={viaggio.id} size="sm" maxVisible={3} />
+        </div>
       </div>
 
       {/* Chevron */}
