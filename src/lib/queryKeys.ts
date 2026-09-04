@@ -114,8 +114,11 @@ export const queryKeys = {
   // GEOCODING — ricerca luoghi (Nominatim), non legata a Supabase
   // ----------------------------------------------------------
   geocoding: {
-    /** ['geocoding', 'search', query] */
-    search: (query: string) => ['geocoding', 'search', query] as const,
+    /** ['geocoding', 'search', query, lat, lng, codicePaese] — il bias
+     *  entra nella chiave: la stessa query testuale con priorità diversa
+     *  (viaggi diversi) è una ricerca diversa, non va condivisa in cache */
+    search: (query: string, lat?: number | null, lng?: number | null, codicePaese?: string | null) =>
+      ['geocoding', 'search', query, lat ?? null, lng ?? null, codicePaese ?? null] as const,
   },
 
   reazioni: {
