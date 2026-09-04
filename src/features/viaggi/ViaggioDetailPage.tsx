@@ -133,7 +133,7 @@ export function ViaggioDetailPage() {
         <header className="px-5 pt-14 pb-2">
           <div className="flex items-center gap-3 mb-4">
             <button
-              onClick={() => navigate('/viaggi')}
+              onClick={() => navigate(-1)}
               className="
                 w-9 h-9 rounded-xl
                 flex items-center justify-center

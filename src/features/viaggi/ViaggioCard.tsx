@@ -12,19 +12,24 @@ import type { ViaggioConStato } from '@/types'
 
 interface ViaggioCardProps {
   viaggio: ViaggioConStato
+  /** Se presente, apre il viaggio direttamente su questa tab (es. 'pianifica') */
+  linkTab?: string
 }
 
-export function ViaggioCard({ viaggio }: ViaggioCardProps) {
+export function ViaggioCard({ viaggio, linkTab }: ViaggioCardProps) {
   const navigate = useNavigate()
 
   const dataFormattata = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
+  const destinazione = linkTab
+    ? `/viaggi/${viaggio.id}?tab=${linkTab}`
+    : `/viaggi/${viaggio.id}`
 
   return (
     <div
-      onClick={() => navigate(`/viaggi/${viaggio.id}`)}
+      onClick={() => navigate(destinazione)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/viaggi/${viaggio.id}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(destinazione)}
       className="
         flex items-center gap-4 p-4
         bg-white rounded-2xl
