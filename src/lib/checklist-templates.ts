@@ -1,5 +1,5 @@
-import type { ChecklistItem } from '@/types'
-import { FileText, BatteryCharging, Pill, Shirt, Package, Waves, Mountain, Building2, Globe, Snowflake, Flower2, Sun, Leaf } from 'lucide-react'
+import type { ChecklistItem, Prenotazione, TappaViaggio, ViaggioConStato } from '@/types'
+import { FileText, BatteryCharging, Pill, Shirt, Package, Waves, Mountain, Building2, Globe, Snowflake, Flower2, Sun, Leaf, Ticket, MapPin } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 // ============================================================
@@ -189,24 +189,34 @@ export const SUGGERIMENTI_STAGIONALI: Record<Stagione, TemplateChecklistItem[]> 
     { testo: 'Sciarpa, guanti e berretto', categoria: 'abbigliamento' },
     { testo: 'Maglioni pesanti',           categoria: 'abbigliamento' },
     { testo: 'Calzini termici',            categoria: 'abbigliamento' },
+    { testo: 'Scarpe impermeabili',        categoria: 'abbigliamento' },
+    { testo: 'Scaldacollo',                categoria: 'abbigliamento' },
     { testo: 'Balsamo labbra',             categoria: 'salute' },
+    { testo: 'Crema idratante viso',       categoria: 'salute' },
   ],
   primavera: [
     { testo: 'Giacca leggera impermeabile', categoria: 'abbigliamento' },
     { testo: 'Ombrello pieghevole',         categoria: 'varie' },
     { testo: 'Strati leggeri (a cipolla)',  categoria: 'abbigliamento' },
+    { testo: 'Scarpe comode impermeabili',  categoria: 'abbigliamento' },
+    { testo: 'Antistaminico (allergie)',    categoria: 'salute' },
   ],
   estate: [
     { testo: 'Costume da bagno',            categoria: 'abbigliamento' },
     { testo: 'Crema solare',                categoria: 'salute' },
+    { testo: 'Doposole',                    categoria: 'salute' },
     { testo: 'Occhiali da sole',            categoria: 'varie' },
     { testo: 'Cappello',                    categoria: 'abbigliamento' },
     { testo: 'Abiti leggeri e traspiranti', categoria: 'abbigliamento' },
+    { testo: 'Repellente per insetti',      categoria: 'salute' },
+    { testo: 'Borraccia',                   categoria: 'varie' },
   ],
   autunno: [
     { testo: 'Giacca a vento',              categoria: 'abbigliamento' },
     { testo: 'Ombrello',                    categoria: 'varie' },
     { testo: 'Strati intermedi',            categoria: 'abbigliamento' },
+    { testo: 'Maglioni leggeri',            categoria: 'abbigliamento' },
+    { testo: 'Scarpe impermeabili',         categoria: 'abbigliamento' },
   ],
 }
 
@@ -227,6 +237,116 @@ export function getSuggerimentiStagionali(
 
   const stagione = stagioneDaMese(mese, isEmisferoSud(paese))
   return { stagione, items: SUGGERIMENTI_STAGIONALI[stagione] }
+}
+
+// ------------------------------------------------------------
+// Suggerimenti da prenotazioni e itinerario — a differenza di
+// quelli stagionali (dedotti da data/paese), questi nascono da
+// cosa l'utente ha GIÀ pianificato per il viaggio: promemoria
+// mirati (biglietti, documenti) invece di consigli generici.
+// ------------------------------------------------------------
+
+export function getSuggerimentiDaPrenotazioni(
+  prenotazioni: Prenotazione[]
+): TemplateChecklistItem[] {
+  const items: TemplateChecklistItem[] = []
+  const tipiPresenti = new Set(prenotazioni.map((p) => p.tipo))
+
+  if (tipiPresenti.has('trasporto')) {
+    items.push({ testo: "Documenti di viaggio e carta d'imbarco", categoria: 'documenti' })
+  }
+  if (tipiPresenti.has('alloggio')) {
+    items.push({ testo: 'Conferma alloggio (scaricata o stampata)', categoria: 'documenti' })
+  }
+  if (tipiPresenti.has('visto')) {
+    items.push({ testo: "Visto e documenti d'ingresso", categoria: 'documenti' })
+  }
+
+  // Biglietto specifico per ogni museo/evento prenotato — con il
+  // nome della prenotazione, non generico, così è davvero utile.
+  for (const p of prenotazioni) {
+    if (p.tipo === 'museo' || p.tipo === 'evento') {
+      items.push({ testo: `Biglietto: ${p.nome}`, categoria: 'documenti' })
+    }
+  }
+
+  return items
+}
+
+export function getSuggerimentiDaTappe(
+  tappe: TappaViaggio[]
+): TemplateChecklistItem[] {
+  const items: TemplateChecklistItem[] = []
+  const categoriePresenti = new Set(tappe.map((t) => t.categoria))
+
+  if (categoriePresenti.has('cultura')) {
+    items.push({ testo: 'Abbigliamento coperto per luoghi di culto (spalle/ginocchia)', categoria: 'abbigliamento' })
+  }
+  if (categoriePresenti.has('natura')) {
+    items.push({ testo: 'Scarpe comode o da trekking', categoria: 'abbigliamento' })
+  }
+
+  return items
+}
+
+// ------------------------------------------------------------
+// Blocchi di suggerimenti — struttura unificata per la UI.
+// Ogni blocco spiega ESPLICITAMENTE perché quei punti sono
+// suggeriti (stagione+luogo / prenotazioni / itinerario), invece
+// di mostrare una lista anonima. Solo i blocchi con almeno un
+// item vengono restituiti.
+// ------------------------------------------------------------
+
+export interface BloccoSuggerimenti {
+  id: 'stagione' | 'prenotazioni' | 'tappe'
+  titolo: string
+  sottotitolo: string
+  icon: LucideIcon
+  items: TemplateChecklistItem[]
+}
+
+export function costruisciBlocchiSuggerimenti(
+  viaggio: Pick<ViaggioConStato, 'data_inizio' | 'paese' | 'destinazione'>,
+  prenotazioni: Prenotazione[],
+  tappe: TappaViaggio[]
+): BloccoSuggerimenti[] {
+  const blocchi: BloccoSuggerimenti[] = []
+
+  const stagionale = getSuggerimentiStagionali(viaggio.data_inizio, viaggio.paese)
+  if (stagionale && stagionale.items.length > 0) {
+    const luogo = viaggio.destinazione ? ` a ${viaggio.destinazione}` : ''
+    blocchi.push({
+      id: 'stagione',
+      titolo: `${STAGIONE_LABEL[stagionale.stagione]}${luogo}`,
+      sottotitolo: 'In base al periodo e al luogo del viaggio',
+      icon: STAGIONE_ICON[stagionale.stagione],
+      items: stagionale.items,
+    })
+  }
+
+  const daPrenotazioni = getSuggerimentiDaPrenotazioni(prenotazioni)
+  if (daPrenotazioni.length > 0) {
+    blocchi.push({
+      id: 'prenotazioni',
+      titolo: 'Dalle tue prenotazioni',
+      sottotitolo: 'Biglietti e documenti da non dimenticare',
+      icon: Ticket,
+      items: daPrenotazioni,
+    })
+  }
+
+  const daTappe = getSuggerimentiDaTappe(tappe)
+  if (daTappe.length > 0) {
+    blocchi.push({
+      id: 'tappe',
+      titolo: 'Dal tuo itinerario',
+      sottotitolo: 'In base alle attività già in programma',
+      icon: MapPin,
+      items: daTappe,
+    })
+  }
+
+  return blocchi
 }
 
 export const CATEGORIA_LABEL: Record<CategoriaChecklist, string> = {
