@@ -9,6 +9,7 @@ import {
   deleteViaggio,
 } from '@/services/viaggiService'
 import { useAuth } from '@/hooks/useAuth'
+import { useCompletaAzione } from '@/hooks/useCrediti'
 import type { NuovoViaggio, ModificaViaggio } from '@/types'
 
 // ============================================================
@@ -28,6 +29,7 @@ export function useCreateViaggio() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const { showSuccess } = useToast()
+  const { completaAzione: registraCredito } = useCompletaAzione()
 
   const mutation = useMutation({
     mutationFn: (payload: NuovoViaggio) => {
@@ -49,6 +51,7 @@ export function useCreateViaggio() {
       if (result.data) {
         setError(null)
         showSuccess('Viaggio creato')
+        registraCredito('primo_viaggio')
         navigate(`/viaggi/${result.data.id}`)
       }
     },

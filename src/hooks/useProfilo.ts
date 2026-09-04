@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/useToast'
 import { queryKeys } from '@/lib/queryKeys'
 import { getProfilo, aggiornaProfilo, uploadAvatar, type AggiornamentoProfilo } from '@/services/profiloService'
 import { useAuth } from '@/hooks/useAuth'
+import { useCompletaAzione } from '@/hooks/useCrediti'
 
 // ============================================================
 // ROAMLY — useProfilo
@@ -107,6 +108,7 @@ export function useUploadAvatar() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { showSuccess } = useToast()
+  const { completaAzione: registraCredito } = useCompletaAzione()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -131,6 +133,7 @@ export function useUploadAvatar() {
       }
 
       showSuccess('Foto profilo aggiornata')
+      registraCredito('foto_profilo')
       queryClient.invalidateQueries({ queryKey: queryKeys.profilo.detail(user.id) })
     } catch {
       setError('Impossibile elaborare l\'immagine. Riprova con un\'altra foto.')
