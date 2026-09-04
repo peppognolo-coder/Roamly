@@ -18,12 +18,12 @@ import type { NuovaTappaViaggio, ModificaTappaViaggio } from '@/types'
 // (vista per giorno) sia Attività (vista mappa) — stesso dato.
 // ============================================================
 
-export function useTappe(viaggioId: string | undefined) {
+export function useTappe(viaggioId: string | undefined, enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.tappe.byViaggio(viaggioId ?? ''),
     queryFn: () => getTappe(viaggioId as string),
     select: (result) => result.data,
-    enabled: !!viaggioId,
+    enabled: !!viaggioId && enabled,
   })
 }
 
