@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Loader2, MapPin } from 'lucide-react'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useLuogoSearch } from '@/hooks/useLuogoSearch'
-import type { RisultatoGeocoding } from '@/lib/geocoding'
+import type { RisultatoGeocoding, BiasGeocoding } from '@/lib/geocoding'
 
 // ============================================================
 // ROAMLY — LuogoSearchInput
@@ -12,6 +12,10 @@ import type { RisultatoGeocoding } from '@/lib/geocoding'
 // non tocca coordinate già presenti (es. impostate toccando la
 // mappa in Attività), evitando di "spostare" una tappa per sbaglio
 // mentre si corregge solo il testo dell'indirizzo.
+//
+// `bias` (opzionale): dà priorità ai risultati vicini alla
+// destinazione di un viaggio specifico, invece di una ricerca
+// puramente globale — vedi BiasGeocoding.
 // ============================================================
 
 interface LuogoSearchInputProps {
@@ -21,6 +25,7 @@ interface LuogoSearchInputProps {
   onChangeValue: (text: string) => void
   onSelectLuogo: (luogo: RisultatoGeocoding) => void
   error?: string
+  bias?: BiasGeocoding
 }
 
 export function LuogoSearchInput({
@@ -30,11 +35,12 @@ export function LuogoSearchInput({
   onChangeValue,
   onSelectLuogo,
   error,
+  bias,
 }: LuogoSearchInputProps) {
   const [aperto, setAperto] = useState(false)
 
   const queryDebounced = useDebouncedValue(value, 450)
-  const { data: risultati = [], isFetching } = useLuogoSearch(queryDebounced)
+  const { data: risultati = [], isFetching } = useLuogoSearch(queryDebounced, bias)
 
   const mostraDropdown = aperto && queryDebounced.trim().length >= 3
 
