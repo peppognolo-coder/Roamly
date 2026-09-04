@@ -4,11 +4,9 @@ import {
   TEMPLATE_BASE,
   CATEGORIA_LABEL,
   CATEGORIA_ICON,
-  STAGIONE_LABEL,
-  STAGIONE_ICON,
   type TemplateChecklistItem,
   type CategoriaChecklist,
-  type Stagione,
+  type BloccoSuggerimenti,
 } from '@/lib/checklist-templates'
 import { Button } from '@/components/ui/Button'
 
@@ -17,10 +15,12 @@ import { Button } from '@/components/ui/Button'
 // Multi-select: l'utente sceglie quali item aggiungere.
 // Conferma → batch insert via useCreateChecklistItemsBatch.
 //
-// Se `suggerimentoStagionale` è passato, i suoi item compaiono in
-// un gruppo dedicato in cima alla lista, prima delle categorie
-// generiche — stessi suggerimenti dedotti dal viaggio già mostrati
-// nello stato vuoto, qui disponibili anche a checklist non vuota.
+// `blocchiSuggerimenti` (stagione / prenotazioni / itinerario)
+// compaiono in gruppi dedicati ed evidenziati in cima alla lista,
+// ognuno con titolo+sottotitolo che spiega il "perché" — prima
+// delle categorie generiche del pool statico. Stessi suggerimenti
+// già mostrati nello stato vuoto, qui disponibili anche a
+// checklist non vuota.
 // ============================================================
 
 interface SuggerimentiSheetProps {
@@ -29,7 +29,61 @@ interface SuggerimentiSheetProps {
   onConferma:        (items: TemplateChecklistItem[]) => void
   isLoading:         boolean
   testiEsistenti:    string[]   // per escludere item già presenti
-  suggerimentoStagionale?: { stagione: Stagione; items: TemplateChecklistItem[] } | null
+  blocchiSuggerimenti?: BloccoSuggerimenti[]
+}
+
+// ------------------------------------------------------------
+// GruppoItem — riga selezionabile riusata sia per i blocchi
+// intelligenti (stile evidenziato) sia per il pool generico.
+// ------------------------------------------------------------
+
+function GruppoItem({
+  testo,
+  isSelected,
+  evidenziato,
+  onClick,
+}: {
+  testo: string
+  isSelected: boolean
+  evidenziato: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`
+        flex items-center gap-3 px-3 py-2.5 w-full text-left
+        rounded-xl border
+        transition-all duration-150
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+        ${evidenziato
+          ? (isSelected
+              ? 'bg-roamly-coral/15 border-roamly-coral/40'
+              : 'bg-white border-roamly-coral/20 hover:border-roamly-coral/40')
+          : (isSelected
+              ? 'bg-roamly-g6 border-roamly-g4'
+              : 'bg-white border-roamly-g6 hover:border-roamly-g5')
+        }
+      `}
+    >
+      <div className={`
+        w-5 h-5 rounded-md border-2 shrink-0
+        flex items-center justify-center
+        ${isSelected
+          ? (evidenziato ? 'bg-roamly-coral border-roamly-coral' : 'bg-roamly-g2 border-roamly-g2')
+          : 'border-roamly-g4'
+        }
+      `}>
+        {isSelected && (
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        )}
+      </div>
+      <span className="font-dm-sans text-sm text-roamly-text">{testo}</span>
+    </button>
+  )
 }
 
 export function SuggerimentiSheet({
@@ -38,7 +92,7 @@ export function SuggerimentiSheet({
   onConferma,
   isLoading,
   testiEsistenti,
-  suggerimentoStagionale,
+  blocchiSuggerimenti = [],
 }: SuggerimentiSheetProps) {
   const [selezionati, setSelezionati] = useState<Set<string>>(new Set())
 
@@ -47,13 +101,23 @@ export function SuggerimentiSheet({
     (t) => !testiEsistenti.includes(t.testo)
   )
 
-  // Item stagionali disponibili — esclusi quelli già in checklist
-  // o già presenti nel pool generico (evita doppioni tra i due gruppi)
-  const stagionaliDisponibili = (suggerimentoStagionale?.items ?? []).filter(
-    (i) => !testiEsistenti.includes(i.testo) && !disponibili.some((d) => d.testo === i.testo)
-  )
+  // Blocchi intelligenti: item già in checklist esclusi, e deduplicati
+  // tra loro e contro il pool generico (evita doppioni se lo stesso
+  // testo compare in più blocchi, es. "Scarpe comode" in stagione e tappe)
+  const testiGiaMostrati = new Set(disponibili.map((d) => d.testo))
+  const blocchiFiltrati = blocchiSuggerimenti
+    .map((blocco) => {
+      const itemsFiltrati = blocco.items.filter((i) => {
+        if (testiEsistenti.includes(i.testo)) return false
+        if (testiGiaMostrati.has(i.testo)) return false
+        testiGiaMostrati.add(i.testo)
+        return true
+      })
+      return { ...blocco, items: itemsFiltrati }
+    })
+    .filter((blocco) => blocco.items.length > 0)
 
-  // Raggruppa per categoria (solo pool generico)
+  // Raggruppa il pool generico per categoria
   const perCategoria = disponibili.reduce<Record<CategoriaChecklist, TemplateChecklistItem[]>>(
     (acc, item) => {
       if (!acc[item.categoria]) acc[item.categoria] = []
@@ -63,7 +127,11 @@ export function SuggerimentiSheet({
     {} as Record<CategoriaChecklist, TemplateChecklistItem[]>
   )
 
-  const nessunSuggerimento = disponibili.length === 0 && stagionaliDisponibili.length === 0
+  const tuttiGliItem = [
+    ...blocchiFiltrati.flatMap((b) => b.items),
+    ...disponibili,
+  ]
+  const nessunSuggerimento = tuttiGliItem.length === 0
 
   function toggleItem(testo: string) {
     setSelezionati((prev) => {
@@ -78,7 +146,7 @@ export function SuggerimentiSheet({
   }
 
   function selezionaTutti() {
-    setSelezionati(new Set([...disponibili, ...stagionaliDisponibili].map((i) => i.testo)))
+    setSelezionati(new Set(tuttiGliItem.map((i) => i.testo)))
   }
 
   function deselezionaTutti() {
@@ -86,7 +154,7 @@ export function SuggerimentiSheet({
   }
 
   function handleConferma() {
-    const scelti = [...disponibili, ...stagionaliDisponibili].filter((i) => selezionati.has(i.testo))
+    const scelti = tuttiGliItem.filter((i) => selezionati.has(i.testo))
     if (scelti.length === 0) return
     onConferma(scelti)
     setSelezionati(new Set())
@@ -173,107 +241,53 @@ export function SuggerimentiSheet({
                   </p>
                 ) : (
                   <>
-                    {/* Gruppo stagionale — in cima, evidenziato */}
-                    {suggerimentoStagionale && stagionaliDisponibili.length > 0 && (() => {
-                      const StagioneIcon = STAGIONE_ICON[suggerimentoStagionale.stagione]
+                    {/* Blocchi intelligenti — in cima, evidenziati, ognuno
+                        con il proprio "perché" */}
+                    {blocchiFiltrati.map((blocco) => {
+                      const BloccoIcon = blocco.icon
                       return (
-                        <div className="flex flex-col gap-2">
+                        <div key={blocco.id} className="flex flex-col gap-2">
                           <p className="font-dm-sans text-xs font-semibold text-roamly-coral uppercase tracking-wider flex items-center gap-1.5">
-                            <StagioneIcon size={12} />
-                            {STAGIONE_LABEL[suggerimentoStagionale.stagione]} — consigliati per te
+                            <BloccoIcon size={12} />
+                            {blocco.titolo}
                           </p>
-                          {stagionaliDisponibili.map((item) => {
-                            const isSelected = selezionati.has(item.testo)
-                            return (
-                              <button
-                                key={item.testo}
-                                onClick={() => toggleItem(item.testo)}
-                                className={`
-                                  flex items-center gap-3 px-3 py-2.5 w-full text-left
-                                  rounded-xl border
-                                  transition-all duration-150
-                                  focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-                                  ${isSelected
-                                    ? 'bg-roamly-coral/15 border-roamly-coral/40'
-                                    : 'bg-white border-roamly-coral/20 hover:border-roamly-coral/40'
-                                  }
-                                `}
-                              >
-                                <div className={`
-                                  w-5 h-5 rounded-md border-2 shrink-0
-                                  flex items-center justify-center
-                                  ${isSelected
-                                    ? 'bg-roamly-coral border-roamly-coral'
-                                    : 'border-roamly-g4'
-                                  }
-                                `}>
-                                  {isSelected && (
-                                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                                      <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2"
-                                        strokeLinecap="round" strokeLinejoin="round"/>
-                                    </svg>
-                                  )}
-                                </div>
-                                <span className="font-dm-sans text-sm text-roamly-text">
-                                  {item.testo}
-                                </span>
-                              </button>
-                            )
-                          })}
+                          <p className="font-dm-sans text-[11px] text-roamly-text/40 -mt-1 mb-0.5">
+                            {blocco.sottotitolo}
+                          </p>
+                          {blocco.items.map((item) => (
+                            <GruppoItem
+                              key={item.testo}
+                              testo={item.testo}
+                              isSelected={selezionati.has(item.testo)}
+                              evidenziato
+                              onClick={() => toggleItem(item.testo)}
+                            />
+                          ))}
                         </div>
                       )
-                    })()}
+                    })}
 
-                    {Object.entries(perCategoria).map(([cat, items]) => {
-                    const CategoriaIcon = CATEGORIA_ICON[cat as CategoriaChecklist]
-                    return (
-                    <div key={cat} className="flex flex-col gap-2">
-                      <p className="font-dm-sans text-xs font-semibold text-roamly-text/40 uppercase tracking-wider flex items-center gap-1.5">
-                        <CategoriaIcon size={12} />
-                        {CATEGORIA_LABEL[cat as CategoriaChecklist]}
-                      </p>
-                      {items.map((item) => {
-                        const isSelected = selezionati.has(item.testo)
-                        return (
-                          <button
-                            key={item.testo}
-                            onClick={() => toggleItem(item.testo)}
-                            className={`
-                              flex items-center gap-3 px-3 py-2.5 w-full text-left
-                              rounded-xl border
-                              transition-all duration-150
-                              focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-                              ${isSelected
-                                ? 'bg-roamly-g6 border-roamly-g4'
-                                : 'bg-white border-roamly-g6 hover:border-roamly-g5'
-                              }
-                            `}
-                          >
-                            {/* Checkbox visuale */}
-                            <div className={`
-                              w-5 h-5 rounded-md border-2 shrink-0
-                              flex items-center justify-center
-                              ${isSelected
-                                ? 'bg-roamly-g2 border-roamly-g2'
-                                : 'border-roamly-g4'
-                              }
-                            `}>
-                              {isSelected && (
-                                <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-                                  <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2"
-                                    strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              )}
-                            </div>
-                            <span className="font-dm-sans text-sm text-roamly-text">
-                              {item.testo}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                    )
-                  })}
+                    {/* Pool generico per categoria */}
+                    {Object.entries(perCategoria).map(([cat, catItems]) => {
+                      const CategoriaIcon = CATEGORIA_ICON[cat as CategoriaChecklist]
+                      return (
+                        <div key={cat} className="flex flex-col gap-2">
+                          <p className="font-dm-sans text-xs font-semibold text-roamly-text/40 uppercase tracking-wider flex items-center gap-1.5">
+                            <CategoriaIcon size={12} />
+                            {CATEGORIA_LABEL[cat as CategoriaChecklist]}
+                          </p>
+                          {catItems.map((item) => (
+                            <GruppoItem
+                              key={item.testo}
+                              testo={item.testo}
+                              isSelected={selezionati.has(item.testo)}
+                              evidenziato={false}
+                              onClick={() => toggleItem(item.testo)}
+                            />
+                          ))}
+                        </div>
+                      )
+                    })}
                   </>
                 )}
               </div>
