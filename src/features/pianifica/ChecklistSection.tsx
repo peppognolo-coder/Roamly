@@ -27,7 +27,9 @@ import {
   useDeleteChecklistItem,
   useReorderChecklist,
 } from '@/hooks/useCrudChecklist'
-import { calcolaStatisticheChecklist, VALIGIA_TEMPLATES, VALIGIA_TEMPLATE_ICON, getSuggerimentiStagionali, STAGIONE_LABEL, STAGIONE_ICON } from '@/lib/checklist-templates'
+import { calcolaStatisticheChecklist, VALIGIA_TEMPLATES, VALIGIA_TEMPLATE_ICON, costruisciBlocchiSuggerimenti } from '@/lib/checklist-templates'
+import { usePrenotazioni } from '@/hooks/usePrenotazioni'
+import { useTappe } from '@/hooks/useTappe'
 import type { TemplateChecklistItem }  from '@/lib/checklist-templates'
 import type { ViaggioConStato }        from '@/types'
 
@@ -126,10 +128,16 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
   const testiEsistenti = items.map((i) => i.testo)
   const hasItems       = items.length > 0
 
-  // Suggerimento stagionale — dedotto da data_inizio/paese del
-  // viaggio stesso, nessuna scelta manuale richiesta. null se il
-  // viaggio non ha ancora una data di partenza impostata.
-  const suggerimentoStagionale = getSuggerimentiStagionali(viaggio.data_inizio, viaggio.paese)
+  // Suggerimenti intelligenti — stagione (data+paese del viaggio),
+  // prenotazioni (biglietti/documenti) e itinerario (attività già
+  // pianificate). Gated su `abilitato` come la checklist stessa:
+  // niente query finché l'accordion non viene aperto, altrimenti
+  // ogni ChecklistSection visibile in PianificaPage (una per
+  // viaggio pianificato) sparerebbe due query extra a caricamento
+  // pagina, anche per viaggi mai espansi.
+  const { data: prenotazioni = [] } = usePrenotazioni(viaggio.id, abilitato)
+  const { data: tappe = [] }        = useTappe(viaggio.id, abilitato)
+  const blocchiSuggerimenti = costruisciBlocchiSuggerimenti(viaggio, prenotazioni, tappe)
 
   return (
     <div className="flex flex-col gap-0">
@@ -255,33 +263,46 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                     La checklist è vuota. Parti da un template:
                   </p>
 
-                  {/* Suggerimento stagionale — evidenziato, dedotto dal
-                      viaggio stesso (data + paese), nessuna scelta manuale */}
-                  {suggerimentoStagionale && (
-                    <button
-                      onClick={() => handleApplicaTemplate(suggerimentoStagionale.items)}
-                      disabled={isBatchLoading}
-                      className="
-                        flex items-center gap-2.5 w-full py-3 px-4
-                        bg-roamly-coral/10 border border-roamly-coral/30 rounded-xl
-                        hover:bg-roamly-coral/15 active:scale-[0.98]
-                        transition-all duration-150
-                        disabled:opacity-50
-                      "
-                    >
-                      {(() => {
-                        const StagioneIcon = STAGIONE_ICON[suggerimentoStagionale.stagione]
-                        return <StagioneIcon size={18} className="text-roamly-coral shrink-0" />
-                      })()}
-                      <div className="flex-1 text-left">
-                        <p className="font-dm-sans text-xs font-semibold text-roamly-g0">
-                          Consigliato per il tuo viaggio
-                        </p>
-                        <p className="font-dm-sans text-[11px] text-roamly-text/50">
-                          {STAGIONE_LABEL[suggerimentoStagionale.stagione]} — {suggerimentoStagionale.items.length} voci
-                        </p>
-                      </div>
-                    </button>
+                  {/* Blocchi di suggerimenti intelligenti — evidenziati,
+                      ognuno spiega esplicitamente il "perché" (stagione+
+                      luogo / prenotazioni / itinerario), nessuna scelta
+                      manuale richiesta come per i 4 template sotto */}
+                  {blocchiSuggerimenti.length > 0 && (
+                    <div className="flex flex-col gap-2 w-full">
+                      {blocchiSuggerimenti.map((blocco) => {
+                        const BloccoIcon = blocco.icon
+                        return (
+                          <button
+                            key={blocco.id}
+                            onClick={() => handleApplicaTemplate(blocco.items)}
+                            disabled={isBatchLoading}
+                            className="
+                              flex items-center gap-2.5 w-full py-3 px-4
+                              bg-roamly-coral/10 border border-roamly-coral/30 rounded-xl
+                              hover:bg-roamly-coral/15 active:scale-[0.98]
+                              transition-all duration-150
+                              disabled:opacity-50
+                            "
+                          >
+                            <BloccoIcon size={18} className="text-roamly-coral shrink-0" />
+                            <div className="flex-1 text-left">
+                              <p className="font-dm-sans text-xs font-semibold text-roamly-g0">
+                                {blocco.titolo}
+                              </p>
+                              <p className="font-dm-sans text-[11px] text-roamly-text/50">
+                                {blocco.sottotitolo} · {blocco.items.length} voci
+                              </p>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {blocchiSuggerimenti.length > 0 && (
+                    <p className="font-dm-sans text-[11px] text-roamly-text/35 mt-1">
+                      Oppure parti da un tipo di viaggio:
+                    </p>
                   )}
 
                   <div className="grid grid-cols-2 gap-2 w-full">
@@ -361,7 +382,7 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
         onConferma={handleBatch}
         isLoading={isBatchLoading}
         testiEsistenti={testiEsistenti}
-        suggerimentoStagionale={suggerimentoStagionale}
+        blocchiSuggerimenti={blocchiSuggerimenti}
       />
     </div>
   )
