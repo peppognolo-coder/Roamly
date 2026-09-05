@@ -34,6 +34,8 @@ const NuovoViaggioPage       = lazy(() => import('@/features/viaggi/NuovoViaggio
 const ValigiaPage            = lazy(() => import('@/features/pianifica/ValigiaPage').then((m) => ({ default: m.ValigiaPage })))
 const PrenotazioniPage       = lazy(() => import('@/features/pianifica/PrenotazioniPage').then((m) => ({ default: m.PrenotazioniPage })))
 const PrenotazionePage       = lazy(() => import('@/features/pianifica/PrenotazionePage').then((m) => ({ default: m.PrenotazionePage })))
+const BudgetPage             = lazy(() => import('@/features/pianifica/BudgetPage').then((m) => ({ default: m.BudgetPage })))
+const BudgetVocePage         = lazy(() => import('@/features/pianifica/BudgetVocePage').then((m) => ({ default: m.BudgetVocePage })))
 const ItinerarioPage         = lazy(() => import('@/features/pianifica/ItinerarioPage').then((m) => ({ default: m.ItinerarioPage })))
 const TappaPage              = lazy(() => import('@/features/pianifica/TappaPage').then((m) => ({ default: m.TappaPage })))
 const CalendarioPage         = lazy(() => import('@/features/pianifica/CalendarioPage').then((m) => ({ default: m.CalendarioPage })))
@@ -159,6 +161,19 @@ export const router = createBrowserRouter([
   {
     path: '/viaggi/:id/prenotazioni/:prenotazioneId',
     element: <Protected><PrenotazionePage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/budget',
+    element: <Protected><BudgetPage /></Protected>,
+  },
+  // NOTA: /budget/nuova deve precedere /budget/:voceId
+  {
+    path: '/viaggi/:id/budget/nuova',
+    element: <Protected><BudgetVocePage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/budget/:voceId',
+    element: <Protected><BudgetVocePage /></Protected>,
   },
   {
     path: '/viaggi/:id/itinerario',
