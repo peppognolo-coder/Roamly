@@ -29,6 +29,17 @@ const queryClient = new QueryClient({
 function useScrollToTopOnNavigate() {
   const pathnameRef = useRef(window.location.pathname)
 
+  // Disattiva il ripristino automatico dello scroll del browser: di
+  // default, tornando "indietro" il browser ripristina la posizione
+  // di scroll esatta in cui si trovava quella pagina — in conflitto
+  // con lo scrollTo(0,0) qui sotto. Con 'manual' siamo gli unici a
+  // decidere, sia per navigazione avanti che indietro.
+  useEffect(() => {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
+    }
+  }, [])
+
   useEffect(() => {
     return router.subscribe((state) => {
       if (state.location.pathname !== pathnameRef.current) {
