@@ -6,6 +6,7 @@ import {
   MapPinned,
   CalendarDays,
   NotebookPen,
+  Wallet,
   ChevronRight,
   Clock,
 } from 'lucide-react'
@@ -37,6 +38,13 @@ const VOCI: VoceHub[] = [
     descrizione: 'Trasporti, alloggi, musei, eventi...',
     icon: Briefcase,
     path: 'prenotazioni',
+  },
+  {
+    id: 'budget',
+    label: 'Budget',
+    descrizione: 'Spese e chi ha pagato cosa',
+    icon: Wallet,
+    path: 'budget',
   },
   {
     id: 'itinerario',
