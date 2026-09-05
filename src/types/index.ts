@@ -345,6 +345,47 @@ export const TIPO_PRENOTAZIONE_OPTIONS: TipoPrenotazioneOption[] = [
 ]
 
 // ------------------------------------------------------------
+// BUDGET / SPLIT SPESE
+// Riusa la tabella `budget_voci` già esistente nello schema.
+// Ogni voce è legata a un viaggio e a chi l'ha inserita — la
+// somma per persona alimenta il riepilogo "chi ha speso quanto".
+// ------------------------------------------------------------
+
+export type CategoriaBudget =
+  | 'trasporto' | 'alloggio' | 'food' | 'attivita' | 'shopping' | 'altro'
+
+export interface BudgetVoce {
+  id: string
+  viaggio_id: string
+  user_id: string
+  categoria: CategoriaBudget
+  importo: number
+  nota: string | null
+  created_at: string
+}
+
+export type NuovaBudgetVoce = Pick<BudgetVoce, 'viaggio_id' | 'categoria' | 'importo'> &
+  Partial<Pick<BudgetVoce, 'nota'>>
+
+export type ModificaBudgetVoce = Partial<
+  Pick<BudgetVoce, 'categoria' | 'importo' | 'nota'>
+>
+
+export interface CategoriaBudgetOption {
+  value: CategoriaBudget
+  label: string
+}
+
+export const CATEGORIA_BUDGET_OPTIONS: CategoriaBudgetOption[] = [
+  { value: 'trasporto', label: 'Trasporti' },
+  { value: 'alloggio',  label: 'Alloggio' },
+  { value: 'food',      label: 'Cibo e ristoranti' },
+  { value: 'attivita',  label: 'Attività' },
+  { value: 'shopping',  label: 'Shopping' },
+  { value: 'altro',     label: 'Altro' },
+]
+
+// ------------------------------------------------------------
 // COLLABORAZIONE MULTI-UTENTE
 // ------------------------------------------------------------
 
