@@ -18,7 +18,7 @@ export async function getRecapViaggio(viaggioId: string): Promise<{
   data: RecapViaggio
   error: string | null
 }> {
-  const [ricordiRes, fotoRes, budgetRes, reazioniRes] = await Promise.all([
+  const [ricordiRes, fotoRes, budgetRes, ricordoTopRes] = await Promise.all([
     supabase
       .from('ricordi')
       .select('id', { count: 'exact', head: true })
@@ -31,13 +31,22 @@ export async function getRecapViaggio(viaggioId: string): Promise<{
       .from('budget_voci')
       .select('importo')
       .eq('viaggio_id', viaggioId),
+    // "Ricordo più apprezzato": non usiamo il conteggio reazioni —
+    // con gruppi piccoli (coppia, famiglia, pochi amici) non è un
+    // segnale affidabile, spesso 0 o 1 su tutto. Usiamo invece la
+    // scelta esplicita della persona: il flag "highlight" (marcato
+    // a mano come speciale), con "preferito" come ripiego.
     supabase
-      .from('reazioni_ricordo')
-      .select('ricordo_id, ricordi!inner(id, titolo, viaggio_id)')
-      .eq('ricordi.viaggio_id', viaggioId),
+      .from('ricordi')
+      .select('id, titolo, highlight, preferito, data')
+      .eq('viaggio_id', viaggioId)
+      .or('highlight.eq.true,preferito.eq.true')
+      .order('highlight', { ascending: false })
+      .order('data', { ascending: false })
+      .limit(1),
   ])
 
-  if (ricordiRes.error || fotoRes.error || budgetRes.error || reazioniRes.error) {
+  if (ricordiRes.error || fotoRes.error || budgetRes.error || ricordoTopRes.error) {
     return {
       data: { numRicordi: 0, numFoto: 0, speseTotali: 0, ricordoTop: null },
       error: 'Impossibile caricare il recap del viaggio.',
@@ -45,28 +54,8 @@ export async function getRecapViaggio(viaggioId: string): Promise<{
   }
 
   const speseTotali = (budgetRes.data ?? []).reduce((sum, v) => sum + (v.importo ?? 0), 0)
-
-  // Conteggio reazioni per ricordo, in JS — dataset per singolo
-  // viaggio è piccolo, non serve una query di aggregazione dedicata.
-  const conteggi = new Map<string, { titolo: string; count: number }>()
-  for (const r of reazioniRes.data ?? []) {
-    // ricordi arriva come oggetto singolo grazie a !inner, ma il
-    // client lo tipizza come array — normalizziamo qui.
-    const ricordo = Array.isArray(r.ricordi) ? r.ricordi[0] : r.ricordi
-    if (!ricordo) continue
-    const attuale = conteggi.get(ricordo.id) ?? { titolo: ricordo.titolo, count: 0 }
-    attuale.count += 1
-    conteggi.set(ricordo.id, attuale)
-  }
-
-  let ricordoTop: RecapViaggio['ricordoTop'] = null
-  let maxCount = 0
-  for (const [id, { titolo, count }] of conteggi) {
-    if (count > maxCount) {
-      maxCount = count
-      ricordoTop = { id, titolo }
-    }
-  }
+  const primo = ricordoTopRes.data?.[0]
+  const ricordoTop = primo ? { id: primo.id, titolo: primo.titolo } : null
 
   return {
     data: {
