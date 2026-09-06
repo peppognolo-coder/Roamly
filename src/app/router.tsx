@@ -27,6 +27,7 @@ const ProfiloPage            = lazy(() => import('@/features/profilo/ProfiloPage
 const ImpostazioniAccountPage = lazy(() => import('@/features/profilo/ImpostazioniAccountPage').then((m) => ({ default: m.ImpostazioniAccountPage })))
 const NotificheSettingsPage  = lazy(() => import('@/features/profilo/NotificheSettingsPage').then((m) => ({ default: m.NotificheSettingsPage })))
 const CreditiPage            = lazy(() => import('@/features/profilo/CreditiPage').then((m) => ({ default: m.CreditiPage })))
+const TraguardiPage          = lazy(() => import('@/features/profilo/TraguardiPage').then((m) => ({ default: m.TraguardiPage })))
 const StatistichePage        = lazy(() => import('@/features/profilo/StatistichePage').then((m) => ({ default: m.StatistichePage })))
 const ViaggiPage             = lazy(() => import('@/features/viaggi/ViaggiPage').then((m) => ({ default: m.ViaggiPage })))
 const ViaggioDetailPage      = lazy(() => import('@/features/viaggi/ViaggioDetailPage').then((m) => ({ default: m.ViaggioDetailPage })))
@@ -122,6 +123,10 @@ export const router = createBrowserRouter([
   {
     path: '/profilo/crediti',
     element: <Protected><CreditiPage /></Protected>,
+  },
+  {
+    path: '/profilo/traguardi',
+    element: <Protected><TraguardiPage /></Protected>,
   },
   {
     path: '/profilo/statistiche',
