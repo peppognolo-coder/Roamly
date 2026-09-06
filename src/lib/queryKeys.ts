@@ -204,14 +204,13 @@ export const queryKeys = {
   },
 
   // ----------------------------------------------------------
-  // BADGE
-  // [V2] Schema e chiavi pronte, feature non implementata nel MVP
+  // BADGES / TRAGUARDI
   // ----------------------------------------------------------
   badges: {
-    /** ['badges'] — lista badge disponibili [V2] */
+    /** ['badges'] — catalogo completo dei traguardi */
     all: ['badges'] as const,
 
-    /** ['badges', 'utente', userId] — badge conquistati [V2] */
+    /** ['badges', 'utente', userId] — traguardi conquistati */
     byUtente: (userId: string) => ['badges', 'utente', userId] as const,
   },
 
