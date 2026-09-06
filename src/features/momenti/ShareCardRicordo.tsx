@@ -233,47 +233,57 @@ export function ShareCardRicordo({ ricordo, viaggio, coverUrl, onClose }: ShareC
 
   const dim = DIMENSIONI[formato]
 
-  const handleExport = useCallback(async () => {
-    if (!exportRef.current || isExporting) return
-    setIsExporting(true)
+  const generaImmagine = useCallback(async (): Promise<string | null> => {
+    if (exported) return exported
+    if (!exportRef.current) return null
 
+    setIsExporting(true)
     try {
       await document.fonts.ready
-
       const dataUrl = await toPng(exportRef.current, {
-        width:  dim.w,
-        height: dim.h,
+        width: dim.w, height: dim.h,
         pixelRatio: 1,
         filter: (node) => node !== document.body,
       })
-
       setExported(dataUrl)
-
-      const a = document.createElement('a')
-      a.href     = dataUrl
-      a.download = `roamly-${ricordo.titolo.toLowerCase().replace(/\s+/g, '-')}-${formato}.png`
-      a.click()
+      return dataUrl
     } catch (err) {
       console.error('Export fallito:', err)
+      return null
     } finally {
       setIsExporting(false)
     }
-  }, [dim, formato, ricordo.titolo, isExporting])
+  }, [dim, exported])
 
-  const handleShare = useCallback(async () => {
-    if (!exported) return
+  const handleScarica = useCallback(async () => {
+    const dataUrl = await generaImmagine()
+    if (!dataUrl) return
+    const a = document.createElement('a')
+    a.href     = dataUrl
+    a.download = `roamly-${ricordo.titolo.toLowerCase().replace(/\s+/g, '-')}-${formato}.png`
+    a.click()
+  }, [generaImmagine, formato, ricordo.titolo])
+
+  // Testo che accompagna la condivisione — mancava, chi condivideva
+  // doveva scrivere la didascalia da zero.
+  const testoCondivisione = `${ricordo.titolo}${ricordo.luogo ? ` — ${ricordo.luogo}` : ''}, dal mio diario di viaggio su Roamly.`
+
+  // "Condividi" è il pulsante primario: genera l'immagine al volo e
+  // apre subito il foglio di condivisione di sistema.
+  const handleCondividi = useCallback(async () => {
+    const dataUrl = await generaImmagine()
+    if (!dataUrl) return
     try {
-      const resp  = await fetch(exported)
+      const resp  = await fetch(dataUrl)
       const blob  = await resp.blob()
       const file  = new File([blob], `roamly-${ricordo.titolo}.png`, { type: 'image/png' })
-      await navigator.share({ files: [file], title: ricordo.titolo })
-    } catch {
-      const a = document.createElement('a')
-      a.href     = exported
-      a.download = `roamly-${ricordo.titolo}.png`
-      a.click()
+      await navigator.share({ files: [file], title: ricordo.titolo, text: testoCondivisione })
+    } catch (err) {
+      if ((err as Error)?.name !== 'AbortError') {
+        handleScarica()
+      }
     }
-  }, [exported, ricordo.titolo])
+  }, [generaImmagine, ricordo.titolo, testoCondivisione, handleScarica])
 
   const anteprimaW = Math.round(dim.w * SCALA_ANTEPRIMA)
   const anteprimaH = Math.round(dim.h * SCALA_ANTEPRIMA)
@@ -385,55 +395,86 @@ export function ShareCardRicordo({ ricordo, viaggio, coverUrl, onClose }: ShareC
 
           {/* Azioni */}
           <div className="flex flex-col gap-3 px-5 pb-8 shrink-0">
-            <button
-              onClick={handleExport}
-              disabled={isExporting}
-              className="
-                flex items-center justify-center gap-2 h-12 rounded-2xl
-                bg-roamly-g0 hover:bg-roamly-g1
-                font-dm-sans font-medium text-sm text-white
-                disabled:opacity-60
-                active:scale-[0.99] transition-all duration-150
-              "
-            >
-              {isExporting ? (
-                <>
-                  <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                  <span>Generazione…</span>
-                </>
-              ) : (
-                <>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+            {canShare ? (
+              <>
+                <button
+                  onClick={handleCondividi}
+                  disabled={isExporting}
+                  className="
+                    flex items-center justify-center gap-2 h-12 rounded-2xl
+                    bg-roamly-g0 hover:bg-roamly-g1
+                    font-dm-sans font-medium text-sm text-white
+                    disabled:opacity-60
+                    active:scale-[0.99] transition-all duration-150
+                  "
+                >
+                  {isExporting ? (
+                    <>
+                      <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      <span>Generazione…</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"/>
+                        <circle cx="6" cy="12" r="3"/>
+                        <circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                      <span>Condividi</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleScarica}
+                  disabled={isExporting}
+                  className="
+                    flex items-center justify-center gap-2 h-11 rounded-2xl
+                    bg-roamly-g7 border border-roamly-g5
+                    font-dm-sans font-medium text-sm text-roamly-g0
+                    hover:bg-roamly-g6 disabled:opacity-60
+                    active:scale-[0.99] transition-all duration-150
+                  "
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="7 10 12 15 17 10"/>
                     <line x1="12" y1="15" x2="12" y2="3"/>
                   </svg>
                   <span>Scarica PNG</span>
-                </>
-              )}
-            </button>
-
-            {canShare && exported && (
+                </button>
+              </>
+            ) : (
               <button
-                onClick={handleShare}
+                onClick={handleScarica}
+                disabled={isExporting}
                 className="
                   flex items-center justify-center gap-2 h-12 rounded-2xl
-                  bg-roamly-g7 border border-roamly-g5
-                  font-dm-sans font-medium text-sm text-roamly-g0
-                  hover:bg-roamly-g6
+                  bg-roamly-g0 hover:bg-roamly-g1
+                  font-dm-sans font-medium text-sm text-white
+                  disabled:opacity-60
                   active:scale-[0.99] transition-all duration-150
                 "
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="18" cy="5" r="3"/>
-                  <circle cx="6" cy="12" r="3"/>
-                  <circle cx="18" cy="19" r="3"/>
-                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-                </svg>
-                <span>Condividi</span>
+                {isExporting ? (
+                  <>
+                    <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Generazione…</span>
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>Scarica PNG</span>
+                  </>
+                )}
               </button>
             )}
           </div>
