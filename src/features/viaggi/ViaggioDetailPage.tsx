@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Check, NotebookPen, Heart, Star, UserPlus, Users } from 'lucide-react'
+import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { AvatarStack } from '@/components/ui/AvatarStack'
@@ -292,6 +292,32 @@ export function ViaggioDetailPage() {
         </header>
 
         <div className="px-5 pt-5 pb-6 flex flex-col gap-5">
+
+          {/* Recap di fine viaggio — solo per viaggi conclusi */}
+          {viaggio.stato_effettivo === 'concluso' && (
+            <button
+              onClick={() => navigate(`/viaggi/${id}/recap`)}
+              className="
+                flex items-center gap-3 p-4
+                bg-gradient-to-r from-roamly-g0 to-roamly-g1
+                rounded-2xl text-left
+                active:scale-[0.98] transition-all duration-150
+              "
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <Sparkles size={18} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-dm-sans text-sm font-semibold text-white">
+                  Il tuo recap è pronto
+                </p>
+                <p className="font-dm-sans text-xs text-white/60">
+                  Scopri il tuo viaggio in numeri
+                </p>
+              </div>
+              <ChevronRight size={18} className="text-white/60 shrink-0" />
+            </button>
+          )}
 
           {/* Form modifica */}
           {isEditing && (
