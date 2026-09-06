@@ -5,9 +5,9 @@ import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
-import { ShareCardViaggio } from './ShareCardViaggio'
+import { ShareCardRecap } from './ShareCardRecap'
 import { useViaggio } from '@/hooks/useViaggi'
-import { useCoverViaggio } from '@/hooks/useFoto'
+import { useCoversByViaggio } from '@/hooks/useFoto'
 import { useRecapViaggio } from '@/hooks/useRecap'
 import { calcolaDurataViaggio, formatDataViaggio } from '@/lib/viaggi-utils'
 
@@ -26,9 +26,11 @@ export function RecapViaggioPage() {
   const { id: viaggioId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: viaggio, isLoading: isLoadingViaggio } = useViaggio(viaggioId)
-  const { data: coverUrl } = useCoverViaggio(viaggioId)
+  const { data: coversMap } = useCoversByViaggio(viaggioId)
   const { data: recap, isLoading: isLoadingRecap } = useRecapViaggio(viaggioId)
   const [showShare, setShowShare] = useState(false)
+
+  const coverUrl = recap?.ricordoTop ? coversMap?.get(recap.ricordoTop.id) ?? null : null
 
   const isLoading = isLoadingViaggio || isLoadingRecap
   const durataGiorni = viaggio ? calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine) : null
@@ -131,11 +133,12 @@ export function RecapViaggioPage() {
       </AnimatedPage>
 
       {showShare && viaggio && (
-        <ShareCardViaggio
+        <ShareCardRecap
           viaggio={viaggio}
           coverUrl={coverUrl}
           numRicordi={recap?.numRicordi ?? 0}
           numFoto={recap?.numFoto ?? 0}
+          ricordoTopTitolo={recap?.ricordoTop?.titolo}
           onClose={() => setShowShare(false)}
         />
       )}
