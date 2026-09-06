@@ -39,6 +39,32 @@ export interface Profilo {
 }
 
 // ------------------------------------------------------------
+// TRAGUARDI (badge)
+// ------------------------------------------------------------
+
+export interface Badge {
+  id: string
+  codice: string
+  nome: string
+  descrizione: string | null
+  icona: string | null   // nome icona lucide-react, es. 'Plane'
+  created_at: string
+}
+
+export interface UserBadge {
+  id: string
+  user_id: string
+  badge_id: string
+  earned_at: string
+}
+
+/** Badge del catalogo unito allo stato "posseduto o no" per l'utente corrente */
+export interface BadgeConStato extends Badge {
+  posseduto: boolean
+  earned_at: string | null
+}
+
+// ------------------------------------------------------------
 // VIAGGIO
 // ------------------------------------------------------------
 
