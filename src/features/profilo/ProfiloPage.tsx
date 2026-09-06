@@ -65,6 +65,7 @@ const VOCI: VoceHub[] = [
     label: 'I tuoi traguardi',
     descrizione: 'Badge e obiettivi raggiunti',
     icon: Trophy,
+    path: '/profilo/traguardi',
   },
   {
     id: 'aiuto',
