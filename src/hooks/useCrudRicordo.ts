@@ -10,6 +10,7 @@ import {
   togglePreferito,
 } from '@/services/ricordiService'
 import { useAuth } from '@/hooks/useAuth'
+import { useVerificaTraguardi } from '@/hooks/useBadges'
 import type { NuovoRicordo, ModificaRicordo, Ricordo } from '@/types'
 
 // ============================================================
@@ -48,6 +49,7 @@ export function useCreateRicordo(
   const [error, setError] = useState<string | null>(null)
 
   const { showSuccess } = useToast()
+  const { verifica: verificaTraguardi } = useVerificaTraguardi()
 
   const mutation = useMutation({
     mutationFn: (payload: NuovoRicordo) => {
@@ -62,6 +64,7 @@ export function useCreateRicordo(
 
       setError(null)
       showSuccess('Ricordo salvato')
+      verificaTraguardi()
 
       queryClient.invalidateQueries({ queryKey: queryKeys.ricordi.byViaggio(payload.viaggio_id) })
       queryClient.invalidateQueries({ queryKey: queryKeys.viaggi.statistiche(payload.viaggio_id) })

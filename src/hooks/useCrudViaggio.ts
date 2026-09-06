@@ -10,6 +10,7 @@ import {
 } from '@/services/viaggiService'
 import { useAuth } from '@/hooks/useAuth'
 import { useCompletaAzione } from '@/hooks/useCrediti'
+import { useVerificaTraguardi } from '@/hooks/useBadges'
 import type { NuovoViaggio, ModificaViaggio } from '@/types'
 
 // ============================================================
@@ -30,6 +31,7 @@ export function useCreateViaggio() {
   const [error, setError] = useState<string | null>(null)
   const { showSuccess } = useToast()
   const { completaAzione: registraCredito } = useCompletaAzione()
+  const { verifica: verificaTraguardi } = useVerificaTraguardi()
 
   const mutation = useMutation({
     mutationFn: (payload: NuovoViaggio) => {
@@ -52,6 +54,7 @@ export function useCreateViaggio() {
         setError(null)
         showSuccess('Viaggio creato')
         registraCredito('primo_viaggio')
+        verificaTraguardi()
         navigate(`/viaggi/${result.data.id}`)
       }
     },

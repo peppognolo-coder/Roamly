@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys }               from '@/lib/queryKeys'
 import { useAuth }                 from '@/hooks/useAuth'
 import { useToast }                from '@/hooks/useToast'
+import { useVerificaTraguardi }    from '@/hooks/useBadges'
 import {
   getFotoConUrlByRicordo,
   getCoversByViaggio,
@@ -236,6 +237,7 @@ export function useUploadFotoMultiplo(
   const { user }    = useAuth()
   const queryClient = useQueryClient()
   const { showSuccess, showError } = useToast()
+  const { verifica: verificaTraguardi } = useVerificaTraguardi()
 
   const [isLoading, setIsLoading]       = useState(false)
   const [progress, setProgress]         = useState(0)       // 0-100 aggregato
@@ -311,6 +313,7 @@ export function useUploadFotoMultiplo(
         ? caricati === 1 ? 'Foto caricata' : `${caricati} foto caricate`
         : `${caricati} di \${files.length} foto caricate`
       showSuccess(msg)
+      verificaTraguardi()
     }
 
     if (erroriLocali.length > 0 && caricati === 0) {
@@ -318,7 +321,7 @@ export function useUploadFotoMultiplo(
     }
 
     setTimeout(() => setProgress(0), 1500)
-  }, [user, ricordoId, ordineBase, viaggioId, queryClient, showSuccess, showError])
+  }, [user, ricordoId, ordineBase, viaggioId, queryClient, showSuccess, showError, verificaTraguardi])
 
   // Variante per il flusso create → upload:
   // il ricordoId non è noto al mount — viene passato al momento della chiamata.
@@ -370,9 +373,10 @@ export function useUploadFotoMultiplo(
         ? (caricati === 1 ? 'Foto caricata' : `${caricati} foto caricate`)
         : `${caricati} di ${files.length} foto caricate`
       showSuccess(msg)
+      verificaTraguardi()
     }
     setTimeout(() => setProgress(0), 1500)
-  }, [user, ordineBase, viaggioId, queryClient, showSuccess])
+  }, [user, ordineBase, viaggioId, queryClient, showSuccess, verificaTraguardi])
 
   return {
     uploadMultipli,
