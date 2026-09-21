@@ -33,14 +33,23 @@ export async function createChecklistItem(
   userId: string,
   viaggioId: string,
   testo: string,
-  ordine: number
+  ordine: number,
+  categoria?: string | null,
+  fonte?: string | null
 ): Promise<{
   data: ChecklistItem | null
   error: string | null
 }> {
   const { data, error } = await supabase
     .from('checklist_items')
-    .insert({ user_id: userId, viaggio_id: viaggioId, testo, ordine })
+    .insert({
+      user_id: userId,
+      viaggio_id: viaggioId,
+      testo,
+      ordine,
+      categoria: categoria ?? null,
+      fonte: fonte ?? null,
+    })
     .select()
     .single()
 
@@ -57,7 +66,7 @@ export async function createChecklistItem(
 export async function createChecklistItemsBatch(
   userId: string,
   viaggioId: string,
-  items: { testo: string; ordine: number }[]
+  items: { testo: string; ordine: number; categoria?: string | null; fonte?: string | null }[]
 ): Promise<{
   data: ChecklistItem[]
   error: string | null
@@ -69,6 +78,8 @@ export async function createChecklistItemsBatch(
     viaggio_id: viaggioId,
     testo:      item.testo,
     ordine:     item.ordine,
+    categoria:  item.categoria ?? null,
+    fonte:      item.fonte ?? null,
   }))
 
   const { data, error } = await supabase
