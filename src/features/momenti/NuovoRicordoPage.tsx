@@ -10,6 +10,7 @@ import { RicordoForm }             from './RicordoForm'
 import { useViaggi }               from '@/hooks/useViaggi'
 import { useCreateRicordo }        from '@/hooks/useCrudRicordo'
 import { useUploadFotoMultiplo }   from '@/hooks/useFoto'
+import { calcolaDurataViaggio }    from '@/lib/viaggi-utils'
 import type { RicordoFormData }    from './RicordoForm'
 import type { ViaggioConStato }    from '@/types'
 
@@ -112,6 +113,22 @@ export function NuovoRicordoPage() {
   }
 
   const isSubmitting = isLoading || isUploading
+
+  // "Si aggiunge al giorno N" — giorno del viaggio in cui cade oggi
+  // (il form pre-compila la data a oggi; se l'utente la cambia a mano
+  // il numero non si aggiorna, ma per il caso comune — nuovo ricordo
+  // "adesso" — è corretto senza dover sollevare lo stato del form).
+  const giornoOggi = (() => {
+    if (!viaggioPreselezionato.data_inizio) return null
+    const durata = calcolaDurataViaggio(viaggioPreselezionato.data_inizio, viaggioPreselezionato.data_fine)
+    const [iy, im, id] = viaggioPreselezionato.data_inizio.split('-').map(Number)
+    const inizio = new Date(iy, im - 1, id)
+    const oggiDate = new Date()
+    oggiDate.setHours(0, 0, 0, 0)
+    const trascorsi = Math.floor((oggiDate.getTime() - inizio.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    if (trascorsi < 1) return null
+    return durata ? Math.min(trascorsi, durata) : trascorsi
+  })()
 
   function handleFileInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = e.target.files
@@ -245,7 +262,13 @@ export function NuovoRicordoPage() {
           flex items-center gap-3
         ">
           <p className="flex-1 font-dm-sans text-[11px] leading-snug text-roamly-text/40">
-            Il ricordo entra nel diario di {viaggioPreselezionato.nome}.
+            {filesDaAllegare.length > 0 && (
+              <>{filesDaAllegare.length} {filesDaAllegare.length === 1 ? 'foto' : 'foto'} · </>
+            )}
+            {giornoOggi
+              ? `si aggiunge al giorno ${giornoOggi}`
+              : `Il ricordo entra nel diario di ${viaggioPreselezionato.nome}.`
+            }
           </p>
           <button
             type="submit"
