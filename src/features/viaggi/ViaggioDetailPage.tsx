@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight } from 'lucide-react'
+import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Crown } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { AvatarStack } from '@/components/ui/AvatarStack'
@@ -10,16 +10,18 @@ import { BottomNav }        from '@/components/layout/BottomNav'
 import { Button }           from '@/components/ui/Button'
 import { StatoBadge }       from './StatoBadge'
 import { ViaggioForm }      from './ViaggioForm'
-import { formatDataViaggio } from '@/lib/viaggi-utils'
+import { formatDataViaggio, calcolaPercentualeTrascorsa } from '@/lib/viaggi-utils'
 import { useViaggio, useStatisticheViaggio } from '@/hooks/useViaggi'
 import { useUpdateViaggio, useDeleteViaggio } from '@/hooks/useCrudViaggio'
 import { useMioRuolo, useMembriViaggio } from '@/hooks/useMembri'
 import { useInvitoLink }    from '@/hooks/useInviti'
 import { useRealtimeSync }  from '@/hooks/useRealtimeSync'
+import { useBudgetVoci }    from '@/hooks/useBudget'
 import { queryKeys }        from '@/lib/queryKeys'
+import { coloreIniziale }   from '@/lib/avatar-utils'
 import { RicordoCard }           from '@/features/momenti/RicordoCard'
-import { RaccontoViaggio }       from './RaccontoViaggio'
 import { PianificaHub }          from '@/features/pianifica/PianificaHub'
+import { SettleUpCard }          from '@/features/pianifica/SettleUpCard'
 import { ShareCardViaggio }      from './ShareCardViaggio'
 import { useRicordi }       from '@/hooks/useRicordi'
 import { useCoversByViaggio, useCoverViaggio, useFotoCountByViaggio } from '@/hooks/useFoto'
@@ -27,9 +29,20 @@ import type { ViaggioFormData } from './ViaggioForm'
 
 // ============================================================
 // ViaggioDetailPage — /viaggi/:id
-// Header viaggio · Statistiche base · Sezione ricordi (placeholder S3)
-// Modifica inline · Eliminazione con conferma
+// Header viaggio · Statistiche inline nell'hero (% giorni trascorsi,
+// spesi, ricordi) · 3 tab: Pianifica / Ricordi / Persone (il Racconto
+// immersivo non è più un tab — si raggiunge dalla card di recap a
+// fine viaggio, vedi RecapViaggioPage → RaccontoPage).
+// Modifica inline · Eliminazione con conferma.
 // ============================================================
+
+const formatEuro = (n: number) =>
+  n.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })
+
+function iniziali(nome: string | null): string {
+  if (!nome) return '?'
+  return nome.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
+}
 
 export function ViaggioDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -45,12 +58,14 @@ export function ViaggioDetailPage() {
   const { data: coverViaggio }  = useCoverViaggio(id)
   // Conteggio foto per ricordo — per statistiche giorno nel Diario
   const { data: fotoCount }     = useFotoCountByViaggio(id)
+  // Spesi totale — per lo stat inline nell'hero
+  const { data: voci = [] }     = useBudgetVoci(id)
 
   const { updateViaggio, isLoading: isUpdating, isSuccess: updateSuccess, error: updateError } =
     useUpdateViaggio(id ?? '')
   const { deleteViaggio, isLoading: isDeleting, error: deleteError } = useDeleteViaggio()
   const { data: mioRuolo } = useMioRuolo(id)
-  const { data: membri } = useMembriViaggio(id)
+  const { data: membri = [] } = useMembriViaggio(id)
   const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(id ?? '', viaggio?.nome ?? '')
 
   useRealtimeSync('viaggi', 'id', id, [queryKeys.viaggi.detail(id ?? '')])
@@ -59,10 +74,11 @@ export function ViaggioDetailPage() {
   const [isEditing, setIsEditing]     = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   // Tab iniziale: legge ?tab= dall'URL (es. link dal prompt viaggio imminente
-  // in Home) per aprire direttamente su Pianifica; altrimenti default Racconto.
+  // in Home) per aprire direttamente su Pianifica; altrimenti default Ricordi
+  // — il Racconto non è più un tab (vedi RecapViaggioPage → RaccontoPage).
   const tabIniziale = searchParams.get('tab')
-  const [tab, setTab] = useState<'ricordi' | 'racconto' | 'pianifica'>(
-    tabIniziale === 'pianifica' || tabIniziale === 'ricordi' ? tabIniziale : 'racconto'
+  const [tab, setTab] = useState<'ricordi' | 'pianifica' | 'persone'>(
+    tabIniziale === 'pianifica' || tabIniziale === 'persone' ? tabIniziale : 'ricordi'
   )
   const [showShare, setShowShare]     = useState(false)
 
@@ -89,7 +105,7 @@ export function ViaggioDetailPage() {
   if (!viaggio) {
     return (
       <PageLayout>
-        
+
         <div className="flex flex-col items-center justify-center gap-4 py-20 px-5 text-center">
           <p className="font-lora text-xl text-roamly-g0">Viaggio non trovato</p>
           <Button variant="secondary" onClick={() => navigate('/viaggi')}>
@@ -125,6 +141,18 @@ export function ViaggioDetailPage() {
   const coverValue      = viaggio.cover_emoji
   const dataFormattata = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const totFoto        = fotoCount ? Array.from(fotoCount.values()).reduce((a, b) => a + b, 0) : 0
+  const totaleSpese    = voci.reduce((sum, v) => sum + v.importo, 0)
+  const percentualeTrascorsa = calcolaPercentualeTrascorsa(viaggio.data_inizio, viaggio.data_fine)
+
+  // Stat inline nell'hero — % giorni trascorsi (solo se il viaggio ha
+  // entrambe le date), spesi totale, numero ricordi.
+  const heroStats: { valore: string; etichetta: string }[] = [
+    ...(percentualeTrascorsa !== null
+      ? [{ valore: `${percentualeTrascorsa}%`, etichetta: 'del viaggio' }]
+      : []),
+    { valore: formatEuro(totaleSpese), etichetta: 'spesi' },
+    { valore: String(stats?.ricordi ?? 0), etichetta: (stats?.ricordi ?? 0) === 1 ? 'ricordo' : 'ricordi' },
+  ]
 
   return (
     <PageLayout>
@@ -177,28 +205,28 @@ export function ViaggioDetailPage() {
             {mioRuolo && (
               (membri?.length ?? 0) > 1 ? (
                 <button
-                  onClick={() => navigate(`/viaggi/${id}/membri`)}
+                  onClick={() => setTab('persone')}
                   className="
                     rounded-xl p-0.5
                     hover:bg-roamly-g6 active:scale-[0.98]
                     transition-all duration-150
                   "
-                  aria-label="Membri del viaggio"
-                  title="Membri"
+                  aria-label="Persone del viaggio"
+                  title="Persone"
                 >
                   <AvatarStack viaggioId={id ?? ''} size="md" maxVisible={3} />
                 </button>
               ) : (
                 <button
-                  onClick={() => navigate(`/viaggi/${id}/membri`)}
+                  onClick={() => setTab('persone')}
                   className="
                     w-9 h-9 rounded-xl flex items-center justify-center
                     bg-roamly-g6
                     hover:bg-roamly-g5 active:scale-[0.98]
                     transition-all duration-150
                   "
-                  aria-label="Membri del viaggio"
-                  title="Membri"
+                  aria-label="Persone del viaggio"
+                  title="Persone"
                 >
                   <Users size={16} className="text-roamly-g1" />
                 </button>
@@ -289,11 +317,30 @@ export function ViaggioDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* Stat inline — % giorni trascorsi · spesi · ricordi */}
+          <div className="flex items-center mt-4 pt-3.5 border-t border-roamly-g6">
+            {heroStats.map((s, i) => (
+              <div key={i} className="flex items-center flex-1">
+                {i > 0 && <div className="w-px h-8 bg-roamly-g6 mr-4" />}
+                <div>
+                  <p className="font-dm-mono text-sm font-semibold text-roamly-g0">
+                    {s.valore}
+                  </p>
+                  <p className="font-dm-sans text-[11px] text-roamly-text/40">
+                    {s.etichetta}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </header>
 
         <div className="px-5 pt-5 pb-6 flex flex-col gap-5">
 
-          {/* Recap di fine viaggio — solo per viaggi conclusi */}
+          {/* Recap di fine viaggio — solo per viaggi conclusi. Unico
+              punto d'accesso al Racconto immersivo (RaccontoPage), che
+              non è più un tab qui sotto. */}
           {viaggio.stato_effettivo === 'concluso' && (
             <button
               onClick={() => navigate(`/viaggi/${id}/recap`)}
@@ -312,7 +359,7 @@ export function ViaggioDetailPage() {
                   Il tuo recap è pronto
                 </p>
                 <p className="font-dm-sans text-xs text-white/60">
-                  Scopri il tuo viaggio in numeri
+                  Scopri il tuo viaggio in numeri, e rileggi il racconto
                 </p>
               </div>
               <ChevronRight size={18} className="text-white/60 shrink-0" />
@@ -346,7 +393,7 @@ export function ViaggioDetailPage() {
             </div>
           )}
 
-          {/* Statistiche base */}
+          {/* Statistiche */}
           <div className="bg-white rounded-2xl shadow-roamly p-5">
             <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60
               uppercase tracking-wider mb-4">
@@ -371,13 +418,13 @@ export function ViaggioDetailPage() {
             </div>
           </div>
 
-          {/* Tab Racconto / Ricordi */}
+          {/* Tab Pianifica / Ricordi / Persone */}
           <div className="flex flex-col gap-4">
 
             {/* Tab bar */}
             <div className="flex items-center justify-between">
               <div className="flex gap-1 bg-roamly-g7 rounded-xl p-1">
-                {(['racconto', 'ricordi', 'pianifica'] as const).map((t) => (
+                {(['pianifica', 'ricordi', 'persone'] as const).map((t) => (
                   <button
                     key={t}
                     onClick={() => setTab(t)}
@@ -391,11 +438,11 @@ export function ViaggioDetailPage() {
                       }
                     `}
                   >
-                    {t === 'racconto' ? 'Racconto' : t === 'ricordi' ? 'Ricordi' : 'Pianifica'}
+                    {t === 'pianifica' ? 'Pianifica' : t === 'ricordi' ? 'Ricordi' : 'Persone'}
                   </button>
                 ))}
               </div>
-              {tab !== 'pianifica' && (
+              {tab === 'ricordi' && (
               <button
                 onClick={() => navigate(`/nuovo-ricordo?viaggioId=${id}`)}
                 className="
@@ -415,20 +462,6 @@ export function ViaggioDetailPage() {
               </button>
               )}
             </div>
-
-            {/* Tab Racconto */}
-            {tab === 'racconto' && (
-              <RaccontoViaggio
-                viaggioId={id ?? ''}
-                viaggio={viaggio}
-                ricordi={ricordi}
-                coversMap={coversMap}
-                fotoCount={fotoCount}
-                coverViaggio={coverViaggio}
-                numRicordi={stats?.ricordi ?? 0}
-                isLoading={isLoadingRicordi}
-              />
-            )}
 
             {/* Tab Pianifica */}
             {tab === 'pianifica' && (
@@ -481,6 +514,61 @@ export function ViaggioDetailPage() {
                   ))}
                 </div>
               )
+            )}
+
+            {/* Tab Persone */}
+            {tab === 'persone' && (
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  {membri.map((m) => {
+                    const nome = m.display_name ?? 'Utente Roamly'
+                    return (
+                      <div
+                        key={m.id}
+                        className="flex items-center gap-3 p-3.5 bg-white rounded-2xl shadow-roamly"
+                      >
+                        {m.avatar_url ? (
+                          <img src={m.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <span
+                            className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-dm-sans font-semibold text-white text-sm"
+                            style={{ background: coloreIniziale(nome) }}
+                          >
+                            {iniziali(m.display_name)}
+                          </span>
+                        )}
+                        <p className="flex-1 min-w-0 font-dm-sans text-sm font-medium text-roamly-g0 truncate">
+                          {nome}
+                        </p>
+                        {m.ruolo === 'proprietario' && (
+                          <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-roamly-g6 shrink-0">
+                            <Crown size={11} className="text-roamly-g2" />
+                            <span className="font-dm-sans text-[10px] font-medium text-roamly-g2">
+                              Proprietario
+                            </span>
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <button
+                  onClick={() => navigate(`/viaggi/${id}/membri`)}
+                  className="
+                    flex items-center justify-center gap-1.5 py-3
+                    border border-dashed border-roamly-g5 rounded-2xl
+                    font-dm-sans text-sm font-medium text-roamly-g2
+                    hover:bg-roamly-g7 active:scale-[0.98]
+                    transition-all duration-150
+                  "
+                >
+                  <UserPlus size={15} />
+                  Gestisci membri e inviti
+                </button>
+
+                <SettleUpCard viaggioId={id ?? ''} />
+              </div>
             )}
           </div>
 

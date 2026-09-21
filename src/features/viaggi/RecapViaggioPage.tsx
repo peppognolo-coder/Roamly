@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Sparkles, NotebookPen, Camera, Wallet, Heart, Share2 } from 'lucide-react'
+import { Sparkles, NotebookPen, Camera, Wallet, Heart, Share2, BookOpen, ChevronRight } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
@@ -110,6 +110,32 @@ export function RecapViaggioPage() {
                 </div>
               </button>
             )}
+
+            {/* Rileggi il racconto completo — l'esperienza editoriale
+                immersiva (RaccontoViaggio) non è più un tab di dettaglio
+                viaggio: si raggiunge solo da qui. */}
+            <button
+              onClick={() => navigate(`/viaggi/${viaggioId}/racconto`)}
+              className="
+                flex items-center gap-3 p-4
+                bg-white rounded-2xl shadow-roamly text-left
+                active:scale-[0.98] hover:shadow-roamly-lg
+                transition-all duration-150
+              "
+            >
+              <div className="w-10 h-10 rounded-xl bg-roamly-g7 flex items-center justify-center text-roamly-g2 shrink-0">
+                <BookOpen size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-dm-sans text-sm font-medium text-roamly-g0">
+                  Rileggi il racconto completo
+                </p>
+                <p className="font-dm-sans text-xs text-roamly-text/45">
+                  L'esperienza immersiva, capitolo per capitolo
+                </p>
+              </div>
+              <ChevronRight size={18} className="text-roamly-text/30 shrink-0" />
+            </button>
 
             {/* Condividi */}
             <button
