@@ -9,6 +9,7 @@ import { getInvitoInSospeso, clearInvitoInSospeso, accettaInvito } from '@/servi
 import { ToastContainer }       from '@/components/ui/ToastContainer'
 import { OfflineBanner }        from '@/components/layout/OfflineBanner'
 import { InstallBanner }        from '@/components/pwa/InstallBanner'
+import { BannerOffsetProvider } from '@/contexts/BannerOffsetContext'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -89,13 +90,13 @@ function AppInner() {
   useScrollToTopOnNavigate()
   usePendingInviteHandler()
   return (
-    <>
+    <BannerOffsetProvider>
       <RouterProvider router={router} />
       {/* Infrastruttura globale — fuori dal router, sopravvive alle navigazioni */}
       <ToastContainer />
       <OfflineBanner />
       <InstallBanner />
-    </>
+    </BannerOffsetProvider>
   )
 }
 
