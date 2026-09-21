@@ -45,7 +45,14 @@ export function aspettoNotifica(tipo: TipoNotifica): { glifo: string; tono: 'cor
     case 'prenotazione':
       return { glifo: '!', tono: 'coral' }
     case 'nuovo_membro':
+    case 'tappa_aggiunta':
+      // Glifo di default se la riga non porta un'iniziale propria
+      // (vedi colonna `glifo` su Notifica) — vecchie righe pre-migrazione.
       return { glifo: '+', tono: 'blu' }
+    case 'anniversario':
+      return { glifo: '♥', tono: 'blu' }
+    case 'traguardo':
+      return { glifo: '★', tono: 'blu' }
     default:
       return { glifo: '•', tono: 'blu' }
   }
