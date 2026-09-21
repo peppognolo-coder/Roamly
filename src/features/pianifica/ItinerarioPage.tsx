@@ -1,6 +1,6 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Landmark, Trees, UtensilsCrossed, Car, PartyPopper, Sparkles, MapPin, Plus, Clock, ExternalLink } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { MapPin, Plus, ExternalLink } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
@@ -13,20 +13,21 @@ import type { CategoriaTappa, TappaViaggio } from '@/types'
 
 // ============================================================
 // ItinerarioPage — /viaggi/:id/itinerario
-// Le tappe raggruppate per giorno, in ordine — "il percorso".
-// Una tappa con giorno_fine diverso da giorno (multi-giorno)
-// compare in ogni sezione dei giorni che copre.
+// Selettore giorni orizzontale + timeline verticale del giorno
+// selezionato (schermata "Itinerario" del mockup) — prima si
+// mostravano tutti i giorni impilati uno sotto l'altro, senza
+// un giorno "a fuoco" e senza il linguaggio a timeline.
 // Stesso dato di Attività (mappa), vista diversa.
 // ============================================================
 
-const ICONE_CATEGORIA: Record<CategoriaTappa, LucideIcon> = {
-  cultura:   Landmark,
-  natura:    Trees,
-  food:      UtensilsCrossed,
-  svago:     PartyPopper,
-  relax:     Sparkles,
-  trasporto: Car,
-  altro:     MapPin,
+const LABEL_CATEGORIA: Record<CategoriaTappa, string> = {
+  cultura:   'Cultura',
+  natura:    'Natura',
+  food:      'Food',
+  svago:     'Svago',
+  relax:     'Relax',
+  trasporto: 'Trasporto',
+  altro:     'Altro',
 }
 
 function formatGiorno(iso: string): string {
@@ -38,6 +39,15 @@ function formatGiorno(iso: string): string {
 function formatGiornoBreve(iso: string): string {
   const d = new Date(iso + 'T00:00:00')
   return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
+}
+
+/** Etichetta per la pillola giorno: "gio" / "12" */
+function labelPillola(iso: string): { dow: string; num: string } {
+  const d = new Date(iso + 'T00:00:00')
+  return {
+    dow: d.toLocaleDateString('it-IT', { weekday: 'short' }).replace('.', ''),
+    num: String(d.getDate()),
+  }
 }
 
 /** Tutti i giorni ISO coperti da una tappa: da `giorno` a `giorno_fine`
@@ -65,14 +75,27 @@ export function ItinerarioPage() {
   const navigate = useNavigate()
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: tappe = [], isLoading } = useTappe(viaggioId)
+  const [giornoSelezionato, setGiornoSelezionato] = useState<string | null>(null)
 
   useRealtimeSync('tappe_viaggio', 'viaggio_id', viaggioId, [queryKeys.tappe.byViaggio(viaggioId ?? '')])
+
+  const oggi = isoDateLocale(new Date())
 
   const giorniConTappe = Array.from(
     new Set(tappe.flatMap((t) => giorniCoperti(t)))
   ).sort()
 
   const tappeSenzaGiorno = tappe.filter((t) => !t.giorno)
+
+  // Giorno "a fuoco": quello scelto dall'utente, altrimenti oggi se il
+  // viaggio lo copre, altrimenti il primo giorno con tappe.
+  const giornoAttivo = giornoSelezionato ?? (giorniConTappe.includes(oggi) ? oggi : giorniConTappe[0]) ?? null
+
+  const tappeGiorno = giornoAttivo
+    ? tappe
+        .filter((t) => giorniCoperti(t).includes(giornoAttivo))
+        .sort((a, b) => (a.ora ?? '99:99').localeCompare(b.ora ?? '99:99'))
+    : []
 
   function handleAggiungi(giorno?: string) {
     const q = giorno ? `?giorno=${giorno}` : ''
@@ -85,7 +108,7 @@ export function ItinerarioPage() {
       <div className="flex flex-col min-h-screen">
         <PageHeader title="Itinerario" eyebrow={viaggio?.nome} variant="withBack" />
 
-        <div className="flex-1 px-5 pb-8 flex flex-col gap-6">
+        <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
 
           {isLoading ? (
             <div className="flex flex-col gap-3">
@@ -116,37 +139,103 @@ export function ItinerarioPage() {
             </div>
           ) : (
             <>
-              {giorniConTappe.map((giorno) => (
-                <GiornoSezione
-                  key={giorno}
-                  titolo={formatGiorno(giorno)}
-                  tappe={tappe.filter((t) => giorniCoperti(t).includes(giorno))}
-                  onAggiungi={() => handleAggiungi(giorno)}
-                  onTap={(t) => navigate(`/viaggi/${viaggioId}/tappe/${t.id}`)}
-                />
-              ))}
+              {/* Selettore giorni — scroll orizzontale */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5 pb-1">
+                {giorniConTappe.map((giorno) => {
+                  const label = labelPillola(giorno)
+                  const selezionato = giorno === giornoAttivo
+                  return (
+                    <button
+                      key={giorno}
+                      onClick={() => setGiornoSelezionato(giorno)}
+                      className={`
+                        shrink-0 w-12 h-14 rounded-xl
+                        flex flex-col items-center justify-center gap-0.5
+                        border transition-colors duration-150
+                        ${selezionato
+                          ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                          : 'bg-white border-roamly-g5 text-roamly-g2 hover:border-roamly-g4'
+                        }
+                      `}
+                    >
+                      <span className={`font-dm-mono text-[9px] uppercase tracking-wide ${selezionato ? 'text-white/60' : 'text-roamly-text/40'}`}>
+                        {label.dow}
+                      </span>
+                      <span className="font-dm-sans text-sm font-semibold">{label.num}</span>
+                    </button>
+                  )
+                })}
+              </div>
 
-              {tappeSenzaGiorno.length > 0 && (
-                <GiornoSezione
-                  titolo="Senza giorno assegnato"
-                  tappe={tappeSenzaGiorno}
-                  onAggiungi={() => handleAggiungi()}
-                  onTap={(t) => navigate(`/viaggi/${viaggioId}/tappe/${t.id}`)}
-                />
+              {/* Giorno selezionato — intestazione + timeline */}
+              {giornoAttivo && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between px-1">
+                    <h2 className="font-dm-sans text-sm font-semibold text-roamly-g0">
+                      {formatGiorno(giornoAttivo)}
+                    </h2>
+                    <span className="font-dm-sans text-xs text-roamly-text/40">
+                      {tappeGiorno.length} {tappeGiorno.length === 1 ? 'tappa' : 'tappe'}
+                      {giornoAttivo === oggi ? ' · oggi' : ''}
+                    </span>
+                  </div>
+
+                  {tappeGiorno.length === 0 ? (
+                    <p className="font-dm-sans text-sm text-roamly-text/40 py-4 text-center">
+                      Nessuna tappa per questo giorno.
+                    </p>
+                  ) : (
+                    <TimelineTappe
+                      tappe={tappeGiorno}
+                      onTap={(t) => navigate(`/viaggi/${viaggioId}/tappe/${t.id}`)}
+                    />
+                  )}
+
+                  <button
+                    onClick={() => handleAggiungi(giornoAttivo)}
+                    className="
+                      flex items-center justify-center gap-1.5 py-3 rounded-2xl
+                      border border-dashed border-roamly-g5
+                      font-dm-sans text-sm font-medium text-roamly-g2
+                      hover:bg-roamly-g7 transition-colors duration-150
+                    "
+                  >
+                    <Plus size={14} />
+                    Aggiungi tappa
+                  </button>
+                </div>
               )}
 
-              <button
-                onClick={() => handleAggiungi()}
-                className="
-                  flex items-center justify-center gap-1.5 py-3 rounded-2xl
-                  border border-dashed border-roamly-g5
-                  font-dm-sans text-sm font-medium text-roamly-g2
-                  hover:bg-roamly-g7 transition-colors duration-150
-                "
-              >
-                <Plus size={14} />
-                Aggiungi tappa
-              </button>
+              {/* Tappe senza giorno assegnato — fuori dal selettore */}
+              {tappeSenzaGiorno.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="font-dm-sans text-sm font-semibold text-roamly-g0">
+                      Senza giorno assegnato
+                    </span>
+                    <button
+                      onClick={() => handleAggiungi()}
+                      className="
+                        flex items-center gap-1 px-2.5 py-1 rounded-full
+                        font-dm-sans text-xs font-medium text-roamly-g2
+                        hover:bg-roamly-g6 transition-colors duration-150
+                      "
+                    >
+                      <Plus size={12} />
+                      Aggiungi
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {tappeSenzaGiorno.map((t) => (
+                      <TappaCard
+                        key={t.id}
+                        tappa={t}
+                        onTap={() => navigate(`/viaggi/${viaggioId}/tappe/${t.id}`)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
 
@@ -157,106 +246,102 @@ export function ItinerarioPage() {
   )
 }
 
-function GiornoSezione({
-  titolo,
+// ------------------------------------------------------------
+// TimelineTappe — linea verticale + pallino per tappa, come nel
+// mockup: la prima tappa del giorno è "in evidenza" (pallino
+// pieno), le altre sono ancora da vivere (pallino vuoto).
+// ------------------------------------------------------------
+
+function TimelineTappe({
   tappe,
-  onAggiungi,
   onTap,
 }: {
-  titolo: string
   tappe: TappaViaggio[]
-  onAggiungi: () => void
   onTap: (t: TappaViaggio) => void
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between px-1">
-        <span className="font-dm-sans text-sm font-semibold text-roamly-g0">
-          {titolo}
-        </span>
-        <button
-          onClick={onAggiungi}
+    <div className="flex flex-col">
+      {tappe.map((t, i) => (
+        <div key={t.id} className="flex gap-3">
+          {/* Linea + pallino */}
+          <div className="flex flex-col items-center w-2.5 shrink-0 pt-4">
+            <span
+              className={`
+                w-[9px] h-[9px] rounded-full shrink-0
+                ${i === 0 ? 'bg-roamly-coral' : 'bg-white border-2 border-roamly-g4'}
+              `}
+            />
+            {i < tappe.length - 1 && (
+              <span className="w-px flex-1 bg-roamly-g5 mt-1" />
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0 pb-3">
+            <TappaCard tappa={t} onTap={() => onTap(t)} />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ------------------------------------------------------------
+// TappaCard — riga singola tappa (ora · categoria, nome, dettaglio)
+// ------------------------------------------------------------
+
+function TappaCard({ tappa: t, onTap }: { tappa: TappaViaggio; onTap: () => void }) {
+  const multiGiorno = !!(t.giorno && t.giorno_fine && t.giorno_fine > t.giorno)
+  const dettaglio = [
+    multiGiorno ? `${formatGiornoBreve(t.giorno as string)} – ${formatGiornoBreve(t.giorno_fine as string)}` : null,
+    t.indirizzo,
+  ].filter(Boolean).join(' · ')
+
+  return (
+    <div className="
+      flex items-center gap-3 p-3.5
+      bg-white rounded-2xl shadow-roamly
+      hover:shadow-roamly-lg transition-all duration-150
+    ">
+      <button
+        onClick={onTap}
+        className="
+          flex-1 min-w-0 text-left
+          active:scale-[0.98] transition-transform duration-150
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3 rounded-xl
+        "
+      >
+        <p className="font-dm-mono text-[10.5px] font-medium uppercase tracking-wide">
+          {t.ora && <span className="text-roamly-coral-dark">{t.ora.slice(0, 5)}</span>}
+          {t.ora && <span className="text-roamly-text/25"> · </span>}
+          <span className="text-roamly-text/40">{LABEL_CATEGORIA[t.categoria]}</span>
+        </p>
+        <p className="font-dm-sans text-sm font-semibold text-roamly-g0 mt-1 truncate">
+          {t.nome}
+        </p>
+        {dettaglio && (
+          <p className="font-dm-sans text-xs text-roamly-text/45 mt-0.5 truncate">
+            {dettaglio}
+          </p>
+        )}
+      </button>
+
+      {(t.indirizzo || (t.lat != null && t.lng != null)) && (
+        <a
+          href={urlMaps(t.indirizzo ?? '', t.lat, t.lng)}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Apri in Maps"
           className="
-            flex items-center gap-1 px-2.5 py-1 rounded-full
-            font-dm-sans text-xs font-medium text-roamly-g2
-            hover:bg-roamly-g6 transition-colors duration-150
+            shrink-0 w-8 h-8 rounded-full
+            flex items-center justify-center
+            text-roamly-g3 hover:bg-roamly-g6
+            transition-colors duration-150
           "
         >
-          <Plus size={12} />
-          Aggiungi
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {tappe.map((t) => {
-          const Icon = ICONE_CATEGORIA[t.categoria]
-          const multiGiorno = !!(t.giorno && t.giorno_fine && t.giorno_fine > t.giorno)
-          return (
-            <div
-              key={t.id}
-              className="
-                flex items-center gap-3 p-3.5
-                bg-white rounded-2xl shadow-roamly
-                hover:shadow-roamly-lg transition-all duration-150
-              "
-            >
-              <button
-                onClick={() => onTap(t)}
-                className="
-                  flex items-center gap-3 flex-1 min-w-0 text-left
-                  active:scale-[0.98] transition-transform duration-150
-                  focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3 rounded-xl
-                "
-              >
-                <div className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g2 shrink-0">
-                  <Icon size={16} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
-                    {t.nome}
-                  </p>
-                  {(t.ora || t.indirizzo || multiGiorno) && (
-                    <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate flex items-center gap-1">
-                      {t.ora && (
-                        <span className="flex items-center gap-0.5 shrink-0">
-                          <Clock size={10} />
-                          {t.ora.slice(0, 5)}
-                        </span>
-                      )}
-                      {t.ora && multiGiorno && <span>·</span>}
-                      {multiGiorno && (
-                        <span className="shrink-0">
-                          {formatGiornoBreve(t.giorno as string)} – {formatGiornoBreve(t.giorno_fine as string)}
-                        </span>
-                      )}
-                      {(t.ora || multiGiorno) && t.indirizzo && <span>·</span>}
-                      {t.indirizzo && <span className="truncate">{t.indirizzo}</span>}
-                    </p>
-                  )}
-                </div>
-              </button>
-
-              {(t.indirizzo || (t.lat != null && t.lng != null)) && (
-                <a
-                  href={urlMaps(t.indirizzo ?? '', t.lat, t.lng)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  aria-label="Apri in Maps"
-                  className="
-                    shrink-0 w-8 h-8 rounded-full
-                    flex items-center justify-center
-                    text-roamly-g3 hover:bg-roamly-g6
-                    transition-colors duration-150
-                  "
-                >
-                  <ExternalLink size={15} />
-                </a>
-              )}
-            </div>
-          )
-        })}
-      </div>
+          <ExternalLink size={15} />
+        </a>
+      )}
     </div>
   )
 }
