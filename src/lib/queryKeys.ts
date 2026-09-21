@@ -158,6 +158,13 @@ export const queryKeys = {
     mie: ['tappe-nascoste'] as const,
   },
 
+  luoghiSalvati: {
+    /** ['luoghi-salvati'] — tutti i luoghi salvati dall'utente corrente, ogni viaggio */
+    mie: ['luoghi-salvati'] as const,
+    /** ['luoghi-salvati', viaggioId] — solo quelli legati a un viaggio specifico */
+    byViaggio: (viaggioId: string) => ['luoghi-salvati', viaggioId] as const,
+  },
+
   noteViaggio: {
     /** ['note-viaggio'] — root */
     all: ['note-viaggio'] as const,
