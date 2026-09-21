@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import {
-  UserCog, BarChart3, Trophy, HelpCircle, Info, ChevronRight, Clock, Bell, Map, Coins,
+  UserCog, BarChart3, Trophy, HelpCircle, Info, ChevronRight, Clock, Bell, Map, Coins, Bookmark,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
@@ -33,6 +33,13 @@ const VOCI: VoceHub[] = [
     descrizione: 'Tutti i viaggi, passati e futuri',
     icon: Map,
     path: '/viaggi',
+  },
+  {
+    id: 'salvati',
+    label: 'I tuoi luoghi salvati',
+    descrizione: 'Posti che vuoi visitare, da tutti i viaggi',
+    icon: Bookmark,
+    path: '/profilo/salvati',
   },
   {
     id: 'impostazioni',
