@@ -178,3 +178,27 @@ export function calcolaDurataViaggio(
   const diff   = fine.getTime() - inizio.getTime()
   return Math.max(1, Math.round(diff / (1000 * 60 * 60 * 24)) + 1)
 }
+
+// ------------------------------------------------------------
+// calcolaPercentualeTrascorsa
+// % di giorni trascorsi sul totale del viaggio (0-100). Prima
+// della partenza → 0. Dopo la fine → 100. Parsing locale — stesso
+// principio delle altre funzioni in questo file (no UTC shift).
+// ------------------------------------------------------------
+
+export function calcolaPercentualeTrascorsa(
+  dataInizio: string | null,
+  dataFine: string | null
+): number | null {
+  const durata = calcolaDurataViaggio(dataInizio, dataFine)
+  if (!durata || !dataInizio) return null
+
+  const [iy, im, id] = dataInizio.split('-').map(Number)
+  const inizio = new Date(iy, im - 1, id)
+  const oggi = new Date()
+  oggi.setHours(0, 0, 0, 0)
+
+  const giorniTrascorsi = Math.floor((oggi.getTime() - inizio.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  const clampato = Math.max(0, Math.min(giorniTrascorsi, durata))
+  return Math.round((clampato / durata) * 100)
+}
