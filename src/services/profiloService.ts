@@ -45,6 +45,8 @@ export type AggiornamentoProfilo = {
   avatar_url?: string | null
   notifiche_prenotazioni?: boolean
   notifiche_anticipo_giorni?: number
+  notifiche_attivita_gruppo?: boolean
+  notifiche_anniversari?: boolean
 }
 
 export async function aggiornaProfilo(
