@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
+import { useBannerOffset } from '@/contexts/BannerOffsetContext'
 
 // ============================================================
 // InstallBanner — banner installazione PWA
@@ -13,6 +14,9 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 const STORAGE_KEY   = 'roamly-install-dismissed'
 const DELAY_MS      = 30_000
 const COOLDOWN_DAYS = 7
+// Altezza approssimativa della card (icona + testo + azioni, va a capo
+// su schermi stretti) + il suo offset da terra (88px) — vedi BannerOffsetContext.
+const ALTEZZA_RISERVATA = 92
 
 function wasDismissedRecently(): boolean {
   try {
@@ -61,6 +65,12 @@ export function InstallBanner() {
 
   // Non mostrare se offline o non visibile
   const show = visible && !isOffline
+
+  const { setExtraOffset } = useBannerOffset()
+  useEffect(() => {
+    setExtraOffset(show ? ALTEZZA_RISERVATA : 0)
+    return () => setExtraOffset(0)
+  }, [show, setExtraOffset])
 
   return (
     <AnimatePresence>
