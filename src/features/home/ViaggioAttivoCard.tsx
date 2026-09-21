@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plane } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { StatoBadge } from '@/features/viaggi/StatoBadge'
-import { calcolaGiorniAlPartenza, formatDataViaggio } from '@/lib/viaggi-utils'
+import { calcolaGiorniAlPartenza, calcolaDurataViaggio, formatDataViaggio } from '@/lib/viaggi-utils'
 import type { ViaggioConStato } from '@/types'
 
 // ============================================================
@@ -10,12 +10,20 @@ import type { ViaggioConStato } from '@/types'
 // Tre stati: in_corso · pianificato · nessun viaggio
 // ============================================================
 
+interface ProssimaTappa {
+  ora: string | null
+  nome: string
+}
+
 interface ViaggioAttivoCardProps {
   viaggio: ViaggioConStato | null
   isLoading: boolean
+  /** Prima tappa di oggi (già ordinata per ora) — solo se in corso.
+   *  Stesso dato di OggiCard, nessuna query aggiuntiva. */
+  prossimaTappa?: ProssimaTappa | null
 }
 
-export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps) {
+export function ViaggioAttivoCard({ viaggio, isLoading, prossimaTappa }: ViaggioAttivoCardProps) {
   const navigate = useNavigate()
 
   if (isLoading) return <ViaggioAttivoSkeleton />
@@ -44,6 +52,20 @@ export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps
     ? calcolaGiorniAlPartenza(viaggio.data_inizio)
     : null
 
+  // "Giorno X di Y" — solo per viaggio in corso, stesso parsing locale
+  // già usato per il progresso qui sopra (no UTC shift).
+  const giornoCorrente = (() => {
+    if (stato !== 'in_corso' || !viaggio.data_inizio) return null
+    const durata = calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine)
+    if (!durata) return null
+    const [iy, im, id] = viaggio.data_inizio.split('-').map(Number)
+    const inizio = new Date(iy, im - 1, id)
+    const oggi = new Date()
+    oggi.setHours(0, 0, 0, 0)
+    const trascorsi = Math.floor((oggi.getTime() - inizio.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    return { corrente: Math.max(1, Math.min(trascorsi, durata)), totale: durata }
+  })()
+
   return (
     <button
       onClick={() => navigate(`/viaggi/${viaggio.id}`)}
@@ -56,6 +78,18 @@ export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps
         shadow-roamly-lg
       "
     >
+      {/* "Giorno X di Y" — solo viaggio in corso */}
+      {giornoCorrente && (
+        <span className="
+          inline-flex items-center gap-1.5 px-2 py-0.5 mb-2
+          rounded-full bg-white/10
+          font-dm-mono text-[9.5px] font-medium uppercase tracking-wide text-white/60
+        ">
+          <span className="w-1 h-1 rounded-full bg-roamly-coral" />
+          Giorno {giornoCorrente.corrente} di {giornoCorrente.totale}
+        </span>
+      )}
+
       {/* Riga superiore: emoji + nome + badge */}
       <div className="flex items-start gap-3">
         <div className="
@@ -116,6 +150,18 @@ export function ViaggioAttivoCard({ viaggio, isLoading }: ViaggioAttivoCardProps
           </span>
           <span className="font-lora text-sm font-semibold text-white">
             {giorniAlPartenza} {giorniAlPartenza === 1 ? 'giorno' : 'giorni'}
+          </span>
+        </div>
+      )}
+
+      {/* Prossima tappa di oggi — evidenziata dentro la card scura */}
+      {prossimaTappa && (
+        <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-2">
+          <span className="font-dm-mono text-[10px] font-medium uppercase tracking-wide text-white/40 shrink-0">
+            {prossimaTappa.ora ? `Ore ${prossimaTappa.ora.slice(0, 5)}` : 'Oggi'}
+          </span>
+          <span className="font-dm-sans text-xs font-medium text-white truncate">
+            {prossimaTappa.nome}
           </span>
         </div>
       )}

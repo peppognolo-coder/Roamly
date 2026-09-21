@@ -16,6 +16,7 @@ import { useRicordoDelGiorno } from '@/hooks/useRicordoDelGiorno'
 import { useProfilo }        from '@/hooks/useProfilo'
 import { useNotifiche }      from '@/hooks/useNotifiche'
 import { useTappe }          from '@/hooks/useTappe'
+import { isoDateLocale }     from '@/lib/viaggi-utils'
 import { useNavigate }       from 'react-router-dom'
 
 // ============================================================
@@ -62,6 +63,16 @@ export function HomePage() {
   // Tappe di oggi — solo per un viaggio davvero in corso, non pianificato
   const vaCercataOggi = viaggioAttivo?.stato_effettivo === 'in_corso'
   const { data: tappeViaggioAttivo } = useTappe(viaggioAttivo?.id, vaCercataOggi)
+
+  // Prima tappa di oggi (già ordinate per ora) — evidenziata dentro
+  // ViaggioAttivoCard, stesso dato usato da OggiCard qui sotto.
+  const oggiISO = isoDateLocale(new Date())
+  const tappeOggiOrdinate = (tappeViaggioAttivo ?? [])
+    .filter((t) => t.giorno === oggiISO || (t.giorno && t.giorno_fine && t.giorno <= oggiISO && t.giorno_fine >= oggiISO))
+    .sort((a, b) => (a.ora ?? '99:99').localeCompare(b.ora ?? '99:99'))
+  const prossimaTappaOggi = tappeOggiOrdinate[0]
+    ? { ora: tappeOggiOrdinate[0].ora, nome: tappeOggiOrdinate[0].nome }
+    : null
 
   const nomeUtente = profilo?.display_name?.split(' ')[0] ?? null
   const isLoadingGlobale = isLoadingViaggio && isLoadingRicordi
@@ -172,6 +183,7 @@ export function HomePage() {
               <ViaggioAttivoCard
                 viaggio={viaggioAttivo}
                 isLoading={isLoadingViaggio}
+                prossimaTappa={vaCercataOggi ? prossimaTappaOggi : null}
               />
             </motion.div>
 
