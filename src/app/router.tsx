@@ -31,6 +31,7 @@ const TraguardiPage          = lazy(() => import('@/features/profilo/TraguardiPa
 const StatistichePage        = lazy(() => import('@/features/profilo/StatistichePage').then((m) => ({ default: m.StatistichePage })))
 const LuoghiSalvatiPage      = lazy(() => import('@/features/profilo/LuoghiSalvatiPage').then((m) => ({ default: m.LuoghiSalvatiPage })))
 const NotifichePage          = lazy(() => import('@/features/profilo/NotifichePage').then((m) => ({ default: m.NotifichePage })))
+const OfflinePage            = lazy(() => import('@/features/offline/OfflinePage').then((m) => ({ default: m.OfflinePage })))
 const ViaggiPage             = lazy(() => import('@/features/viaggi/ViaggiPage').then((m) => ({ default: m.ViaggiPage })))
 const ViaggioDetailPage      = lazy(() => import('@/features/viaggi/ViaggioDetailPage').then((m) => ({ default: m.ViaggioDetailPage })))
 const RecapViaggioPage       = lazy(() => import('@/features/viaggi/RecapViaggioPage').then((m) => ({ default: m.RecapViaggioPage })))
@@ -143,6 +144,10 @@ export const router = createBrowserRouter([
   {
     path: '/profilo/feed',
     element: <Protected><NotifichePage /></Protected>,
+  },
+  {
+    path: '/offline',
+    element: <Protected><OfflinePage /></Protected>,
   },
   {
     path: '/viaggi',
