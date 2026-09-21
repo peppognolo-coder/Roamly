@@ -8,9 +8,11 @@ import {
   createBudgetVoce,
   updateBudgetVoce,
   deleteBudgetVoce,
+  getBudgetPagamenti,
+  createBudgetPagamento,
 } from '@/services/budgetService'
 import { useAuth } from '@/hooks/useAuth'
-import type { NuovaBudgetVoce, ModificaBudgetVoce } from '@/types'
+import type { NuovaBudgetVoce, ModificaBudgetVoce, NuovoBudgetPagamento } from '@/types'
 
 // ============================================================
 // ROAMLY — useBudget
@@ -111,6 +113,49 @@ export function useDeleteBudgetVoce(viaggioId: string) {
 
   return {
     deleteBudgetVoce: (id: string) => mutation.mutate(id),
+    isLoading: mutation.isPending,
+    error,
+  }
+}
+
+// ------------------------------------------------------------
+// Pareggi tra membri (settle-up)
+// ------------------------------------------------------------
+
+export function useBudgetPagamenti(viaggioId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.budget.pagamenti(viaggioId ?? ''),
+    queryFn: () => getBudgetPagamenti(viaggioId as string),
+    select: (result) => result.data,
+    enabled: !!viaggioId,
+  })
+}
+
+export function useCreateBudgetPagamento(viaggioId: string) {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+  const { showSuccess } = useToast()
+  const [error, setError] = useState<string | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: (payload: NuovoBudgetPagamento) => {
+      if (!user) throw new Error('Utente non autenticato')
+      return createBudgetPagamento(user.id, payload)
+    },
+    onSuccess: (result) => {
+      if (result.error) {
+        setError('Impossibile registrare il pareggio. Riprova.')
+        return
+      }
+      setError(null)
+      queryClient.invalidateQueries({ queryKey: queryKeys.budget.pagamenti(viaggioId) })
+      showSuccess('Segnato come saldato')
+    },
+    onError: () => setError('Impossibile registrare il pareggio. Riprova.'),
+  })
+
+  return {
+    creaPagamento: (payload: NuovoBudgetPagamento) => mutation.mutate(payload),
     isLoading: mutation.isPending,
     error,
   }
