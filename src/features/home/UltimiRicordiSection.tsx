@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, NotebookPen } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo } from '@/types'
 
@@ -96,16 +96,16 @@ function RicordoCardCompatta({ ricordo, onClick }: { ricordo: Ricordo; onClick: 
         text-left
       "
     >
-      {/* Thumbnail */}
+      {/* Thumbnail — etichetta mood in basso a sinistra, come nel mockup */}
       <div className={`
-        h-20 w-full shrink-0
+        h-[86px] w-full shrink-0 p-2
         bg-gradient-to-br ${gradient}
-        flex items-center justify-center
+        flex items-end
       `}>
-        {moodOption ? (
-          <span className="text-3xl opacity-70">{moodOption.emoji}</span>
-        ) : (
-          <NotebookPen size={26} className="opacity-50 text-roamly-g2" />
+        {moodOption && (
+          <span className="font-dm-mono text-[9px] font-medium uppercase tracking-wider text-roamly-g0/45">
+            {moodOption.label}
+          </span>
         )}
       </div>
 
