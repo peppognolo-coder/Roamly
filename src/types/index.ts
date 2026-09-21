@@ -419,11 +419,36 @@ export interface BudgetVoce {
   created_at: string
 }
 
+// 'user_id' è opzionale: chi ha pagato — di default chi registra la
+// spesa, ma può essere un altro membro (picker "Ha pagato" nel form
+// quando il viaggio è condiviso). Vedi RLS in
+// supabase-migration-spese-gruppo.sql: chi la registra deve comunque
+// essere un membro del viaggio, ma non deve coincidere con chi paga.
 export type NuovaBudgetVoce = Pick<BudgetVoce, 'viaggio_id' | 'categoria' | 'importo'> &
-  Partial<Pick<BudgetVoce, 'nota'>>
+  Partial<Pick<BudgetVoce, 'nota' | 'user_id'>>
 
 export type ModificaBudgetVoce = Partial<
-  Pick<BudgetVoce, 'categoria' | 'importo' | 'nota'>
+  Pick<BudgetVoce, 'categoria' | 'importo' | 'nota' | 'user_id'>
+>
+
+// ------------------------------------------------------------
+// Pareggi tra membri (settle-up) — un trasferimento registrato,
+// non una spesa: netta i saldi calcolati da budget_voci senza
+// toccarle. Vedi src/lib/budget-utils.ts.
+// ------------------------------------------------------------
+
+export interface BudgetPagamento {
+  id: string
+  viaggio_id: string
+  da_user_id: string
+  a_user_id: string
+  importo: number
+  registrato_da: string
+  created_at: string
+}
+
+export type NuovoBudgetPagamento = Pick<
+  BudgetPagamento, 'viaggio_id' | 'da_user_id' | 'a_user_id' | 'importo'
 >
 
 export interface CategoriaBudgetOption {
