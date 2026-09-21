@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Search, Compass, ChevronRight } from 'lucide-react'
+import { BookOpen, Search, Compass, ChevronRight, Bell } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -13,6 +13,7 @@ import { useViaggioAttivo }  from '@/hooks/useViaggi'
 import { useRicordiRecenti, useStatisticheUtente } from '@/hooks/useRicordi'
 import { useRicordoDelGiorno } from '@/hooks/useRicordoDelGiorno'
 import { useProfilo }        from '@/hooks/useProfilo'
+import { useNotifiche }      from '@/hooks/useNotifiche'
 import { useNavigate }       from 'react-router-dom'
 
 // ============================================================
@@ -54,6 +55,7 @@ export function HomePage() {
   const { data: ricordiRecenti, isLoading: isLoadingRicordi }   = useRicordiRecenti(5)
   const { data: statistiche, isLoading: isLoadingStats }        = useStatisticheUtente()
   const { data: ricordoDelGiorno, isLoading: isLoadingB45 }     = useRicordoDelGiorno()
+  const { nonLette }                                             = useNotifiche()
 
   const nomeUtente = profilo?.display_name?.split(' ')[0] ?? null
   const isLoadingGlobale = isLoadingViaggio && isLoadingRicordi
@@ -74,6 +76,25 @@ export function HomePage() {
         <PageHeader
           eyebrow={getDataOggi()}
           title={nomeUtente ? `${getSaluto()}, ${nomeUtente}` : getSaluto()}
+          action={
+            <button
+              onClick={() => navigate('/profilo/feed')}
+              aria-label="Notifiche"
+              className="
+                relative w-9 h-9 rounded-full
+                flex items-center justify-center
+                bg-roamly-g7 text-roamly-g1
+                hover:bg-roamly-g6
+                transition-colors duration-150
+                focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+              "
+            >
+              <Bell size={17} />
+              {nonLette > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-[7px] h-[7px] rounded-full bg-roamly-coral" />
+              )}
+            </button>
+          }
         />
 
         {/* ── First Visit Empty State ── */}
