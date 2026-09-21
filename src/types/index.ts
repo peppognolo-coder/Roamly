@@ -175,13 +175,21 @@ export interface ChecklistItem {
   testo: string
   completato: boolean
   ordine: number
+  /** Sezione della valigia (documenti/salute/abbigliamento/tech/varie) —
+   *  null per item aggiunti a mano prima di questa colonna: finiscono
+   *  nella sezione "Varie" in UI. */
+  categoria: string | null
+  /** Da quale blocco di suggerimenti è stato aggiunto in batch
+   *  ('stagione' | 'prenotazioni' | 'tappe') — null se aggiunto a mano
+   *  o da uno dei 4 template statici (mare/montagna/città/estero). */
+  fonte: string | null
   created_at: string
 }
 
 export type NuovoChecklistItem = Pick<
   ChecklistItem,
   'viaggio_id' | 'testo' | 'ordine'
->
+> & Partial<Pick<ChecklistItem, 'categoria' | 'fonte'>>
 
 // ------------------------------------------------------------
 // BADGE (schema ready, non usato nel MVP)
