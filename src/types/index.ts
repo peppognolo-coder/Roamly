@@ -310,6 +310,27 @@ export type ModificaTappaViaggio = Partial<
 >
 
 // ------------------------------------------------------------
+// Luoghi salvati — wishlist personale (Scopri, Mappa · "Salvati")
+// ------------------------------------------------------------
+
+export interface LuogoSalvato {
+  id: string
+  user_id: string
+  viaggio_id: string | null
+  nome: string
+  categoria: string | null
+  lat: number
+  lng: number
+  indirizzo: string | null
+  nota: string | null
+  created_at: string
+}
+
+export type NuovoLuogoSalvato = Pick<LuogoSalvato, 'nome' | 'lat' | 'lng'> & Partial<
+  Pick<LuogoSalvato, 'viaggio_id' | 'categoria' | 'indirizzo' | 'nota'>
+>
+
+// ------------------------------------------------------------
 // NOTE VIAGGIO
 // ------------------------------------------------------------
 
