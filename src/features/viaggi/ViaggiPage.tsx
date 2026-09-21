@@ -1,80 +1,99 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plane } from 'lucide-react'
+import { Plane, Plus } from 'lucide-react'
 import { PageLayout }  from '@/components/layout/PageLayout'
+import { PageHeader }  from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }   from '@/components/layout/BottomNav'
 import { Button }      from '@/components/ui/Button'
 import { ViaggioCard } from './ViaggioCard'
 import { useViaggiPerStato } from '@/hooks/useViaggi'
-import type { ViaggioConStato } from '@/types'
 
 // ============================================================
 // ViaggiPage — /viaggi
-// Lista completa raggruppata per stato:
-//   1. In corso
-//   2. Pianificati
-//   3. Conclusi
+// Filtro a pillole (Tutti/In corso/Conclusi/In arrivo) sopra una
+// lista unica — prima erano tre sezioni impilate (In corso/
+// Pianificati/Conclusi) sempre tutte visibili, senza un modo per
+// isolarne una. Ogni ViaggioCard porta già il proprio StatoBadge,
+// quindi lo stato resta leggibile anche nella vista "Tutti".
 // Empty state dedicato se non ci sono viaggi.
 // ============================================================
+
+type Filtro = 'tutti' | 'in_corso' | 'pianificato' | 'concluso'
+
+const FILTRI: { id: Filtro; label: string }[] = [
+  { id: 'tutti',       label: 'Tutti' },
+  { id: 'in_corso',    label: 'In corso' },
+  { id: 'concluso',    label: 'Conclusi' },
+  { id: 'pianificato', label: 'In arrivo' },
+]
 
 export function ViaggiPage() {
   const navigate = useNavigate()
   const { grouped, isEmpty, isLoading } = useViaggiPerStato()
+  const [filtro, setFiltro] = useState<Filtro>('tutti')
+
+  const tutti = [...grouped.in_corso, ...grouped.pianificato, ...grouped.concluso]
+  const viaggiFiltrati = filtro === 'tutti' ? tutti : grouped[filtro]
 
   return (
     <PageLayout>
       <AnimatedPage>
       <div className="flex flex-col min-h-screen">
 
-        {/* Header */}
-        <header className="flex items-center justify-between px-5 pt-14 pb-4">
-          <h1 className="font-lora text-2xl font-semibold text-roamly-g0">
-            I miei viaggi
-          </h1>
-          <button
-            onClick={() => navigate('/viaggi/nuovo')}
-            className="
-              flex items-center gap-1.5 px-3 py-2
-              bg-roamly-g0 rounded-xl
-              font-dm-sans text-sm font-medium text-white
-              hover:bg-roamly-g1 active:scale-95
-              transition-all duration-150
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-            "
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Nuovo
-          </button>
-        </header>
+        <PageHeader title="I tuoi viaggi" variant="withBack" />
 
         {/* Content */}
-        <div className="flex-1 px-5 pb-6">
+        <div className="flex-1 px-5 pb-6 flex flex-col gap-4">
           {isLoading ? (
             <SkeletonList />
           ) : isEmpty ? (
             <EmptyState onCrea={() => navigate('/viaggi/nuovo')} />
           ) : (
-            <div className="flex flex-col gap-6">
-              <SezioneStato
-                titolo="In corso"
-                viaggi={grouped.in_corso}
-                accentClass="text-roamly-g1"
-              />
-              <SezioneStato
-                titolo="Pianificati"
-                viaggi={grouped.pianificato}
-                accentClass="text-roamly-g2"
-              />
-              <SezioneStato
-                titolo="Conclusi"
-                viaggi={grouped.concluso}
-                accentClass="text-roamly-text/40"
-              />
-            </div>
+            <>
+              {/* Filtro a pillole — scroll orizzontale */}
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-5 px-5 pb-1">
+                {FILTRI.map((f) => {
+                  const selezionato = f.id === filtro
+                  return (
+                    <button
+                      key={f.id}
+                      onClick={() => setFiltro(f.id)}
+                      className={`
+                        shrink-0 px-3.5 py-1.5 rounded-full
+                        font-dm-sans text-xs font-medium
+                        border transition-colors duration-150
+                        ${selezionato
+                          ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                          : 'bg-white border-roamly-g5 text-roamly-g2 hover:border-roamly-g4'
+                        }
+                      `}
+                    >
+                      {f.label}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {viaggiFiltrati.map((v) => (
+                  <ViaggioCard key={v.id} viaggio={v} />
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate('/viaggi/nuovo')}
+                className="
+                  flex items-center justify-center gap-1.5 py-3.5 rounded-2xl
+                  border border-dashed border-roamly-g5
+                  font-dm-sans text-sm font-medium text-roamly-g2
+                  hover:bg-roamly-g7 transition-colors duration-150
+                "
+              >
+                <Plus size={14} />
+                Nuovo viaggio
+              </button>
+            </>
           )}
         </div>
 
@@ -82,36 +101,6 @@ export function ViaggiPage() {
       </AnimatedPage>
       <BottomNav />
     </PageLayout>
-  )
-}
-
-// ------------------------------------------------------------
-// SezioneStato — sezione con titolo e lista viaggi
-// Non renderizza nulla se la sezione è vuota
-// ------------------------------------------------------------
-
-function SezioneStato({
-  titolo,
-  viaggi,
-  accentClass,
-}: {
-  titolo: string
-  viaggi: ViaggioConStato[]
-  accentClass: string
-}) {
-  if (viaggi.length === 0) return null
-
-  return (
-    <section className="flex flex-col gap-3">
-      <h2 className={`font-dm-sans text-xs font-semibold uppercase tracking-wider ${accentClass}`}>
-        {titolo} · {viaggi.length}
-      </h2>
-      <div className="flex flex-col gap-2">
-        {viaggi.map((v) => (
-          <ViaggioCard key={v.id} viaggio={v} />
-        ))}
-      </div>
-    </section>
   )
 }
 
