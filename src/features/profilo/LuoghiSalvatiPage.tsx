@@ -1,9 +1,12 @@
-import { Bookmark, MapPin } from 'lucide-react'
+import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Bookmark, MapPin, Sparkles } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { BottomNav }    from '@/components/layout/BottomNav'
 import { useLuoghiSalvati } from '@/hooks/useLuoghiSalvati'
+import { trovaClusterVicini } from '@/lib/luoghi-clustering'
 import type { LuogoSalvato } from '@/types'
 
 // ============================================================
@@ -12,11 +15,20 @@ import type { LuogoSalvato } from '@/types'
 // destinazione della ricerca Scopri, che non esiste ancora nella
 // nostra app). Qui riusa i dati già salvati da Mappa (modalità
 // "Salvati"): stessa tabella, stesso hook, nessuna nuova query.
-// Aggiunge solo la possibilità di rimuovere un luogo da qui.
+// Aggiunge solo la possibilità di rimuovere un luogo da qui, e un
+// suggerimento quando 3+ luoghi salvati sono geograficamente
+// vicini (clustering su lat/lng reali — non un nome di città
+// inventato dall'indirizzo libero).
 // ============================================================
 
 export function LuoghiSalvatiPage() {
+  const navigate = useNavigate()
   const { luoghi, isLoading, rimuoviLuogoSalvato } = useLuoghiSalvati()
+
+  const clusterPrincipale = useMemo(() => {
+    const clusters = trovaClusterVicini(luoghi)
+    return clusters[0] ?? null
+  }, [luoghi])
 
   return (
     <PageLayout>
@@ -57,14 +69,42 @@ export function LuoghiSalvatiPage() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {luoghi.map((luogo) => (
-                <LuogoCard
-                  key={luogo.id}
-                  luogo={luogo}
-                  onRimuovi={() => rimuoviLuogoSalvato(luogo.id)}
-                />
-              ))}
+            <div className="flex flex-col gap-4">
+              {clusterPrincipale && (
+                <div className="p-4 rounded-[18px] border border-dashed border-roamly-g5 bg-roamly-g7 flex flex-col gap-2.5">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={15} className="text-roamly-g3 shrink-0" />
+                    <p className="font-lora text-sm font-semibold text-roamly-g0">
+                      {clusterPrincipale.length} luoghi salvati sono vicini tra loro
+                    </p>
+                  </div>
+                  <p className="font-dm-sans text-xs text-roamly-text/50 leading-relaxed">
+                    Potrebbero stare bene nello stesso viaggio — dai un'occhiata prima di pianificare.
+                  </p>
+                  <button
+                    onClick={() => navigate('/viaggi/nuovo')}
+                    className="
+                      self-start h-9 px-4 rounded-full
+                      bg-roamly-g0 text-white
+                      font-dm-sans text-xs font-medium
+                      hover:bg-roamly-g1 active:scale-[0.98]
+                      transition-all duration-150
+                    "
+                  >
+                    Pianifica un viaggio
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                {luoghi.map((luogo) => (
+                  <LuogoCard
+                    key={luogo.id}
+                    luogo={luogo}
+                    onRimuovi={() => rimuoviLuogoSalvato(luogo.id)}
+                  />
+                ))}
+              </div>
             </div>
           )}
         </div>
