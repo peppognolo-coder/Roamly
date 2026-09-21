@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, BookOpen } from 'lucide-react'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo } from '@/types'
 
@@ -41,7 +41,41 @@ export function UltimiRicordiSection({ ricordi, isLoading }: UltimiRicordiSectio
     )
   }
 
-  if (ricordi.length === 0) return null
+  // Nessun ricordo ancora: prima si tornava null e la pagina finiva lì
+  // con un vuoto brusco (con Oggi/B45 nascosti perché non applicabili,
+  // la Home poteva mostrare solo header + card viaggio + statistiche
+  // e poi tanto bianco). Un invito coerente con lo stile delle altre
+  // vuote dell'app (Salvati, Notifiche) è più onesto del vuoto secco.
+  if (ricordi.length === 0) {
+    return (
+      <div className="flex flex-col gap-3">
+        <h2 className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-text/50">
+          Ultimi ricordi
+        </h2>
+        <button
+          onClick={() => navigate('/nuovo-ricordo')}
+          className="
+            flex flex-col items-center gap-2.5 py-8 px-6 text-center
+            rounded-2xl border border-dashed border-roamly-g5 bg-roamly-g7
+            hover:border-roamly-g4 active:scale-[0.99]
+            transition-all duration-150
+          "
+        >
+          <div className="w-11 h-11 rounded-xl bg-white shadow-roamly flex items-center justify-center text-roamly-g3">
+            <BookOpen size={18} />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <p className="font-dm-sans text-sm font-medium text-roamly-g1">
+              Ancora nessun ricordo
+            </p>
+            <p className="font-dm-sans text-xs text-roamly-text/45">
+              Aggiungi il primo per iniziare il tuo diario
+            </p>
+          </div>
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-3">
