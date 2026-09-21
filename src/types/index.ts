@@ -34,6 +34,8 @@ export interface Profilo {
   bio: string | null
   notifiche_prenotazioni: boolean
   notifiche_anticipo_giorni: number   // 1 · 3 · 7 giorni prima
+  notifiche_attivita_gruppo: boolean  // nuovo membro, tappa aggiunta da altri
+  notifiche_anniversari: boolean      // "un anno fa" sui ricordi
   crediti: number
   created_at: string
 }
@@ -495,7 +497,7 @@ export interface InvitoViaggio {
 // che l'utente vede in app, in /profilo/feed.
 // ------------------------------------------------------------
 
-export type TipoNotifica = 'prenotazione' | 'nuovo_membro'
+export type TipoNotifica = 'prenotazione' | 'nuovo_membro' | 'tappa_aggiunta' | 'anniversario' | 'traguardo'
 
 export interface Notifica {
   id: string
@@ -506,4 +508,8 @@ export interface Notifica {
   link: string | null
   letta: boolean
   created_at: string
+  /** Iniziale di chi ha fatto l'azione (nuovo_membro, tappa_aggiunta) —
+   *  null per i tipi non legati a una persona specifica, il client
+   *  usa allora il glifo di default del tipo (vedi aspettoNotifica). */
+  glifo: string | null
 }
