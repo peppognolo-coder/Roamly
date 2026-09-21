@@ -221,6 +221,14 @@ export const queryKeys = {
   },
 
   // ----------------------------------------------------------
+  // NOTIFICHE (feed)
+  // ----------------------------------------------------------
+  notifiche: {
+    /** ['notifiche', userId] — feed dell'utente corrente */
+    mie: (userId: string) => ['notifiche', userId] as const,
+  },
+
+  // ----------------------------------------------------------
   // BADGES / TRAGUARDI
   // ----------------------------------------------------------
   badges: {
