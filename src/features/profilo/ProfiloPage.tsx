@@ -9,6 +9,8 @@ import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { BottomNav }    from '@/components/layout/BottomNav'
 import { useProfilo }   from '@/hooks/useProfilo'
 import { useAuth }      from '@/hooks/useAuth'
+import { useStatisticheUtente } from '@/hooks/useRicordi'
+import { useTraguardi } from '@/hooks/useBadges'
 
 // ============================================================
 // ProfiloPage — hub con le funzionalità della persona.
@@ -85,6 +87,11 @@ export function ProfiloPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const { data: profilo, isLoading } = useProfilo()
+  const { data: statistiche, isLoading: isLoadingStats } = useStatisticheUtente()
+  const { data: traguardi, isLoading: isLoadingTraguardi } = useTraguardi()
+
+  const badgeCount = traguardi?.filter((t) => t.posseduto).length ?? 0
+  const isLoadingTile = isLoadingStats || isLoadingTraguardi
 
   return (
     <PageLayout>
@@ -114,6 +121,13 @@ export function ProfiloPage() {
                 {user?.email}
               </p>
             </div>
+          </div>
+
+          {/* Riepilogo numeri */}
+          <div className="grid grid-cols-3 gap-2.5">
+            <StatTile valore={statistiche?.ricordi ?? 0} etichetta="Ricordi" isLoading={isLoadingTile} scuro />
+            <StatTile valore={statistiche?.paesi ?? 0} etichetta="Paesi" isLoading={isLoadingTile} />
+            <StatTile valore={badgeCount} etichetta="Badge" isLoading={isLoadingTile} />
           </div>
 
           {/* Menu */}
@@ -175,6 +189,41 @@ export function ProfiloPage() {
       </AnimatedPage>
       <BottomNav />
     </PageLayout>
+  )
+}
+
+// ------------------------------------------------------------
+// StatTile — tile numerico del riepilogo (Ricordi/Paesi/Badge)
+// La prima (Ricordi) è scura per farla risaltare, come nel mockup.
+// ------------------------------------------------------------
+
+function StatTile({
+  valore,
+  etichetta,
+  isLoading,
+  scuro = false,
+}: {
+  valore: number
+  etichetta: string
+  isLoading: boolean
+  scuro?: boolean
+}) {
+  return (
+    <div className={`
+      flex flex-col gap-1 px-[10px] py-[14px] rounded-2xl
+      ${scuro ? 'bg-roamly-g0' : 'bg-white shadow-roamly'}
+    `}>
+      {isLoading ? (
+        <div className={`h-5 w-6 rounded animate-pulse ${scuro ? 'bg-white/20' : 'bg-roamly-g6'}`} />
+      ) : (
+        <span className={`font-dm-mono text-[19px] font-medium ${scuro ? 'text-white' : 'text-roamly-g0'}`}>
+          {valore}
+        </span>
+      )}
+      <span className={`font-dm-sans text-[10.5px] ${scuro ? 'text-white/55' : 'text-roamly-text/45'}`}>
+        {etichetta}
+      </span>
+    </div>
   )
 }
 
