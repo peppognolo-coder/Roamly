@@ -43,6 +43,8 @@ export const queryKeys = {
   budget: {
     /** ['budget', viaggioId] */
     byViaggio: (viaggioId: string) => ['budget', viaggioId] as const,
+    /** ['budget-pagamenti', viaggioId] — pareggi/settle-up registrati */
+    pagamenti: (viaggioId: string) => ['budget-pagamenti', viaggioId] as const,
   },
 
   // ----------------------------------------------------------
