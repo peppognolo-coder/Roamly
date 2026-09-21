@@ -1,24 +1,26 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Wallet, Plus, Plane, BedDouble, UtensilsCrossed, Ticket, ShoppingBag, MoreHorizontal,
+  ArrowRight, CheckCircle2,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { useViaggio }   from '@/hooks/useViaggi'
-import { useBudgetVoci } from '@/hooks/useBudget'
+import { useBudgetVoci, useBudgetPagamenti, useCreateBudgetPagamento } from '@/hooks/useBudget'
 import { useMembriViaggio } from '@/hooks/useMembri'
 import { useAuth } from '@/hooks/useAuth'
 import { coloreIniziale } from '@/lib/avatar-utils'
+import { calcolaSaldi, calcolaGiroConti } from '@/lib/budget-utils'
 import type { CategoriaBudget } from '@/types'
 import { CATEGORIA_BUDGET_OPTIONS } from '@/types'
 
 // ============================================================
 // BudgetPage — /viaggi/:id/budget
-// Totale speso · Chi ha speso quanto (split spese, Livello 1:
-// somma per persona, non calcolo di chi deve cosa a chi) · Lista
-// voci in ordine cronologico.
+// Totale speso · Bilanci per persona (pagato + saldo, split sempre
+// equo tra i membri) · Per pareggiare (settle-up, numero minimo di
+// trasferimenti — vedi src/lib/budget-utils.ts) · Lista voci.
 // ============================================================
 
 const ICONE_CATEGORIA: Record<CategoriaBudget, LucideIcon> = {
@@ -40,16 +42,34 @@ export function BudgetPage() {
   const { data: viaggio } = useViaggio(viaggioId)
   const { data: voci = [], isLoading } = useBudgetVoci(viaggioId)
   const { data: membri = [] } = useMembriViaggio(viaggioId)
+  const { data: pagamenti = [] } = useBudgetPagamenti(viaggioId)
+  const { creaPagamento, isLoading: isSaldando } = useCreateBudgetPagamento(viaggioId ?? '')
 
   const totale = voci.reduce((sum, v) => sum + v.importo, 0)
+  const condiviso = membri.length > 1
 
-  // Riepilogo per persona — solo utile se il viaggio è condiviso
-  const speesoPerMembro = membri
-    .map((m) => ({
-      ...m,
-      totale: voci.filter((v) => v.user_id === m.user_id).reduce((s, v) => s + v.importo, 0),
-    }))
-    .sort((a, b) => b.totale - a.totale)
+  const saldi = calcolaSaldi(
+    voci,
+    pagamenti,
+    membri.map((m) => ({ userId: m.user_id, nome: m.display_name ?? 'Utente' }))
+  ).sort((a, b) => b.pagato - a.pagato)
+
+  const giroConti = condiviso ? calcolaGiroConti(saldi) : []
+
+  const membroDi = (userId: string) => membri.find((m) => m.user_id === userId)
+  const avatarDi = (userId: string, nome: string) => {
+    const m = membroDi(userId)
+    return m?.avatar_url ? (
+      <img src={m.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
+    ) : (
+      <span
+        className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-dm-sans font-semibold text-white text-xs"
+        style={{ background: coloreIniziale(nome) }}
+      >
+        {nome.charAt(0).toUpperCase()}
+      </span>
+    )
+  }
 
   return (
     <PageLayout>
@@ -76,34 +96,38 @@ export function BudgetPage() {
                 </div>
               </div>
 
-              {/* Chi ha speso quanto — solo per viaggi condivisi */}
-              {membri.length > 1 && totale > 0 && (
+              {/* Bilanci — solo per viaggi condivisi */}
+              {condiviso && totale > 0 && (
                 <div className="flex flex-col gap-2.5 bg-white rounded-2xl shadow-roamly p-4">
                   <p className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-text/45">
-                    Chi ha speso quanto
+                    Bilanci
                   </p>
-                  {speesoPerMembro.map((m) => {
-                    const nome = m.display_name ?? 'Utente'
-                    const percentuale = totale > 0 ? (m.totale / totale) * 100 : 0
+                  {saldi.map((s) => {
+                    const percentuale = totale > 0 ? (s.pagato / totale) * 100 : 0
+                    const inPareggio = Math.abs(s.saldo) < 0.01
                     return (
-                      <div key={m.user_id} className="flex items-center gap-3">
-                        {m.avatar_url ? (
-                          <img src={m.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover shrink-0" />
-                        ) : (
-                          <span
-                            className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center font-dm-sans font-semibold text-white text-xs"
-                            style={{ background: coloreIniziale(nome) }}
-                          >
-                            {nome.charAt(0).toUpperCase()}
-                          </span>
-                        )}
+                      <div key={s.userId} className="flex items-center gap-3">
+                        {avatarDi(s.userId, s.nome)}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
                             <p className="font-dm-sans text-sm text-roamly-text truncate">
-                              {m.user_id === user?.id ? 'Tu' : nome}
+                              {s.userId === user?.id ? 'Tu' : s.nome}
+                              <span className="text-roamly-text/40"> · ha pagato {formatEuro(s.pagato)}</span>
                             </p>
-                            <p className="font-dm-mono text-sm font-medium text-roamly-g0 shrink-0">
-                              {formatEuro(m.totale)}
+                            <p
+                              className={`font-dm-mono text-sm font-medium shrink-0 ${
+                                inPareggio
+                                  ? 'text-roamly-text/40'
+                                  : s.saldo > 0
+                                    ? 'text-emerald-600'
+                                    : 'text-red-500'
+                              }`}
+                            >
+                              {inPareggio
+                                ? 'In pari'
+                                : s.saldo > 0
+                                  ? `+${formatEuro(s.saldo)}`
+                                  : `-${formatEuro(Math.abs(s.saldo))}`}
                             </p>
                           </div>
                           <div className="h-1.5 bg-roamly-g6 rounded-full mt-1.5 overflow-hidden">
@@ -116,6 +140,50 @@ export function BudgetPage() {
                       </div>
                     )
                   })}
+                </div>
+              )}
+
+              {/* Per pareggiare — settle-up, numero minimo di trasferimenti */}
+              {condiviso && giroConti.length > 0 && (
+                <div className="flex flex-col gap-2.5 bg-roamly-g0 rounded-2xl p-4">
+                  <p className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-white/50">
+                    Per pareggiare
+                  </p>
+                  {giroConti.map((t, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0 flex items-center gap-2 font-dm-sans text-sm text-white">
+                        <span className="truncate">{t.daUserId === user?.id ? 'Tu' : t.daNome}</span>
+                        <ArrowRight size={14} className="text-white/40 shrink-0" />
+                        <span className="truncate">{t.aUserId === user?.id ? 'te' : t.aNome}</span>
+                        <span className="font-dm-mono text-white/70 shrink-0 ml-auto mr-2">
+                          {formatEuro(t.importo)}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isSaldando}
+                        onClick={() =>
+                          creaPagamento({
+                            viaggio_id: viaggioId ?? '',
+                            da_user_id: t.daUserId,
+                            a_user_id: t.aUserId,
+                            importo: t.importo,
+                          })
+                        }
+                        className="
+                          flex items-center gap-1.5 px-3 py-1.5 shrink-0
+                          bg-white/10 hover:bg-white/20 rounded-full
+                          font-dm-sans text-xs font-medium text-white
+                          transition-all duration-150
+                          disabled:opacity-50
+                          focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40
+                        "
+                      >
+                        <CheckCircle2 size={13} />
+                        Segna come saldato
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </>

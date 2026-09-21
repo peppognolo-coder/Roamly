@@ -8,6 +8,8 @@ import { Button }       from '@/components/ui/Button'
 import { BudgetForm } from './BudgetForm'
 import type { BudgetFormData } from './BudgetForm'
 import { useBudgetVoci, useCreateBudgetVoce, useUpdateBudgetVoce, useDeleteBudgetVoce } from '@/hooks/useBudget'
+import { useMembriViaggio } from '@/hooks/useMembri'
+import { useAuth } from '@/hooks/useAuth'
 
 // ============================================================
 // BudgetVocePage — /viaggi/:id/budget/nuova (create)
@@ -20,6 +22,8 @@ export function BudgetVocePage() {
 
   const { data: voci } = useBudgetVoci(viaggioId)
   const voce = isEdit ? voci?.find((v) => v.id === voceId) : undefined
+  const { user } = useAuth()
+  const { data: membri = [] } = useMembriViaggio(viaggioId)
 
   const { createBudgetVoce, isLoading: isCreating, error: createError } = useCreateBudgetVoce(viaggioId ?? '')
   const { updateBudgetVoce, isLoading: isUpdating, error: updateError } = useUpdateBudgetVoce(viaggioId ?? '')
@@ -27,12 +31,15 @@ export function BudgetVocePage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
+  const paganti = membri.map((m) => ({ userId: m.user_id, nome: m.display_name ?? 'Utente' }))
+
   function handleSubmit(data: BudgetFormData) {
     const payload = {
       viaggio_id: viaggioId ?? '',
       categoria: data.categoria,
       importo: Number(data.importo.replace(',', '.')),
       nota: data.nota || null,
+      user_id: data.pagatoDa,
     }
 
     if (isEdit && voceId) {
@@ -63,6 +70,8 @@ export function BudgetVocePage() {
             isLoading={isCreating || isUpdating}
             error={createError ?? updateError}
             submitLabel={isEdit ? 'Salva modifiche' : 'Aggiungi'}
+            paganti={paganti}
+            mioUserId={user?.id}
           />
 
           {isEdit && (

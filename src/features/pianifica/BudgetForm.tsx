@@ -15,9 +15,17 @@ const budgetFormSchema = z.object({
   categoria: z.enum(['trasporto', 'alloggio', 'food', 'attivita', 'shopping', 'altro']),
   importo: z.string().min(1, 'Inserisci un importo'),
   nota: z.string().max(200).optional().or(z.literal('')),
+  // Assente = chi registra la spesa (default). Presente solo quando
+  // il viaggio è condiviso e si sceglie "Ha pagato" un altro membro.
+  pagatoDa: z.string().optional(),
 })
 
 export type BudgetFormData = z.infer<typeof budgetFormSchema>
+
+export interface OpzionePagante {
+  userId: string
+  nome: string
+}
 
 interface BudgetFormProps {
   voce?: BudgetVoce
@@ -25,6 +33,10 @@ interface BudgetFormProps {
   isLoading: boolean
   error?: string | null
   submitLabel?: string
+  /** Membri tra cui scegliere chi ha pagato — un solo elemento (o
+   *  assente): niente picker, la spesa resta sempre a proprio nome. */
+  paganti?: OpzionePagante[]
+  mioUserId?: string
 }
 
 export function BudgetForm({
@@ -33,6 +45,8 @@ export function BudgetForm({
   isLoading,
   error,
   submitLabel = 'Salva',
+  paganti = [],
+  mioUserId,
 }: BudgetFormProps) {
   const {
     control,
@@ -45,6 +59,7 @@ export function BudgetForm({
       categoria: voce?.categoria ?? 'altro',
       importo: voce?.importo != null ? String(voce.importo) : '',
       nota: voce?.nota ?? '',
+      pagatoDa: voce?.user_id ?? mioUserId,
     },
   })
 
@@ -88,6 +103,41 @@ export function BudgetForm({
           )}
         />
       </div>
+
+      {/* Ha pagato — solo se il viaggio è condiviso */}
+      {paganti.length > 1 && (
+        <div className="flex flex-col gap-2">
+          <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+            Ha pagato
+          </label>
+          <Controller
+            name="pagatoDa"
+            control={control}
+            render={({ field }) => (
+              <div className="flex flex-wrap gap-2">
+                {paganti.map((p) => (
+                  <button
+                    key={p.userId}
+                    type="button"
+                    onClick={() => field.onChange(p.userId)}
+                    className={`
+                      px-3.5 py-2 rounded-full
+                      font-dm-sans text-sm font-medium
+                      border transition-all duration-150
+                      ${field.value === p.userId
+                        ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                      }
+                    `}
+                  >
+                    {p.userId === mioUserId ? 'Tu' : p.nome}
+                  </button>
+                ))}
+              </div>
+            )}
+          />
+        </div>
+      )}
 
       {/* Importo */}
       <Input
