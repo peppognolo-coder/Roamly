@@ -1,7 +1,7 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Heart } from 'lucide-react'
+import { Heart, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { MoodPicker } from './MoodPicker'
@@ -63,6 +63,18 @@ interface RicordoFormProps {
   isLoading: boolean
   error?: string | null
   submitLabel?: string
+  /** Contenuto extra inserito subito dopo il mood e prima del Titolo
+   *  (es. la griglia foto in NuovoRicordoPage) — tiene l'ordine dei
+   *  campi identico al mockup senza spostare la gestione dei file
+   *  fuori dal componente che li possiede. */
+  beforeTitolo?: React.ReactNode
+  /** Nasconde il bottone di submit interno — usato quando la pagina
+   *  chiamante mostra un proprio bottone fisso in fondo, collegato
+   *  via l'attributo HTML `form`. */
+  hideSubmitButton?: boolean
+  /** id dell'elemento <form>, da passare al bottone esterno quando
+   *  hideSubmitButton è true. */
+  formId?: string
 }
 
 // ------------------------------------------------------------
@@ -75,6 +87,9 @@ export function RicordoForm({
   isLoading,
   error,
   submitLabel,
+  beforeTitolo,
+  hideSubmitButton = false,
+  formId = 'ricordo-form',
 }: RicordoFormProps) {
   const isEdit = !!ricordo
   const label = submitLabel ?? (isEdit ? 'Salva modifiche' : 'Salva ricordo')
@@ -108,7 +123,7 @@ export function RicordoForm({
   const preferitoValue = watch('preferito')
 
   return (
-    <div className="flex flex-col gap-6">
+    <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
       {/* Errore globale */}
       {error && (
         <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
@@ -129,34 +144,54 @@ export function RicordoForm({
         )}
       />
 
+      {beforeTitolo}
+
       {/* 2. Titolo */}
-      <Input
-        label="Titolo *"
-        type="text"
-        placeholder="Un momento da ricordare..."
-        autoComplete="off"
-        error={errors.titolo?.message}
-        {...register('titolo')}
-      />
+      <div className="flex flex-col gap-1.5">
+        <label className="font-dm-sans text-[12.5px] font-medium text-roamly-text/70">
+          Titolo <span className="text-roamly-coral">*</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Un momento da ricordare..."
+          autoComplete="off"
+          className="
+            h-[46px] px-4
+            bg-white border border-roamly-g5
+            rounded-2xl
+            font-dm-sans text-sm text-roamly-text
+            placeholder:text-roamly-text/30
+            transition-all duration-150
+            outline-none
+            focus:border-roamly-g3 focus:ring-2 focus:ring-roamly-g3/20
+            disabled:opacity-50
+            ${errors.titolo ? 'border-red-400 focus:border-red-400 focus:ring-red-200' : ''}
+          "
+          {...register('titolo')}
+        />
+        {errors.titolo && (
+          <p className="text-xs font-dm-sans text-red-500">{errors.titolo.message}</p>
+        )}
+      </div>
 
       {/* 3. Descrizione */}
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-dm-sans font-medium text-roamly-text/70">
-          Descrizione
+        <label className="font-dm-sans text-[12.5px] font-medium text-roamly-text/70">
+          Racconta <span className="text-roamly-text/35 font-normal">(come ti pare)</span>
         </label>
         <textarea
-          placeholder="Racconta questo momento..."
+          placeholder="Siamo saliti in tre, ce n'erano venti…"
           rows={4}
           className="
-            w-full px-4 py-3
+            w-full px-4 py-3.5
             bg-roamly-g7 border border-roamly-g5
             rounded-2xl
-            font-dm-sans text-base text-roamly-text
+            font-dm-sans text-sm leading-relaxed text-roamly-text
             placeholder:text-roamly-text/30
             resize-none
             transition-all duration-150
             outline-none
-            focus:border-roamly-g2 focus:bg-white focus:ring-2 focus:ring-roamly-g3/20
+            focus:border-roamly-g3 focus:bg-white focus:ring-2 focus:ring-roamly-g3/20
           "
           {...register('testo')}
         />
@@ -166,14 +201,33 @@ export function RicordoForm({
       </div>
 
       {/* 4. Luogo */}
-      <Input
-        label="Luogo"
-        type="text"
-        placeholder="Dove eri?"
-        autoComplete="off"
-        error={errors.luogo?.message}
-        {...register('luogo')}
-      />
+      <div className="flex flex-col gap-1.5">
+        <label className="font-dm-sans text-[12.5px] font-medium text-roamly-text/70">
+          Dove
+        </label>
+        <div className="
+          flex items-center gap-2.5 h-[46px] px-4
+          bg-white border border-roamly-g5 rounded-2xl
+          transition-all duration-150
+          focus-within:border-roamly-g3 focus-within:ring-2 focus-within:ring-roamly-g3/20
+        ">
+          <MapPin size={14} className="shrink-0 text-roamly-g3" />
+          <input
+            type="text"
+            placeholder="Dove eri?"
+            autoComplete="off"
+            className="
+              flex-1 min-w-0 bg-transparent outline-none
+              font-dm-sans text-sm text-roamly-text
+              placeholder:text-roamly-text/30
+            "
+            {...register('luogo')}
+          />
+        </div>
+        {errors.luogo && (
+          <p className="text-xs font-dm-sans text-red-500">{errors.luogo.message}</p>
+        )}
+      </div>
 
       {/* 5. Data */}
       <Input
@@ -222,14 +276,16 @@ export function RicordoForm({
         </div>
       </button>
 
-      <Button
-        onClick={handleSubmit(onSubmit)}
-        isLoading={isLoading}
-        fullWidth
-        size="lg"
-      >
-        {label}
-      </Button>
-    </div>
+      {!hideSubmitButton && (
+        <Button
+          type="submit"
+          isLoading={isLoading}
+          fullWidth
+          size="lg"
+        >
+          {label}
+        </Button>
+      )}
+    </form>
   )
 }
