@@ -22,6 +22,7 @@ export function TraguardiPage() {
   const { data: traguardi, isLoading } = useTraguardi()
 
   const numPosseduti = traguardi.filter((t) => t.posseduto).length
+  const percentuale = traguardi.length > 0 ? Math.round((numPosseduti / traguardi.length) * 100) : 0
 
   return (
     <PageLayout>
@@ -32,11 +33,21 @@ export function TraguardiPage() {
         <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
 
           {!isLoading && (
-            <div className="flex items-center gap-2 px-1">
-              <Award size={16} className="text-roamly-g3" />
-              <p className="font-dm-sans text-sm text-roamly-text/60">
-                {numPosseduti} di {traguardi.length} sbloccati
-              </p>
+            <div className="flex flex-col gap-2 p-4 bg-white rounded-2xl shadow-roamly">
+              <div className="flex items-center justify-between">
+                <p className="font-dm-sans text-sm font-medium text-roamly-g0">
+                  {numPosseduti} su {traguardi.length} sbloccati
+                </p>
+                <span className="font-dm-mono text-sm font-medium text-roamly-g2">
+                  {percentuale}%
+                </span>
+              </div>
+              <div className="h-1.5 bg-roamly-g6 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-roamly-g3 rounded-full transition-all duration-300"
+                  style={{ width: `${percentuale}%` }}
+                />
+              </div>
             </div>
           )}
 

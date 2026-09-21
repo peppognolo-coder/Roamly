@@ -202,6 +202,33 @@ export function ImpostazioniAccountPage() {
             </Button>
           </div>
 
+          {/* Preferenze notifiche */}
+          {!isLoadingProfilo && profilo && (
+            <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-1">
+              <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider mb-2">
+                Preferenze
+              </h2>
+              <PreferenzaToggle
+                titolo="Promemoria prenotazioni"
+                descrizione="Un avviso quando si avvicina una prenotazione"
+                valore={profilo.notifiche_prenotazioni}
+                onChange={(v) => aggiorna({ notifiche_prenotazioni: v })}
+              />
+              <PreferenzaToggle
+                titolo="Attività del gruppo"
+                descrizione="Quando qualcuno si unisce o aggiunge una tappa"
+                valore={profilo.notifiche_attivita_gruppo}
+                onChange={(v) => aggiorna({ notifiche_attivita_gruppo: v })}
+              />
+              <PreferenzaToggle
+                titolo="Un anno fa"
+                descrizione="Ti ricordo i ricordi che compiono un anno"
+                valore={profilo.notifiche_anniversari}
+                onChange={(v) => aggiorna({ notifiche_anniversari: v })}
+              />
+            </div>
+          )}
+
           {/* Info account */}
           <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-3">
             <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider">
@@ -334,6 +361,53 @@ function AvatarGrande({
       <span className="font-lora text-2xl font-semibold text-white">
         {initials}
       </span>
+    </div>
+  )
+}
+
+// ------------------------------------------------------------
+// PreferenzaToggle — riga con switch, salva al volo (nessun
+// bottone "Salva" dedicato: come nel mockup, il toggle è già lo
+// stato salvato).
+// ------------------------------------------------------------
+
+function PreferenzaToggle({
+  titolo,
+  descrizione,
+  valore,
+  onChange,
+}: {
+  titolo: string
+  descrizione: string
+  valore: boolean
+  onChange: (v: boolean) => void
+}) {
+  return (
+    <div className="flex items-center gap-3 py-2.5">
+      <div className="flex-1 min-w-0">
+        <p className="font-dm-sans text-sm font-medium text-roamly-text">{titolo}</p>
+        <p className="font-dm-sans text-xs text-roamly-text/45 mt-0.5">{descrizione}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={valore}
+        aria-label={titolo}
+        onClick={() => onChange(!valore)}
+        className={`
+          shrink-0 w-11 h-6 rounded-full relative transition-colors duration-150
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+          ${valore ? 'bg-roamly-coral' : 'bg-roamly-g5'}
+        `}
+      >
+        <span
+          className={`
+            absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm
+            transition-transform duration-150
+            ${valore ? 'translate-x-[22px]' : 'translate-x-0.5'}
+          `}
+        />
+      </button>
     </div>
   )
 }

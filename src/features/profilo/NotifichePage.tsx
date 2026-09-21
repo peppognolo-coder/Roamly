@@ -82,7 +82,8 @@ export function NotifichePage() {
 // ------------------------------------------------------------
 
 function NotificaCard({ notifica, onOpen }: { notifica: Notifica; onOpen: () => void }) {
-  const { glifo, tono } = aspettoNotifica(notifica.tipo)
+  const { glifo: glifoDefault, tono } = aspettoNotifica(notifica.tipo)
+  const glifo = notifica.glifo || glifoDefault
   const nuova = !notifica.letta
 
   return (
