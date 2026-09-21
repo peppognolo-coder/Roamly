@@ -29,9 +29,11 @@ export function useCreateChecklistItem(viaggioId: string) {
   const [error, setError] = useState<string | null>(null)
 
   const mutation = useMutation({
-    mutationFn: ({ testo, ordine }: { testo: string; ordine: number }) => {
+    mutationFn: ({ testo, ordine, categoria, fonte }: {
+      testo: string; ordine: number; categoria?: string | null; fonte?: string | null
+    }) => {
       if (!user) throw new Error('Utente non autenticato')
-      return createChecklistItem(user.id, viaggioId, testo, ordine)
+      return createChecklistItem(user.id, viaggioId, testo, ordine, categoria, fonte)
     },
     onSuccess: (result) => {
       if (result.error) {
@@ -71,13 +73,15 @@ export function useCreateChecklistItemsBatch(viaggioId: string) {
       items,
       ordineBase,
     }: {
-      items: { testo: string }[]
+      items: { testo: string; categoria?: string | null; fonte?: string | null }[]
       ordineBase: number
     }) => {
       if (!user) throw new Error('Utente non autenticato')
       const payload = items.map((item, i) => ({
-        testo:  item.testo,
-        ordine: ordineBase + i,
+        testo:     item.testo,
+        ordine:    ordineBase + i,
+        categoria: item.categoria,
+        fonte:     item.fonte,
       }))
       return createChecklistItemsBatch(user.id, viaggioId, payload)
     },
