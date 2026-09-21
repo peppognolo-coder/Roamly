@@ -10,7 +10,6 @@ import { useRicordi } from '@/hooks/useRicordi'
 import { useRecapViaggio } from '@/hooks/useRecap'
 import { calcolaDurataViaggio } from '@/lib/viaggi-utils'
 import { buildRacconto } from '@/lib/racconto-utils'
-import { formatDataGiorno } from '@/lib/diario-utils'
 import type { CapitoloRacconto } from '@/lib/racconto-utils'
 
 // ============================================================
@@ -187,8 +186,12 @@ export function RecapViaggioPage() {
                           style={{ background: CAPITOLO_GRADIENT[mood] ?? CAPITOLO_GRADIENT.sereno }}
                         />
                         <div className="flex-1 min-w-0">
+                          {/* "Giorno N" relativo al viaggio (numeroCapitolo, già
+                              calcolato da buildRacconto) — non la data di calendario
+                              completa: nel racconto di un viaggio concluso l'utente
+                              pensa in giorni di viaggio, non in giorni della settimana. */}
                           <p className="font-dm-mono text-[9px] font-medium uppercase tracking-[0.12em] text-roamly-text/30 truncate">
-                            {formatDataGiorno(capitolo.data)}
+                            Giorno {capitolo.numeroCapitolo}
                           </p>
                           <p className="font-lora text-sm font-semibold text-roamly-g0 mt-1.5 truncate">
                             {primo?.titolo ?? 'Ricordo'}
