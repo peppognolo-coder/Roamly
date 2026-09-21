@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useState } from 'react'
-import { Crown, UserPlus, LogOut, X } from 'lucide-react'
+import { Check, Copy, LogOut, X } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
@@ -8,21 +8,24 @@ import { Button }       from '@/components/ui/Button'
 import { useAuth }      from '@/hooks/useAuth'
 import { useViaggio }   from '@/hooks/useViaggi'
 import { useMioRuolo, useMembriViaggio, useRimuoviMembro } from '@/hooks/useMembri'
-import { useInvitoLink } from '@/hooks/useInviti'
+import { useInvitoCard } from '@/hooks/useInviti'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys } from '@/lib/queryKeys'
+import { coloreIniziale } from '@/lib/avatar-utils'
 import type { MembroConProfilo } from '@/services/membriService'
 
 // ============================================================
-// MembriPage — /viaggi/:id/membri
+// MembriPage — /viaggi/:id/membri ("Chi c'è" nel mockup)
 // Chi c'è nel viaggio. Il proprietario può rimuovere collaboratori
-// e invitarne altri; chiunque può uscire dal viaggio (tranne
-// l'ultimo proprietario, che deve prima passare la mano o eliminare
-// il viaggio — non gestito qui, solo lettura + rimozione singola).
+// e invitarne altri con un link condivisibile (valido 7 giorni, non
+// a uso singolo — non c'è tracciamento di inviti per email/persona);
+// chiunque può uscire dal viaggio (tranne l'ultimo proprietario, che
+// deve prima passare la mano o eliminare il viaggio — non gestito
+// qui, solo lettura + rimozione singola).
 // ============================================================
 
 function formatData(iso: string): string {
-  return new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })
 }
 
 function iniziali(nome: string | null): string {
@@ -39,7 +42,7 @@ export function MembriPage() {
 
   useRealtimeSync('viaggio_membri', 'viaggio_id', viaggioId, [queryKeys.membri.byViaggio(viaggioId ?? '')])
   const { rimuovi, isLoading: isRimuovendo } = useRimuoviMembro(viaggioId ?? '')
-  const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(viaggioId ?? '', viaggio?.nome ?? '')
+  const { url: linkInvito, copia: copiaLink, copiato, isLoading: isCaricandoLink } = useInvitoCard(viaggioId ?? '')
 
   const [confermaRimozione, setConfermaRimozione] = useState<MembroConProfilo | null>(null)
   const [confermaUscita, setConfermaUscita] = useState(false)
@@ -62,23 +65,11 @@ export function MembriPage() {
     <PageLayout>
       <AnimatedPage>
       <div className="flex flex-col min-h-screen">
-        <PageHeader title="Membri" subtitle={viaggio?.nome} variant="withBack" />
+        <PageHeader title="Chi c'è" eyebrow={viaggio?.nome} variant="withBack" />
 
-        <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
+        <div className="flex-1 px-5 pb-8 flex flex-col gap-3.5">
 
-          {sonoProprietario && (
-            <Button
-              variant="ghost"
-              onClick={condividiInvito}
-              isLoading={isInvitando}
-              fullWidth
-              className="border border-dashed border-roamly-g5 text-roamly-g2"
-            >
-              <UserPlus size={16} className="mr-1.5" />
-              Invita altre persone
-            </Button>
-          )}
-
+          {/* Membri */}
           {isLoading ? (
             <div className="flex flex-col gap-2">
               {[1, 2].map((i) => (
@@ -89,15 +80,19 @@ export function MembriPage() {
             <div className="flex flex-col gap-2">
               {membri.map((m) => {
                 const sonoIo = m.user_id === user?.id
+                const nome = m.display_name ?? 'Utente Roamly'
                 return (
                   <div
                     key={m.id}
-                    className="flex items-center gap-3 p-4 bg-white rounded-2xl shadow-roamly"
+                    className="flex items-center gap-3.5 p-3.5 bg-white rounded-2xl shadow-roamly"
                   >
                     {m.avatar_url ? (
-                      <img src={m.avatar_url} alt="" className="w-11 h-11 rounded-full object-cover shrink-0" />
+                      <img src={m.avatar_url} alt="" className="w-[42px] h-[42px] rounded-full object-cover shrink-0" />
                     ) : (
-                      <div className="w-11 h-11 rounded-full bg-roamly-g0 flex items-center justify-center shrink-0">
+                      <div
+                        className="w-[42px] h-[42px] rounded-full flex items-center justify-center shrink-0"
+                        style={{ background: coloreIniziale(nome) }}
+                      >
                         <span className="font-lora text-sm font-semibold text-white">
                           {iniziali(m.display_name)}
                         </span>
@@ -105,33 +100,66 @@ export function MembriPage() {
                     )}
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
-                        {m.display_name ?? 'Utente Roamly'}{sonoIo && ' (tu)'}
+                      <p className="font-dm-sans text-[13.5px] font-medium text-roamly-g0 truncate">
+                        {sonoIo ? `${nome} (tu)` : nome}
                       </p>
-                      <p className="font-dm-sans text-xs text-roamly-text/40">
-                        Da {formatData(m.joined_at)}
+                      <p className="font-dm-sans text-[11px] text-roamly-text/40 mt-0.5">
+                        Dal {formatData(m.joined_at)}
                       </p>
                     </div>
 
-                    {m.ruolo === 'proprietario' ? (
-                      <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-roamly-g6 shrink-0">
-                        <Crown size={11} className="text-roamly-g2" />
-                        <span className="font-dm-sans text-[10px] font-medium text-roamly-g2">
-                          Proprietario
-                        </span>
-                      </span>
-                    ) : sonoProprietario ? (
+                    <span
+                      className={`shrink-0 px-2.5 py-1 rounded-full font-dm-sans text-[10px] font-medium ${
+                        m.ruolo === 'proprietario'
+                          ? 'bg-roamly-g6 text-roamly-g1'
+                          : 'bg-roamly-text/5 text-roamly-text/45'
+                      }`}
+                    >
+                      {m.ruolo === 'proprietario' ? 'Proprietario' : 'Collabora'}
+                    </span>
+
+                    {sonoProprietario && m.ruolo !== 'proprietario' && (
                       <button
                         onClick={() => setConfermaRimozione(m)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-roamly-text/30 hover:bg-red-50 hover:text-red-500 shrink-0"
+                        className="w-7 h-7 rounded-full flex items-center justify-center text-roamly-text/25 hover:bg-red-50 hover:text-red-500 shrink-0"
                         aria-label="Rimuovi"
                       >
-                        <X size={15} />
+                        <X size={13} />
                       </button>
-                    ) : null}
+                    )}
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {/* Invita chi manca */}
+          {sonoProprietario && (
+            <div className="p-4 rounded-[18px] border border-dashed border-roamly-g5 bg-roamly-g7">
+              <p className="font-lora text-sm font-semibold text-roamly-g0">
+                Invita chi manca
+              </p>
+              <p className="font-dm-sans text-[11.5px] text-roamly-text/50 leading-relaxed mt-1.5 mb-3">
+                Il link resta valido 7 giorni. Chi entra può aggiungere tappe, spese e ricordi.
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-white border border-roamly-g5/90 font-dm-mono text-[11px] text-roamly-text/50 truncate">
+                  {isCaricandoLink ? 'Genero il link…' : linkInvito?.replace(/^https?:\/\//, '')}
+                </span>
+                <button
+                  onClick={copiaLink}
+                  disabled={isCaricandoLink}
+                  className={`
+                    shrink-0 flex items-center gap-1.5 h-10 px-4 rounded-xl
+                    font-dm-sans text-xs font-medium
+                    transition-all duration-150 disabled:opacity-50
+                    ${copiato ? 'bg-roamly-g6 text-roamly-g1' : 'bg-roamly-g0 text-white hover:bg-roamly-g1'}
+                  `}
+                >
+                  {copiato ? <Check size={13} /> : <Copy size={13} />}
+                  {copiato ? 'Copiato' : 'Copia'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -139,7 +167,7 @@ export function MembriPage() {
           {!confermaUscita ? (
             <button
               onClick={() => setConfermaUscita(true)}
-              className="flex items-center justify-center gap-1.5 py-3 mt-2 font-dm-sans text-sm text-red-500/70 hover:text-red-500"
+              className="flex items-center justify-center gap-1.5 py-3 mt-1 font-dm-sans text-sm text-red-500/70 hover:text-red-500"
             >
               <LogOut size={14} />
               Esci dal viaggio

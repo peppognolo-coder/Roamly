@@ -407,7 +407,7 @@ export function AttivitaPage() {
     <PageLayout withBottomNav={false}>
       <AnimatedPage>
       <div className="flex flex-col h-screen">
-        <PageHeader title="Attività" subtitle={viaggio?.nome} variant="withBack" className="pb-3" />
+        <PageHeader title="Attività" eyebrow={viaggio?.nome} variant="withBack" className="pb-3" />
 
         {isLoading ? (
           <div className="flex-1 mx-5 mb-5 rounded-2xl bg-roamly-g6 animate-pulse" />

@@ -1,22 +1,13 @@
 import { useNavigate } from 'react-router-dom'
-import {
-  Briefcase,
-  Backpack,
-  Map,
-  MapPinned,
-  CalendarDays,
-  NotebookPen,
-  Wallet,
-  ChevronRight,
-  Clock,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ChevronRight, Clock } from 'lucide-react'
 
 // ============================================================
-// PianificaHub — griglia delle 6 sezioni di pianificazione
+// PianificaHub — griglia delle 7 sezioni di pianificazione
 // di un viaggio. Mostrata nella tab "Pianifica" di ViaggioDetailPage.
+// Icone sostituite da badge-tag (3 lettere, DM Mono) come nel mockup
+// — stesso linguaggio visivo dei tag categoria in Budget/Membri.
 // Le sezioni non ancora costruite sono disabilitate ("Presto disponibile")
-// e verranno attivate una per una nei prossimi blocchi (P2-P5).
+// e verranno attivate una per una nei prossimi blocchi.
 // ============================================================
 
 interface PianificaHubProps {
@@ -27,7 +18,7 @@ interface VoceHub {
   id: string
   label: string
   descrizione: string
-  icon: LucideIcon
+  tag: string
   path?: string   // assente = non ancora disponibile
 }
 
@@ -36,49 +27,49 @@ const VOCI: VoceHub[] = [
     id: 'prenotazioni',
     label: 'Prenotazioni',
     descrizione: 'Trasporti, alloggi, musei, eventi...',
-    icon: Briefcase,
+    tag: 'PRE',
     path: 'prenotazioni',
   },
   {
     id: 'budget',
     label: 'Budget',
     descrizione: 'Spese e chi ha pagato cosa',
-    icon: Wallet,
+    tag: 'BUD',
     path: 'budget',
   },
   {
     id: 'itinerario',
     label: 'Itinerario',
     descrizione: 'Il percorso giorno per giorno',
-    icon: Map,
+    tag: 'ITI',
     path: 'itinerario',
   },
   {
     id: 'attivita',
     label: 'Attività',
     descrizione: 'Tutte le tappe sulla mappa',
-    icon: MapPinned,
+    tag: 'MAP',
     path: 'attivita',
   },
   {
     id: 'valigia',
     label: 'Valigia',
     descrizione: 'La tua checklist di partenza',
-    icon: Backpack,
+    tag: 'VAL',
     path: 'valigia',
   },
   {
     id: 'calendario',
     label: 'Calendario',
     descrizione: 'Tutto il viaggio a colpo d\'occhio',
-    icon: CalendarDays,
+    tag: 'CAL',
     path: 'calendario',
   },
   {
     id: 'note',
     label: 'Note di viaggio',
     descrizione: 'Appunti liberi, promemoria',
-    icon: NotebookPen,
+    tag: 'NOT',
     path: 'note',
   },
 ]
@@ -90,7 +81,6 @@ export function PianificaHub({ viaggioId }: PianificaHubProps) {
     <div className="flex flex-col gap-2.5">
       {VOCI.map((voce) => {
         const disponibile = !!voce.path
-        const Icon = voce.icon
 
         return (
           <button
@@ -109,8 +99,10 @@ export function PianificaHub({ viaggioId }: PianificaHubProps) {
               }
             `}
           >
-            <div className="w-11 h-11 rounded-xl bg-roamly-g6 flex items-center justify-center shrink-0 text-roamly-g2">
-              <Icon size={20} />
+            <div className="w-11 h-11 rounded-xl bg-roamly-g6 flex items-center justify-center shrink-0">
+              <span className="font-dm-mono text-[11px] font-medium tracking-wide text-roamly-g1">
+                {voce.tag}
+              </span>
             </div>
 
             <div className="flex-1 min-w-0">

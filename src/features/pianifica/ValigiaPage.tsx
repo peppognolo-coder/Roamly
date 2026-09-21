@@ -28,7 +28,7 @@ export function ValigiaPage() {
       <div className="flex flex-col min-h-screen">
         <PageHeader
           title="Valigia"
-          subtitle={viaggio?.nome}
+          eyebrow={viaggio?.nome}
           variant="withBack"
         />
 

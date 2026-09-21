@@ -46,9 +46,9 @@ export function BudgetPage() {
     <PageLayout>
       <AnimatedPage>
       <div className="flex flex-col min-h-screen">
-        <PageHeader title="Budget" subtitle={viaggio?.nome} variant="withBack" />
+        <PageHeader title="Budget" eyebrow={viaggio?.nome} variant="withBack" />
 
-        <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
+        <div className="flex-1 px-5 pb-28 flex flex-col gap-5">
 
           {isLoading ? (
             <div className="h-32 bg-white rounded-2xl shadow-roamly animate-pulse" />
@@ -62,23 +62,6 @@ export function BudgetPage() {
               </p>
             </div>
           )}
-
-          {/* Aggiungi spesa */}
-          <button
-            onClick={() => navigate(`/viaggi/${viaggioId}/budget/nuova`)}
-            className="
-              flex items-center justify-center gap-2 p-3.5
-              bg-roamly-g0 rounded-2xl
-              hover:opacity-90 active:scale-[0.98]
-              transition-all duration-150
-              focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
-            "
-          >
-            <Plus size={16} className="text-white" />
-            <span className="font-dm-sans text-sm font-semibold text-white">
-              Aggiungi spesa
-            </span>
-          </button>
 
           {/* Ogni spesa */}
           <div className="flex flex-col gap-2">
@@ -122,8 +105,8 @@ export function BudgetPage() {
                       focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
                     "
                   >
-                    <div className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center shrink-0">
-                      <span className="font-dm-mono text-[10px] font-semibold tracking-wide text-roamly-g2">
+                    <div className="w-9 h-9 rounded-xl bg-roamly-g7 flex items-center justify-center shrink-0">
+                      <span className="font-dm-mono text-[10px] font-semibold tracking-wide text-roamly-g1">
                         {BADGE_CATEGORIA[v.categoria]}
                       </span>
                     </div>
@@ -149,6 +132,26 @@ export function BudgetPage() {
           </div>
 
         </div>
+      </div>
+
+      {/* Aggiungi spesa — CTA fissa in fondo, come nel mockup */}
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-mobile px-5 pt-3 pb-6 bg-gradient-to-t from-roamly-bg via-roamly-bg to-transparent">
+        <button
+          onClick={() => navigate(`/viaggi/${viaggioId}/budget/nuova`)}
+          className="
+            w-full flex items-center justify-center gap-2 h-[50px]
+            bg-roamly-coral rounded-full
+            shadow-[0_8px_24px_-6px_rgba(229,86,58,0.5)]
+            hover:bg-roamly-coral-dark active:scale-[0.98]
+            transition-all duration-150
+            focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-coral-dark
+          "
+        >
+          <Plus size={16} className="text-white" />
+          <span className="font-dm-sans text-sm font-semibold text-white">
+            Aggiungi spesa
+          </span>
+        </button>
       </div>
       </AnimatedPage>
     </PageLayout>

@@ -170,6 +170,15 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
   const { data: tappe = [] }        = useTappe(viaggio.id, abilitato)
   const blocchiSuggerimenti = costruisciBlocchiSuggerimenti(viaggio, prenotazioni, tappe)
 
+  // Blocchi ancora "attivi" — con almeno una voce non già in valigia.
+  // Mostrati SEMPRE (non solo a valigia vuota, come prima): sono legati
+  // al periodo/luogo/prenotazioni del viaggio, non allo stato della
+  // checklist, e devono restare visibili anche dopo il primo item aggiunto.
+  const testiEsistentiLower = new Set(testiEsistenti.map((t) => t.toLowerCase()))
+  const blocchiSuggerimentiAttivi = blocchiSuggerimenti
+    .map((b) => ({ ...b, items: b.items.filter((i) => !testiEsistentiLower.has(i.testo.toLowerCase())) }))
+    .filter((b) => b.items.length > 0)
+
   return (
     <div className="flex flex-col gap-0">
 
@@ -274,6 +283,48 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                 </div>
               )}
 
+              {/* Suggerimenti intelligenti — SEMPRE visibili quando c'è
+                  qualcosa da suggerire, non solo a valigia vuota: seguono
+                  il periodo/luogo/prenotazioni del viaggio, non lo stato
+                  della checklist. Ogni voce sparisce dal blocco appena
+                  viene aggiunta (vedi blocchiSuggerimentiAttivi sopra). */}
+              {!isLoadingChecklist && blocchiSuggerimentiAttivi.length > 0 && (
+                <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-roamly-g7 border border-roamly-g6">
+                  <p className="font-dm-mono text-[9.5px] font-medium tracking-wider uppercase text-roamly-text/35">
+                    I suggerimenti seguono il viaggio
+                  </p>
+                  {blocchiSuggerimentiAttivi.map((blocco) => {
+                    const BloccoIcon = blocco.icon
+                    return (
+                      <button
+                        key={blocco.id}
+                        onClick={() => handleApplicaTemplate(blocco.items, blocco.id)}
+                        disabled={isBatchLoading}
+                        className="
+                          flex items-center gap-2.5 w-full py-3 px-3.5
+                          bg-white border-l-[3px] border-roamly-g4 rounded-xl
+                          hover:bg-roamly-g6/40 active:scale-[0.98]
+                          transition-all duration-150
+                          disabled:opacity-50
+                        "
+                      >
+                        <span className="w-8 h-8 rounded-lg bg-roamly-g6 flex items-center justify-center shrink-0 text-roamly-g1">
+                          <BloccoIcon size={15} />
+                        </span>
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="font-dm-sans text-xs font-semibold text-roamly-g0 truncate">
+                            {blocco.titolo}
+                          </p>
+                          <p className="font-dm-sans text-[11px] text-roamly-text/50 truncate">
+                            {blocco.sottotitolo} · {blocco.items.length} {blocco.items.length === 1 ? 'voce' : 'voci'}
+                          </p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+
               {/* Lista item */}
               {!isLoadingChecklist && hasItems && (
                 <>
@@ -338,54 +389,16 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                 </>
               )}
 
-              {/* Empty state + template tematici */}
+              {/* Empty state + template tematici — i blocchi di
+                  suggerimenti intelligenti sono già mostrati sopra
+                  (sempre visibili, non solo qui) */}
               {!isLoadingChecklist && !hasItems && (
                 <div className="flex flex-col items-center gap-3 py-4 text-center">
                   <p className="font-dm-sans text-sm text-roamly-text/40">
-                    La checklist è vuota. Parti da un template:
+                    {blocchiSuggerimentiAttivi.length > 0
+                      ? 'Oppure parti da un tipo di viaggio:'
+                      : 'La checklist è vuota. Parti da un template:'}
                   </p>
-
-                  {/* Blocchi di suggerimenti intelligenti — evidenziati,
-                      ognuno spiega esplicitamente il "perché" (stagione+
-                      luogo / prenotazioni / itinerario), nessuna scelta
-                      manuale richiesta come per i 4 template sotto */}
-                  {blocchiSuggerimenti.length > 0 && (
-                    <div className="flex flex-col gap-2 w-full">
-                      {blocchiSuggerimenti.map((blocco) => {
-                        const BloccoIcon = blocco.icon
-                        return (
-                          <button
-                            key={blocco.id}
-                            onClick={() => handleApplicaTemplate(blocco.items, blocco.id)}
-                            disabled={isBatchLoading}
-                            className="
-                              flex items-center gap-2.5 w-full py-3 px-4
-                              bg-roamly-coral/10 border border-roamly-coral/30 rounded-xl
-                              hover:bg-roamly-coral/15 active:scale-[0.98]
-                              transition-all duration-150
-                              disabled:opacity-50
-                            "
-                          >
-                            <BloccoIcon size={18} className="text-roamly-coral shrink-0" />
-                            <div className="flex-1 text-left">
-                              <p className="font-dm-sans text-xs font-semibold text-roamly-g0">
-                                {blocco.titolo}
-                              </p>
-                              <p className="font-dm-sans text-[11px] text-roamly-text/50">
-                                {blocco.sottotitolo} · {blocco.items.length} voci
-                              </p>
-                            </div>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  {blocchiSuggerimenti.length > 0 && (
-                    <p className="font-dm-sans text-[11px] text-roamly-text/35 mt-1">
-                      Oppure parti da un tipo di viaggio:
-                    </p>
-                  )}
 
                   <div className="grid grid-cols-2 gap-2 w-full">
                     {VALIGIA_TEMPLATES.map((template) => {

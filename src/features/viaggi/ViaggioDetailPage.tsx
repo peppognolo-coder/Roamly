@@ -1,8 +1,7 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Crown } from 'lucide-react'
+import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { AvatarStack } from '@/components/ui/AvatarStack'
 import { PageLayout }       from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -10,18 +9,19 @@ import { BottomNav }        from '@/components/layout/BottomNav'
 import { Button }           from '@/components/ui/Button'
 import { StatoBadge }       from './StatoBadge'
 import { ViaggioForm }      from './ViaggioForm'
-import { formatDataViaggio, calcolaPercentualeTrascorsa } from '@/lib/viaggi-utils'
+import { formatDataViaggio, calcolaPercentualeTrascorsa, calcolaDurataViaggio } from '@/lib/viaggi-utils'
 import { useViaggio, useStatisticheViaggio } from '@/hooks/useViaggi'
 import { useUpdateViaggio, useDeleteViaggio } from '@/hooks/useCrudViaggio'
 import { useMioRuolo, useMembriViaggio } from '@/hooks/useMembri'
 import { useInvitoLink }    from '@/hooks/useInviti'
 import { useRealtimeSync }  from '@/hooks/useRealtimeSync'
-import { useBudgetVoci }    from '@/hooks/useBudget'
+import { useAuth }          from '@/hooks/useAuth'
+import { useBudgetVoci, useBudgetPagamenti } from '@/hooks/useBudget'
+import { calcolaSaldi, calcolaGiroConti } from '@/lib/budget-utils'
 import { queryKeys }        from '@/lib/queryKeys'
 import { coloreIniziale }   from '@/lib/avatar-utils'
 import { RicordoCard }           from '@/features/momenti/RicordoCard'
 import { PianificaHub }          from '@/features/pianifica/PianificaHub'
-import { SettleUpCard }          from '@/features/pianifica/SettleUpCard'
 import { ShareCardViaggio }      from './ShareCardViaggio'
 import { useRicordi }       from '@/hooks/useRicordi'
 import { useCoversByViaggio, useCoverViaggio, useFotoCountByViaggio } from '@/hooks/useFoto'
@@ -29,11 +29,11 @@ import type { ViaggioFormData } from './ViaggioForm'
 
 // ============================================================
 // ViaggioDetailPage — /viaggi/:id
-// Header viaggio · Statistiche inline nell'hero (% giorni trascorsi,
-// spesi, ricordi) · 3 tab: Pianifica / Ricordi / Persone (il Racconto
-// immersivo non è più un tab — si raggiunge dalla card di recap a
-// fine viaggio, vedi RecapViaggioPage → RaccontoPage).
-// Modifica inline · Eliminazione con conferma.
+// Hero scuro (foto copertina o gradiente) con statistiche inline
+// (% giorni trascorsi, spesi, ricordi) · 3 tab: Pianifica / Ricordi /
+// Persone (il Racconto immersivo non è più un tab — si raggiunge
+// dalla card di recap a fine viaggio, vedi RecapViaggioPage →
+// RaccontoPage). Modifica inline · Eliminazione con conferma.
 // ============================================================
 
 const formatEuro = (n: number) =>
@@ -66,6 +66,8 @@ export function ViaggioDetailPage() {
   const { deleteViaggio, isLoading: isDeleting, error: deleteError } = useDeleteViaggio()
   const { data: mioRuolo } = useMioRuolo(id)
   const { data: membri = [] } = useMembriViaggio(id)
+  const { data: pagamenti = [] } = useBudgetPagamenti(id)
+  const { user } = useAuth()
   const { condividi: condividiInvito, isLoading: isInvitando } = useInvitoLink(id ?? '', viaggio?.nome ?? '')
 
   useRealtimeSync('viaggi', 'id', id, [queryKeys.viaggi.detail(id ?? '')])
@@ -138,11 +140,12 @@ export function ViaggioDetailPage() {
     if (id) deleteViaggio(id)
   }
 
-  const coverValue      = viaggio.cover_emoji
   const dataFormattata = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
+  const durataGiorni   = calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const totFoto        = fotoCount ? Array.from(fotoCount.values()).reduce((a, b) => a + b, 0) : 0
   const totaleSpese    = voci.reduce((sum, v) => sum + v.importo, 0)
   const percentualeTrascorsa = calcolaPercentualeTrascorsa(viaggio.data_inizio, viaggio.data_fine)
+  const condiviso       = membri.length > 1
 
   // Stat inline nell'hero — % giorni trascorsi (solo se il viaggio ha
   // entrambe le date), spesi totale, numero ricordi.
@@ -150,9 +153,20 @@ export function ViaggioDetailPage() {
     ...(percentualeTrascorsa !== null
       ? [{ valore: `${percentualeTrascorsa}%`, etichetta: 'del viaggio' }]
       : []),
-    { valore: formatEuro(totaleSpese), etichetta: 'spesi' },
+    { valore: formatEuro(totaleSpese), etichetta: condiviso ? `spesi in ${membri.length}` : 'spesi' },
     { valore: String(stats?.ricordi ?? 0), etichetta: (stats?.ricordi ?? 0) === 1 ? 'ricordo' : 'ricordi' },
   ]
+
+  // Riepilogo debiti per il tab Persone — un'unica riga come nel
+  // mockup ("Ilaria è in debito di € 186 · Due giri e siete pari"),
+  // non l'intera card Bilanci (quella resta nel Budget).
+  const saldiPersone = condiviso
+    ? calcolaSaldi(voci, pagamenti, membri.map((m) => ({ userId: m.user_id, nome: m.display_name ?? 'Utente' })))
+    : []
+  const giroContiPersone = condiviso ? calcolaGiroConti(saldiPersone) : []
+  const maggiorDebitore = saldiPersone
+    .filter((s) => s.saldo < -0.01)
+    .sort((a, b) => a.saldo - b.saldo)[0]
 
   return (
     <PageLayout>
@@ -267,72 +281,57 @@ export function ViaggioDetailPage() {
             </button>
           </div>
 
-          {/* Hero viaggio */}
-          <div className="flex items-start gap-4">
-            {/* Hero icon: foto cover del viaggio se disponibile, altrimenti emoji */}
-            <div className="
-              w-16 h-16 rounded-2xl bg-roamly-g7
-              shadow-roamly
-              flex items-center justify-center
-              text-3xl shrink-0 overflow-hidden relative
-            ">
-              {coverViaggio ? (
-                <>
-                  <img
-                    src={coverViaggio}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Icona copertina sovrapposta in basso a sinistra */}
-                  <div className="
-                    absolute bottom-0.5 right-0.5
-                    w-6 h-6 rounded-full
-                    bg-black/40 backdrop-blur-sm
-                    flex items-center justify-center
-                    text-white
-                  ">
-                    <ViaggioCoverIcon value={coverValue} size={13} />
-                  </div>
-                </>
-              ) : (
-                <span className="text-roamly-g3">
-                  <ViaggioCoverIcon value={coverValue} size={28} />
-                </span>
-              )}
+          {/* Destinazione + stato — sopra l'hero, non dentro (testo bianco
+              su sfondo scuro sarebbe illeggibile per lo StatoBadge chiaro) */}
+          {(viaggio.destinazione || viaggio.paese) && (
+            <div className="flex items-center gap-2 mb-2">
+              <p className="font-dm-sans text-sm text-roamly-text/50">
+                {[viaggio.destinazione, viaggio.paese].filter(Boolean).join(', ')}
+              </p>
+              <StatoBadge stato={viaggio.stato_effettivo} size="sm" />
             </div>
-            <div className="flex-1 min-w-0 pt-1">
-              <h1 className="font-lora text-h1 text-roamly-g0 leading-tight">
-                {viaggio.nome}
-              </h1>
-              {(viaggio.destinazione || viaggio.paese) && (
-                <p className="font-dm-sans text-sm text-roamly-text/50 mt-0.5">
-                  {[viaggio.destinazione, viaggio.paese].filter(Boolean).join(', ')}
-                </p>
+          )}
+
+          {/* Hero viaggio — card scura (foto copertina se disponibile,
+              altrimenti gradiente) con nome, date e statistiche inline,
+              come nel mockup. */}
+          <div className="rounded-[20px] overflow-hidden bg-roamly-g0">
+            <div
+              className="relative h-[118px]"
+              style={!coverViaggio ? { background: 'linear-gradient(150deg, #123F58, #0B6F99 60%, #5FB8D9)' } : undefined}
+            >
+              {coverViaggio && (
+                <img src={coverViaggio} alt="" className="absolute inset-0 w-full h-full object-cover" />
               )}
-              <div className="flex items-center gap-2 mt-2">
-                <StatoBadge stato={viaggio.stato_effettivo} size="md" />
-                <span className="font-dm-mono text-xs text-roamly-text/35">
-                  {dataFormattata}
-                </span>
+              <div
+                className={`absolute inset-0 ${coverViaggio ? 'bg-gradient-to-t from-roamly-g0 via-roamly-g0/30 to-transparent' : ''}`}
+                style={!coverViaggio ? { backgroundImage: 'repeating-linear-gradient(115deg, rgba(255,255,255,.07) 0 2px, transparent 2px 11px)' } : undefined}
+              />
+              <div className="absolute left-4 bottom-3 right-4">
+                <p className="font-lora text-xl font-semibold text-white leading-tight truncate">
+                  {viaggio.nome}
+                </p>
+                <p className="font-dm-mono text-[10.5px] text-white/55 mt-1">
+                  {[
+                    dataFormattata,
+                    durataGiorni ? `${durataGiorni} ${durataGiorni === 1 ? 'giorno' : 'giorni'}` : null,
+                    membri.length > 0 ? `${membri.length} ${membri.length === 1 ? 'persona' : 'persone'}` : null,
+                  ].filter(Boolean).join(' · ')}
+                </p>
               </div>
             </div>
-          </div>
-
-          {/* Stat inline — % giorni trascorsi · spesi · ricordi */}
-          <div className="flex items-center mt-4 pt-3.5 border-t border-roamly-g6">
-            {heroStats.map((s, i) => (
-              <div key={i} className="flex items-center flex-1">
-                {i > 0 && <div className="w-px h-8 bg-roamly-g6 mr-4" />}
-                <div>
-                  <p className="font-dm-mono text-sm font-semibold text-roamly-g0">
+            <div className="grid grid-cols-3 gap-2 px-4 py-3.5">
+              {heroStats.map((s, i) => (
+                <div key={i}>
+                  <p className="font-dm-mono text-base font-medium text-white">
                     {s.valore}
                   </p>
-                  <p className="font-dm-sans text-[11px] text-roamly-text/40">
+                  <p className="font-dm-sans text-[10px] text-white/50 mt-1 truncate">
                     {s.etichetta}
                   </p>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </header>
 
@@ -421,35 +420,35 @@ export function ViaggioDetailPage() {
           {/* Tab Pianifica / Ricordi / Persone */}
           <div className="flex flex-col gap-4">
 
-            {/* Tab bar */}
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1 bg-roamly-g7 rounded-xl p-1">
-                {(['pianifica', 'ricordi', 'persone'] as const).map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setTab(t)}
-                    className={`
-                      px-4 py-1.5 rounded-lg
-                      font-dm-sans text-sm font-medium
-                      transition-all duration-150
-                      ${tab === t
-                        ? 'bg-white text-roamly-g0 shadow-sm'
-                        : 'text-roamly-text/50 hover:text-roamly-text/70'
-                      }
-                    `}
-                  >
-                    {t === 'pianifica' ? 'Pianifica' : t === 'ricordi' ? 'Ricordi' : 'Persone'}
-                  </button>
-                ))}
-              </div>
-              {tab === 'ricordi' && (
+            {/* Tab bar — segmenti equi con bordo, come nel mockup */}
+            <div className="flex gap-1.5">
+              {(['pianifica', 'ricordi', 'persone'] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`
+                    flex-1 h-[38px] rounded-xl border
+                    font-dm-sans text-[12.5px] font-medium
+                    transition-all duration-150
+                    ${tab === t
+                      ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                      : 'bg-white border-roamly-g5 text-roamly-g1 hover:border-roamly-g4'
+                    }
+                  `}
+                >
+                  {t === 'pianifica' ? 'Pianifica' : t === 'ricordi' ? 'Ricordi' : 'Persone'}
+                </button>
+              ))}
+            </div>
+
+            {tab === 'ricordi' && (
               <button
                 onClick={() => navigate(`/nuovo-ricordo?viaggioId=${id}`)}
                 className="
-                  flex items-center gap-1 px-3 py-1.5
-                  bg-roamly-g0 rounded-xl
-                  font-dm-sans text-xs font-medium text-white
-                  hover:bg-roamly-g1 active:scale-[0.98]
+                  flex items-center justify-center gap-1.5 h-[38px]
+                  border border-dashed border-roamly-g5 rounded-xl
+                  font-dm-sans text-xs font-medium text-roamly-g1
+                  hover:bg-roamly-g7 active:scale-[0.98]
                   transition-all duration-150
                 "
               >
@@ -458,10 +457,9 @@ export function ViaggioDetailPage() {
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                Aggiungi
+                Scrivi un ricordo
               </button>
-              )}
-            </div>
+            )}
 
             {/* Tab Pianifica */}
             {tab === 'pianifica' && (
@@ -516,58 +514,102 @@ export function ViaggioDetailPage() {
               )
             )}
 
-            {/* Tab Persone */}
+            {/* Tab Persone — riepilogo, come nel mockup: chi c'è (→ Membri)
+                e un'unica riga sul debito residuo (→ Budget), non l'intera
+                card Bilanci (quella resta nel dettaglio Budget). */}
             {tab === 'persone' && (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  {membri.map((m) => {
-                    const nome = m.display_name ?? 'Utente Roamly'
-                    return (
-                      <div
-                        key={m.id}
-                        className="flex items-center gap-3 p-3.5 bg-white rounded-2xl shadow-roamly"
-                      >
-                        {m.avatar_url ? (
-                          <img src={m.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
-                        ) : (
-                          <span
-                            className="w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-dm-sans font-semibold text-white text-sm"
-                            style={{ background: coloreIniziale(nome) }}
-                          >
-                            {iniziali(m.display_name)}
-                          </span>
-                        )}
-                        <p className="flex-1 min-w-0 font-dm-sans text-sm font-medium text-roamly-g0 truncate">
-                          {nome}
-                        </p>
-                        {m.ruolo === 'proprietario' && (
-                          <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-roamly-g6 shrink-0">
-                            <Crown size={11} className="text-roamly-g2" />
-                            <span className="font-dm-sans text-[10px] font-medium text-roamly-g2">
-                              Proprietario
-                            </span>
-                          </span>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-
+              <div className="flex flex-col gap-2.5">
                 <button
                   onClick={() => navigate(`/viaggi/${id}/membri`)}
                   className="
-                    flex items-center justify-center gap-1.5 py-3
-                    border border-dashed border-roamly-g5 rounded-2xl
-                    font-dm-sans text-sm font-medium text-roamly-g2
-                    hover:bg-roamly-g7 active:scale-[0.98]
+                    flex items-center gap-3.5 p-4
+                    bg-white rounded-2xl shadow-roamly
+                    text-left w-full
+                    active:scale-[0.98] hover:shadow-roamly-lg
                     transition-all duration-150
+                    focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
                   "
                 >
-                  <UserPlus size={15} />
-                  Gestisci membri e inviti
+                  <div className="flex -space-x-2.5 shrink-0">
+                    {membri.slice(0, 3).map((m) => {
+                      const nome = m.display_name ?? 'Utente'
+                      return m.avatar_url ? (
+                        <img
+                          key={m.user_id}
+                          src={m.avatar_url}
+                          alt=""
+                          className="w-9 h-9 rounded-full object-cover ring-2 ring-white"
+                        />
+                      ) : (
+                        <span
+                          key={m.user_id}
+                          className="w-9 h-9 rounded-full ring-2 ring-white flex items-center justify-center font-lora text-xs font-semibold text-white"
+                          style={{ background: coloreIniziale(nome) }}
+                        >
+                          {iniziali(m.display_name)}
+                        </span>
+                      )
+                    })}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-dm-sans text-sm font-semibold text-roamly-g0">
+                      {membri.length === 1 ? 'Solo tu nel viaggio' : `${membri.length} persone nel viaggio`}
+                    </p>
+                    <p className="font-dm-sans text-xs text-roamly-text/45 truncate mt-0.5">
+                      {membri.map((m) => (m.user_id === user?.id ? 'Tu' : (m.display_name ?? 'Utente'))).join(', ')}
+                    </p>
+                  </div>
+                  <ChevronRight size={18} className="text-roamly-text/25 shrink-0" />
                 </button>
 
-                <SettleUpCard viaggioId={id ?? ''} />
+                {mioRuolo === 'proprietario' && (
+                  <button
+                    onClick={condividiInvito}
+                    disabled={isInvitando}
+                    className="
+                      flex items-center justify-center gap-1.5 py-3
+                      border border-dashed border-roamly-g5 rounded-2xl
+                      font-dm-sans text-sm font-medium text-roamly-g2
+                      hover:bg-roamly-g7 active:scale-[0.98]
+                      transition-all duration-150
+                      disabled:opacity-50
+                    "
+                  >
+                    <UserPlus size={15} />
+                    Invita chi manca
+                  </button>
+                )}
+
+                {/* Riepilogo debito — solo se il viaggio è condiviso */}
+                {condiviso && totaleSpese > 0 && (
+                  <button
+                    onClick={() => navigate(`/viaggi/${id}/budget`)}
+                    className="
+                      flex items-center gap-3.5 p-4
+                      bg-roamly-g0 rounded-2xl
+                      text-left w-full
+                      active:scale-[0.98] transition-all duration-150
+                    "
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-dm-sans text-sm font-semibold text-white">
+                        {maggiorDebitore
+                          ? `${maggiorDebitore.userId === user?.id ? 'Sei' : `${maggiorDebitore.nome} è`} in debito di ${formatEuro(Math.abs(maggiorDebitore.saldo))}`
+                          : 'Siete in pari'}
+                      </p>
+                      <p className="font-dm-sans text-xs text-white/55 mt-0.5">
+                        {giroContiPersone.length > 0
+                          ? `${giroContiPersone.length} ${giroContiPersone.length === 1 ? 'trasferimento' : 'trasferimenti'} e siete pari`
+                          : 'Nessun trasferimento da fare'}
+                      </p>
+                    </div>
+                    {giroContiPersone.length > 0 && (
+                      <span className="font-dm-sans text-xs font-medium text-roamly-g5 shrink-0">
+                        Salda
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </div>

@@ -49,7 +49,7 @@ export function NoteViaggioPage() {
     <PageLayout>
       <AnimatedPage>
       <div className="flex flex-col min-h-screen">
-        <PageHeader title="Note di viaggio" subtitle={viaggio?.nome} variant="withBack" />
+        <PageHeader title="Note di viaggio" eyebrow={viaggio?.nome} variant="withBack" />
 
         <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
 
