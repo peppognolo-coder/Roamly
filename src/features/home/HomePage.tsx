@@ -8,12 +8,14 @@ import { ViaggioAttivoCard } from './ViaggioAttivoCard'
 import { PromptViaggioImminenteCard } from './PromptViaggioImminenteCard'
 import { UltimiRicordiSection } from './UltimiRicordiSection'
 import { QuickStatsSection }  from './QuickStatsSection'
+import { OggiCard }          from './OggiCard'
 import { RicordoDelGiornoCard, RicordoDelGiornoCardSkeleton } from '@/components/ricordi/RicordoDelGiornoCard'
 import { useViaggioAttivo }  from '@/hooks/useViaggi'
 import { useRicordiRecenti, useStatisticheUtente } from '@/hooks/useRicordi'
 import { useRicordoDelGiorno } from '@/hooks/useRicordoDelGiorno'
 import { useProfilo }        from '@/hooks/useProfilo'
 import { useNotifiche }      from '@/hooks/useNotifiche'
+import { useTappe }          from '@/hooks/useTappe'
 import { useNavigate }       from 'react-router-dom'
 
 // ============================================================
@@ -56,6 +58,10 @@ export function HomePage() {
   const { data: statistiche, isLoading: isLoadingStats }        = useStatisticheUtente()
   const { data: ricordoDelGiorno, isLoading: isLoadingB45 }     = useRicordoDelGiorno()
   const { nonLette }                                             = useNotifiche()
+
+  // Tappe di oggi — solo per un viaggio davvero in corso, non pianificato
+  const vaCercataOggi = viaggioAttivo?.stato_effettivo === 'in_corso'
+  const { data: tappeViaggioAttivo } = useTappe(viaggioAttivo?.id, vaCercataOggi)
 
   const nomeUtente = profilo?.display_name?.split(' ')[0] ?? null
   const isLoadingGlobale = isLoadingViaggio && isLoadingRicordi
@@ -168,6 +174,17 @@ export function HomePage() {
                 isLoading={isLoadingViaggio}
               />
             </motion.div>
+
+            {/* Tappe di oggi — solo viaggio in corso, e solo se ce ne sono */}
+            {vaCercataOggi && viaggioAttivo && tappeViaggioAttivo && tappeViaggioAttivo.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.08 }}
+              >
+                <OggiCard viaggioId={viaggioAttivo.id} tappe={tappeViaggioAttivo} />
+              </motion.div>
+            )}
 
             {/* B45 — Ricordo del Giorno */}
             {mostraB45 && (
