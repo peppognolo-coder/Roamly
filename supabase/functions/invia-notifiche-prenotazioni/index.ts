@@ -10,7 +10,11 @@
 //   2. Per ogni membro del viaggio con notifiche attive e un
 //      dispositivo registrato, manda una notifica push
 //   3. Segna l'invio in notifiche_inviate per non ripeterlo
-//   4. Se una subscription risulta scaduta (410/404), la rimuove
+//   4. Scrive anche una riga in `notifiche` (il feed visibile in
+//      app) — così il promemoria resta consultabile anche senza
+//      aver ricevuto/aperto la push. Vedi
+//      supabase-migration-notifiche-feed.sql.
+//   5. Se una subscription risulta scaduta (410/404), la rimuove
 //
 // Variabili d'ambiente richieste:
 //   SUPABASE_URL, SUPABASE_SECRET_KEYS  → già disponibili
@@ -57,6 +61,7 @@ interface RigaDaNotificare {
   nome: string
   tipo: string
   data: string
+  viaggio_id: string
   user_id: string
   endpoint: string
   p256dh: string
@@ -144,6 +149,16 @@ Deno.serve(async (req) => {
       await supabase.from('notifiche_inviate').insert({
         prenotazione_id: riga.prenotazione_id,
         user_id: riga.user_id,
+      })
+
+      // Riga nel feed in-app (notifiche) — oltre alla push, che può
+      // non arrivare o non essere aperta. service_role key: scavalca RLS.
+      await supabase.from('notifiche').insert({
+        user_id: riga.user_id,
+        tipo: 'prenotazione',
+        titolo: title,
+        testo: body,
+        link: `/viaggi/${riga.viaggio_id}/prenotazioni`,
       })
     } catch (err) {
       const statusCode = (err as { statusCode?: number }).statusCode
