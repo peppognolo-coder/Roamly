@@ -487,3 +487,23 @@ export interface InvitoViaggio {
   scade_il: string
   created_at: string
 }
+
+// ------------------------------------------------------------
+// NOTIFICHE (feed)
+// Diversa da `notifiche_inviate` (log tecnico anti-doppione) e da
+// `push_subscriptions` (dispositivi registrati) — questa è la lista
+// che l'utente vede in app, in /profilo/feed.
+// ------------------------------------------------------------
+
+export type TipoNotifica = 'prenotazione' | 'nuovo_membro'
+
+export interface Notifica {
+  id: string
+  user_id: string
+  tipo: TipoNotifica
+  titolo: string
+  testo: string
+  link: string | null
+  letta: boolean
+  created_at: string
+}
