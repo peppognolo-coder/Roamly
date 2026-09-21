@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { router } from '@/app/router'
+import { useBannerOffset } from '@/contexts/BannerOffsetContext'
 
 // ============================================================
 // OfflineBanner — banner di stato connettività
@@ -20,8 +22,18 @@ import { router } from '@/app/router'
 // (usePendingInviteHandler) per lo stesso motivo.
 // ============================================================
 
+// Altezza approssimativa del banner (pillola su una riga) + il suo
+// offset da terra (80px) — vedi BannerOffsetContext.
+const ALTEZZA_RISERVATA = 64
+
 export function OfflineBanner() {
   const { isOffline } = useOnlineStatus()
+  const { setExtraOffset } = useBannerOffset()
+
+  useEffect(() => {
+    setExtraOffset(isOffline ? ALTEZZA_RISERVATA : 0)
+    return () => setExtraOffset(0)
+  }, [isOffline, setExtraOffset])
 
   return (
     <AnimatePresence>
