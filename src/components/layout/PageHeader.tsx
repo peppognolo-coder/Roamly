@@ -44,14 +44,15 @@ export function PageHeader({
             onClick={handleBack}
             aria-label="Indietro"
             className="
-              shrink-0 w-9 h-9 -ml-1.5 rounded-full
+              shrink-0 w-9 h-9 rounded-full
               flex items-center justify-center
-              text-roamly-text/60 hover:bg-roamly-g6 hover:text-roamly-g1
+              bg-roamly-g7 text-roamly-g1
+              hover:bg-roamly-g6
               transition-colors duration-150
               focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
             "
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </button>
         )}
 

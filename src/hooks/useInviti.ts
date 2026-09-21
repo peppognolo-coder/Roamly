@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
@@ -57,6 +57,59 @@ export function useInvitoLink(viaggioId: string, nomeViaggio: string) {
   }
 
   return { condividi, isLoading }
+}
+
+// ------------------------------------------------------------
+// useInvitoCard — link di invito mostrato per intero (card
+// "Invita chi manca" nella pagina Membri), non solo condiviso via
+// share sheet. Genera un invito se non ce n'è ancora uno attivo.
+// ------------------------------------------------------------
+
+export function useInvitoCard(viaggioId: string) {
+  const { user } = useAuth()
+  const { showError } = useToast()
+  const [url, setUrl] = useState<string | null>(null)
+  const [copiato, setCopiato] = useState(false)
+
+  const { data: invitoAttivo, isLoading } = useQuery({
+    queryKey: queryKeys.inviti.attivo(viaggioId),
+    queryFn: () => getInvitoAttivo(viaggioId),
+    select: (result) => result.data,
+    enabled: !!viaggioId && !!user,
+  })
+
+  useEffect(() => {
+    let cancellato = false
+
+    async function assicuraInvito() {
+      if (invitoAttivo) {
+        setUrl(`${window.location.origin}/invito/${invitoAttivo.token}`)
+        return
+      }
+      if (isLoading || !user) return
+
+      const { data, error } = await createInvito(user.id, viaggioId)
+      if (cancellato) return
+      if (error || !data) {
+        showError('Impossibile generare il link di invito. Riprova.')
+        return
+      }
+      setUrl(`${window.location.origin}/invito/${data.token}`)
+    }
+
+    assicuraInvito()
+    return () => { cancellato = true }
+  }, [invitoAttivo, isLoading, user, viaggioId, showError])
+
+  function copia() {
+    if (!url) return
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiato(true)
+      setTimeout(() => setCopiato(false), 2000)
+    })
+  }
+
+  return { url, copia, copiato, isLoading: isLoading || !url }
 }
 
 // ------------------------------------------------------------
