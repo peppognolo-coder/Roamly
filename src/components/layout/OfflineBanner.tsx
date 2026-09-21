@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
+import { router } from '@/app/router'
 
 // ============================================================
 // OfflineBanner — banner di stato connettività
@@ -9,11 +9,19 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 // — è informazione contestuale, non notifica. Tap → /offline,
 // il dettaglio della schermata "Senza rete" del mockup.
 // Posizionato sopra la BottomNav (bottom-[80px]).
+//
+// Naviga con router.navigate() (imperativo) e NON con l'hook
+// useNavigate(): questo componente vive in App.tsx come fratello
+// di <RouterProvider>, non come suo discendente — useNavigate()
+// lì dentro lancia subito un errore ("may be used only in the
+// context of a <Router> component"), e siccome il banner è
+// sempre montato, mandava in crash l'app a ogni apertura, non
+// solo da offline. Stesso pattern già usato altrove in App.tsx
+// (usePendingInviteHandler) per lo stesso motivo.
 // ============================================================
 
 export function OfflineBanner() {
   const { isOffline } = useOnlineStatus()
-  const navigate = useNavigate()
 
   return (
     <AnimatePresence>
@@ -31,7 +39,7 @@ export function OfflineBanner() {
           "
         >
           <button
-            onClick={() => navigate('/offline')}
+            onClick={() => router.navigate('/offline')}
             className="
               mx-4 max-w-[390px] w-full
               flex items-center gap-2.5
