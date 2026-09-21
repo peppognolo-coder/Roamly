@@ -11,7 +11,9 @@ import { ChecklistSection } from './ChecklistSection'
 // ValigiaPage — /viaggi/:id/valigia
 // Wrapper sottile: riusa ChecklistSection già esistente,
 // ora agganciata al viaggio specifico invece che al "prossimo
-// viaggio" globale di PianificaPage.
+// viaggio" globale di PianificaPage. variante="pagina": niente
+// accordion da aprire (pagina dedicata a un solo viaggio),
+// checklist raggruppata per sezione (documenti/salute/...).
 // ============================================================
 
 export function ValigiaPage() {
@@ -34,7 +36,7 @@ export function ValigiaPage() {
           {isLoading ? (
             <div className="h-24 bg-white rounded-2xl shadow-roamly animate-pulse" />
           ) : viaggio ? (
-            <ChecklistSection viaggio={viaggio} />
+            <ChecklistSection viaggio={viaggio} variante="pagina" />
           ) : (
             <p className="font-dm-sans text-sm text-roamly-text/50 text-center py-8">
               Viaggio non trovato.

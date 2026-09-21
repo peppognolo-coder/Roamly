@@ -30,8 +30,23 @@ import {
 import { calcolaStatisticheChecklist, VALIGIA_TEMPLATES, VALIGIA_TEMPLATE_ICON, costruisciBlocchiSuggerimenti } from '@/lib/checklist-templates'
 import { usePrenotazioni } from '@/hooks/usePrenotazioni'
 import { useTappe } from '@/hooks/useTappe'
-import type { TemplateChecklistItem }  from '@/lib/checklist-templates'
-import type { ViaggioConStato }        from '@/types'
+import type { TemplateChecklistItem, CategoriaChecklist } from '@/lib/checklist-templates'
+import type { ViaggioConStato, ChecklistItem }        from '@/types'
+
+// Sezioni della valigia — ordine e titoli fissi. "varie" è anche il
+// fallback per gli item senza categoria (aggiunti a mano, o creati
+// prima dell'introduzione di questa colonna).
+const SEZIONI: { id: CategoriaChecklist | 'varie'; titolo: string }[] = [
+  { id: 'documenti',     titolo: 'Documenti' },
+  { id: 'salute',        titolo: 'Salute' },
+  { id: 'abbigliamento', titolo: 'Abbigliamento' },
+  { id: 'tech',          titolo: 'Tech' },
+  { id: 'varie',         titolo: 'Varie' },
+]
+
+function categoriaEffettiva(item: ChecklistItem): CategoriaChecklist | 'varie' {
+  return (item.categoria as CategoriaChecklist | null) ?? 'varie'
+}
 
 // ============================================================
 // ChecklistSection — accordion checklist per un singolo viaggio
@@ -43,16 +58,22 @@ import type { ViaggioConStato }        from '@/types'
 
 interface ChecklistSectionProps {
   viaggio: ViaggioConStato
+  /** 'accordion' (default): usato da PianificaPage — più viaggi in
+   *  elenco, si apre al tap. 'pagina': usato da ValigiaPage, pagina
+   *  dedicata a un solo viaggio — sempre aperta, niente header cliccabile. */
+  variante?: 'accordion' | 'pagina'
 }
 
-export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistSectionProps) {
+  const paginaDedicata = variante === 'pagina'
+  const [isExpanded, setIsExpanded] = useState(paginaDedicata)
   // Traccia se l'accordion è stato aperto almeno una volta
   // — una volta true, rimane true per tutta la sessione.
-  const [abilitato, setAbilitato]   = useState(false)
+  const [abilitato, setAbilitato]   = useState(paginaDedicata)
   const [showSuggerimenti, setShowSuggerimenti] = useState(false)
 
   function handleToggle() {
+    if (paginaDedicata) return // pagina dedicata: sempre aperta, niente collapse
     if (!abilitato) setAbilitato(true)   // prima apertura → abilita la query
     setIsExpanded((prev) => !prev)
   }
@@ -79,16 +100,26 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
     })
   )
 
+  // Il riordino resta confinato alla sezione dell'item trascinato —
+  // ogni sezione è un elenco a sé (vedi rendering). Riassegna
+  // esattamente gli stessi valori di `ordine` che la sezione occupava
+  // già, solo in sequenza diversa: non tocca l'ordine globale degli
+  // item delle altre sezioni, che restano intatti e interfogliati.
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (!over || active.id === over.id) return
 
-    const oldIndex = items.findIndex((i) => i.id === active.id)
-    const newIndex = items.findIndex((i) => i.id === over.id)
+    const trascinato = items.find((i) => i.id === active.id)
+    if (!trascinato) return
+    const sezione = items.filter((i) => categoriaEffettiva(i) === categoriaEffettiva(trascinato))
+
+    const oldIndex = sezione.findIndex((i) => i.id === active.id)
+    const newIndex = sezione.findIndex((i) => i.id === over.id)
     if (oldIndex === -1 || newIndex === -1) return
 
-    const riordinati = arrayMove(items, oldIndex, newIndex)
-    reorder(riordinati.map((item, i) => ({ id: item.id, ordine: i })))
+    const riordinati = arrayMove(sezione, oldIndex, newIndex)
+    const ordiniOriginali = sezione.map((i) => i.ordine).sort((a, b) => a - b)
+    reorder(riordinati.map((item, i) => ({ id: item.id, ordine: ordiniOriginali[i] })))
   }
 
   const stats = calcolaStatisticheChecklist(items)
@@ -111,18 +142,18 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
     createItem({ testo, ordine: nextOrdine.current++ })
   }
 
-  function handleBatch(scelti: TemplateChecklistItem[]) {
+  function handleBatch(scelti: TemplateChecklistItem[], fonte?: string) {
     const base = nextOrdine.current
     nextOrdine.current += scelti.length
     createBatch({
-      items:      scelti.map((i) => ({ testo: i.testo })),
+      items:      scelti.map((i) => ({ testo: i.testo, categoria: i.categoria, fonte })),
       ordineBase: base,
     })
     setShowSuggerimenti(false)
   }
 
-  function handleApplicaTemplate(items: TemplateChecklistItem[]) {
-    handleBatch(items)
+  function handleApplicaTemplate(items: TemplateChecklistItem[], fonte?: string) {
+    handleBatch(items, fonte)
   }
 
   const testiEsistenti = items.map((i) => i.testo)
@@ -142,7 +173,34 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
   return (
     <div className="flex flex-col gap-0">
 
-      {/* ── Header accordion ── */}
+      {/* Pagina dedicata (ValigiaPage): card di progresso al posto
+          dell'header-accordion — nome viaggio è già nel PageHeader. */}
+      {paginaDedicata && hasItems && (
+        <div className="p-4 rounded-2xl bg-white shadow-roamly mb-3.5">
+          <div className="flex items-end justify-between mb-2.5">
+            <p className="font-lora text-base font-semibold text-roamly-g0">
+              {stats.completati} di {stats.totale} in valigia
+            </p>
+            <span className="font-dm-mono text-sm font-medium text-roamly-g3">
+              {stats.percentuale}%
+            </span>
+          </div>
+          <div className="h-1.5 bg-roamly-g6 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-roamly-g3 rounded-full transition-all duration-300"
+              style={{ width: `${stats.percentuale}%` }}
+            />
+          </div>
+          <p className="mt-2.5 font-dm-sans text-xs text-roamly-text/45">
+            {stats.percentuale === 100
+              ? 'Tutto dentro. Puoi chiudere la valigia.'
+              : `Ancora ${stats.totale - stats.completati} da mettere in valigia.`}
+          </p>
+        </div>
+      )}
+
+      {/* ── Header accordion (solo variante 'accordion') ── */}
+      {!paginaDedicata && (
       <button
         onClick={handleToggle}
         className="
@@ -192,6 +250,7 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
           </svg>
         </motion.div>
       </button>
+      )}
 
       {/* ── Contenuto collassabile ── */}
       <AnimatePresence initial={false}>
@@ -218,41 +277,64 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
               {/* Lista item */}
               {!isLoadingChecklist && hasItems && (
                 <>
-                  {/* Barra progresso dettagliata */}
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-dm-sans text-xs text-roamly-text/50 flex items-center gap-1">
-                      {stats.percentuale === 100
-                        ? <><CheckCircle2 size={12} className="text-roamly-g3" /> Tutto pronto!</>
-                        : `${stats.completati} di ${stats.totale} completati`
-                      }
-                    </span>
-                    <span className="font-dm-mono text-xs font-medium text-roamly-g2">
-                      {stats.percentuale}%
-                    </span>
-                  </div>
+                  {/* Barra progresso dettagliata — non in pagina dedicata,
+                      dove c'è già la card di progresso sopra */}
+                  {!paginaDedicata && (
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="font-dm-sans text-xs text-roamly-text/50 flex items-center gap-1">
+                        {stats.percentuale === 100
+                          ? <><CheckCircle2 size={12} className="text-roamly-g3" /> Tutto pronto!</>
+                          : `${stats.completati} di ${stats.totale} completati`
+                        }
+                      </span>
+                      <span className="font-dm-mono text-xs font-medium text-roamly-g2">
+                        {stats.percentuale}%
+                      </span>
+                    </div>
+                  )}
 
-                  <div className="flex flex-col gap-1.5">
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={items.map((i) => i.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        {items.map((item) => (
-                          <ChecklistItemRow
-                            key={item.id}
-                            item={item}
-                            onToggle={toggle}
-                            onDelete={deleteItem}
-                            isToggling={isToggling}
-                          />
-                        ))}
-                      </SortableContext>
-                    </DndContext>
-                  </div>
+                  {/* Sezioni — documenti/salute/abbigliamento/tech/varie.
+                      Un unico DndContext, una SortableContext per
+                      sezione: il trascinamento riordina solo dentro
+                      la stessa sezione (vedi handleDragEnd). */}
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <div className="flex flex-col gap-4">
+                      {SEZIONI.map((sez) => {
+                        const itemsSezione = items.filter((i) => categoriaEffettiva(i) === sez.id)
+                        if (itemsSezione.length === 0) return null
+                        return (
+                          <div key={sez.id} className="flex flex-col gap-1.5">
+                            <div className="flex items-baseline justify-between px-0.5">
+                              <span className="font-dm-mono text-[11px] font-medium tracking-wide uppercase text-roamly-text/40">
+                                {sez.titolo}
+                              </span>
+                              <span className="font-dm-mono text-[10px] text-roamly-text/30">
+                                {itemsSezione.filter((i) => i.completato).length}/{itemsSezione.length}
+                              </span>
+                            </div>
+                            <SortableContext
+                              items={itemsSezione.map((i) => i.id)}
+                              strategy={verticalListSortingStrategy}
+                            >
+                              {itemsSezione.map((item) => (
+                                <ChecklistItemRow
+                                  key={item.id}
+                                  item={item}
+                                  onToggle={toggle}
+                                  onDelete={deleteItem}
+                                  isToggling={isToggling}
+                                />
+                              ))}
+                            </SortableContext>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </DndContext>
                 </>
               )}
 
@@ -274,7 +356,7 @@ export function ChecklistSection({ viaggio }: ChecklistSectionProps) {
                         return (
                           <button
                             key={blocco.id}
-                            onClick={() => handleApplicaTemplate(blocco.items)}
+                            onClick={() => handleApplicaTemplate(blocco.items, blocco.id)}
                             disabled={isBatchLoading}
                             className="
                               flex items-center gap-2.5 w-full py-3 px-4

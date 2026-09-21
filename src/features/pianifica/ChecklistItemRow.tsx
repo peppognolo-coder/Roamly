@@ -3,6 +3,14 @@ import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import type { ChecklistItem as ChecklistItemType } from '@/types'
 
+// Etichette brevi per il badge "fonte" — solo i blocchi di
+// suggerimenti intelligenti sono taggati (vedi checklist-templates.ts).
+const FONTE_LABEL: Record<string, string> = {
+  stagione:     'Stagione',
+  prenotazioni: 'Prenotazione',
+  tappe:        'Itinerario',
+}
+
 // ============================================================
 // ChecklistItemRow — singolo item della checklist
 // Toggle completato + pulsante elimina + maniglia di trascinamento
@@ -105,6 +113,18 @@ export function ChecklistItemRow({
       `}>
         {item.testo}
       </p>
+
+      {/* Badge fonte — solo per i punti aggiunti da un blocco di
+          suggerimenti intelligenti (stagione/prenotazioni/tappe) */}
+      {item.fonte && FONTE_LABEL[item.fonte] && (
+        <span className="
+          shrink-0 px-2 py-0.5 rounded-full
+          bg-roamly-g6 font-dm-mono text-[9px] font-medium
+          uppercase tracking-wide text-roamly-g2
+        ">
+          {FONTE_LABEL[item.fonte]}
+        </span>
+      )}
 
       {/* Pulsante elimina */}
       <button
