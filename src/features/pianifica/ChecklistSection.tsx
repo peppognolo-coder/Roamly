@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { CheckCircle2, Sparkles } from 'lucide-react'
+import { CheckCircle2, Sparkles, Briefcase } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
@@ -15,7 +15,6 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable'
-import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { ChecklistItemRow } from './ChecklistItemRow'
 import { ChecklistInput }   from './ChecklistInput'
 import { SuggerimentiSheet } from './SuggerimentiSheet'
@@ -219,11 +218,14 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
         "
         aria-expanded={isExpanded}
       >
-        {/* Emoji + nome */}
-        <span className="shrink-0 text-roamly-g2"><ViaggioCoverIcon value={viaggio.cover_emoji} size={18} /></span>
+        {/* Icona valigia — nome ed emoji del viaggio sono già nella
+            ViaggioCard appena sopra, ripeterli qui era ridondante. */}
+        <span className="shrink-0 w-7 h-7 rounded-lg bg-roamly-g7 flex items-center justify-center text-roamly-g2">
+          <Briefcase size={14} />
+        </span>
         <div className="flex-1 min-w-0">
-          <p className="font-lora text-base font-semibold text-roamly-g0 truncate">
-            {viaggio.nome}
+          <p className="font-dm-sans text-sm font-semibold text-roamly-g1">
+            Valigia
           </p>
           {/* Barra progresso inline nell'header se ha item */}
           {hasItems && (
