@@ -89,6 +89,44 @@ function iconaPerColore(colore: string): L.DivIcon {
   return icona
 }
 
+// Icona numerata — usata in modalità "Salvati"/"Vicino a me", dove
+// più punti condividono lo stesso colore (nessun giorno a fare da
+// discriminante come in "Oggi"): il numero corrisponde all'ordine
+// della chip nel bottom sheet, così mappa e chip si leggono insieme.
+// Il punto selezionato dalla chip si evidenzia (più grande, corallo).
+function iconaNumerata(numero: number, colore: string, selezionato: boolean): L.DivIcon {
+  const chiave = `num-${numero}-${colore}-${selezionato}`
+  const esistente = cacheIcone.get(chiave)
+  if (esistente) return esistente
+
+  const dimensione = selezionato ? 34 : 28
+  const sfondo = selezionato ? COLORE_SALVATO : colore
+  const icona = L.divIcon({
+    className: 'roamly-marker',
+    html: `
+      <div style="
+        width: ${dimensione}px; height: ${dimensione}px;
+        background: ${sfondo};
+        border: 3px solid white;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        box-shadow: 0 2px 8px rgba(12,42,61,0.3);
+        display: flex; align-items: center; justify-content: center;
+      ">
+        <span style="
+          transform: rotate(45deg);
+          color: white; font: 700 ${selezionato ? 12 : 10}px 'DM Sans', sans-serif;
+        ">${numero}</span>
+      </div>
+    `,
+    iconSize: [dimensione, dimensione],
+    iconAnchor: [dimensione / 2, dimensione],
+    popupAnchor: [0, -dimensione - 2],
+  })
+  cacheIcone.set(chiave, icona)
+  return icona
+}
+
 // Icona distinta per il risultato di una ricerca non ancora
 // aggiunto/salvato — un punto vuoto, per non confonderlo con una
 // tappa o un luogo già salvato.
@@ -515,11 +553,14 @@ export function AttivitaPage() {
                 <PosizionaMappa punti={punti} centroFallback={centroFallback} zoomFallback={12} />
                 <GestoreClick onClick={handleMapClick} />
 
-                {puntiModalita.map((p) => (
+                {puntiModalita.map((p, i) => (
                   <Marker
                     key={p.id}
                     position={[p.lat, p.lng]}
-                    icon={iconaPerColore(p.colore)}
+                    icon={modalita === 'oggi'
+                      ? iconaPerColore(p.colore)
+                      : iconaNumerata(i + 1, p.colore, p.id === chipSelezionato)
+                    }
                     ref={(m) => { markerRefs.current[p.id] = m }}
                   >
                     <Popup>
@@ -729,27 +770,32 @@ export function AttivitaPage() {
                         </div>
                       )}
                       <div className="flex gap-2 overflow-x-auto no-scrollbar">
-                        {puntiModalita.map((p) => {
+                        {puntiModalita.map((p, i) => {
                           const attivo = p.id === chipSelezionato
                           return (
                             <button
                               key={p.id}
                               onClick={() => selezionaChip(p.id)}
                               className={`
-                                shrink-0 flex flex-col items-start gap-0.5 px-3 py-2 rounded-2xl border
+                                shrink-0 flex items-start gap-1.5 px-3 py-2 rounded-2xl border
                                 font-dm-sans text-xs font-medium transition-all duration-150
                                 ${attivo
-                                  ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                                  ? 'bg-roamly-coral border-roamly-coral text-white'
                                   : 'bg-roamly-g7 border-roamly-g6 text-roamly-text'
                                 }
                               `}
                             >
-                              {p.meta && (
-                                <span className={`font-dm-mono text-[10px] ${attivo ? 'text-white/55' : 'text-roamly-text/40'}`}>
-                                  {p.meta}
-                                </span>
-                              )}
-                              <span>{p.nome}</span>
+                              <span className={`font-dm-mono text-[10px] mt-0.5 ${attivo ? 'text-white/70' : 'text-roamly-text/35'}`}>
+                                {i + 1}
+                              </span>
+                              <div className="flex flex-col items-start gap-0.5">
+                                {p.meta && (
+                                  <span className={`font-dm-mono text-[10px] ${attivo ? 'text-white/55' : 'text-roamly-text/40'}`}>
+                                    {p.meta}
+                                  </span>
+                                )}
+                                <span>{p.nome}</span>
+                              </div>
                             </button>
                           )
                         })}
