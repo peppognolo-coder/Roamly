@@ -87,12 +87,9 @@ export function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               transition={{ duration: 0.3, ease: 'easeOut' }}
               className="flex flex-col items-center gap-6"
             >
-              <div className="
-                w-24 h-24 rounded-3xl
-                bg-roamly-g7 shadow-roamly
-                flex items-center justify-center
-              ">
-                <schermata.icon size={40} className="text-roamly-g3" />
+              <div className="relative w-28 h-28 rounded-full bg-roamly-g7 flex items-center justify-center">
+                <schermata.icon size={38} strokeWidth={1.5} className="text-roamly-g1" />
+                <span className="absolute top-4 right-6 w-2.5 h-2.5 rounded-full bg-roamly-coral" />
               </div>
 
               <div className="flex flex-col gap-3 max-w-[300px]">
