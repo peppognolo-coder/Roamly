@@ -70,7 +70,7 @@ export function ViaggioAttivoCard({ viaggio, isLoading, prossimaTappa }: Viaggio
     <button
       onClick={() => navigate(`/viaggi/${viaggio.id}`)}
       className="
-        w-full text-left
+        relative w-full text-left overflow-hidden
         bg-roamly-g0 rounded-2xl p-4
         hover:bg-roamly-g1 active:scale-[0.98]
         transition-all duration-150
@@ -78,6 +78,13 @@ export function ViaggioAttivoCard({ viaggio, isLoading, prossimaTappa }: Viaggio
         shadow-roamly-lg
       "
     >
+      {/* Texture diagonale sottile — stesso linguaggio dell'hero di
+          ViaggioDetailPage, per la card di copertina "in corso" del mockup. */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ backgroundImage: 'repeating-linear-gradient(115deg, rgba(255,255,255,.05) 0 2px, transparent 2px 11px)' }}
+      />
+      <div className="relative">
       {/* "Giorno X di Y" — solo viaggio in corso */}
       {giornoCorrente && (
         <span className="
@@ -165,6 +172,7 @@ export function ViaggioAttivoCard({ viaggio, isLoading, prossimaTappa }: Viaggio
           </span>
         </div>
       )}
+      </div>
     </button>
   )
 }
