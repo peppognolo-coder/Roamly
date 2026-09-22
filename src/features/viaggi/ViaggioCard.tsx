@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { StatoBadge } from './StatoBadge'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { AvatarStack } from '@/components/ui/AvatarStack'
-import { formatDataViaggio } from '@/lib/viaggi-utils'
+import { formatDataViaggio, coloreCopertinaViaggio } from '@/lib/viaggi-utils'
 import type { ViaggioConStato } from '@/types'
 
 // ============================================================
@@ -32,8 +32,8 @@ export function ViaggioCard({ viaggio, linkTab }: ViaggioCardProps) {
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && navigate(destinazione)}
       className="
-        flex items-center gap-4 p-4
-        bg-white rounded-2xl
+        flex items-stretch gap-0
+        bg-white rounded-2xl overflow-hidden
         shadow-roamly
         cursor-pointer
         hover:shadow-roamly-lg
@@ -42,41 +42,41 @@ export function ViaggioCard({ viaggio, linkTab }: ViaggioCardProps) {
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
     >
-      {/* Icona copertina */}
-      <div className="
-        w-12 h-12 rounded-xl
-        bg-roamly-g7
-        flex items-center justify-center
-        shrink-0 text-roamly-g2
-      ">
+      {/* Fascia di copertina — colore deterministico per viaggio */}
+      <div
+        className="w-16 shrink-0 flex items-center justify-center text-white/80"
+        style={{ backgroundColor: coloreCopertinaViaggio(viaggio.id) }}
+      >
         <ViaggioCoverIcon value={viaggio.cover_emoji} size={22} />
       </div>
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
-          <p className="font-dm-sans font-semibold text-roamly-text truncate">
-            {viaggio.nome}
-          </p>
-          <StatoBadge stato={viaggio.stato_effettivo} />
+      <div className="flex-1 min-w-0 flex items-center gap-2 p-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-dm-sans font-semibold text-roamly-text truncate">
+              {viaggio.nome}
+            </p>
+            <StatoBadge stato={viaggio.stato_effettivo} />
+          </div>
+
+          {(viaggio.destinazione || viaggio.paese) && (
+            <p className="font-dm-sans text-sm text-roamly-text/50 truncate mt-0.5">
+              {[viaggio.destinazione, viaggio.paese].filter(Boolean).join(', ')}
+            </p>
+          )}
+
+          <div className="flex items-center justify-between mt-1">
+            <p className="font-dm-mono text-xs text-roamly-text/35">
+              {dataFormattata}
+            </p>
+            <AvatarStack viaggioId={viaggio.id} size="sm" maxVisible={3} />
+          </div>
         </div>
 
-        {(viaggio.destinazione || viaggio.paese) && (
-          <p className="font-dm-sans text-sm text-roamly-text/50 truncate mt-0.5">
-            {[viaggio.destinazione, viaggio.paese].filter(Boolean).join(', ')}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between mt-1">
-          <p className="font-dm-mono text-xs text-roamly-text/35">
-            {dataFormattata}
-          </p>
-          <AvatarStack viaggioId={viaggio.id} size="sm" maxVisible={3} />
-        </div>
+        {/* Chevron */}
+        <ChevronRight size={16} className="text-roamly-text/20 shrink-0" />
       </div>
-
-      {/* Chevron */}
-      <ChevronRight size={16} className="text-roamly-text/20 shrink-0" />
     </div>
   )
 }
