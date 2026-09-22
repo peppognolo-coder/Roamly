@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check, Camera } from 'lucide-react'
+import { Check } from 'lucide-react'
 import { PageLayout }         from '@/components/layout/PageLayout'
 import { PageHeader }         from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -98,33 +98,30 @@ export function ImpostazioniAccountPage() {
 
         <div className="flex-1 px-5 flex flex-col gap-6">
 
-          {/* Foto profilo */}
-          <div className="flex flex-col items-center gap-3 py-2">
+          {/* Foto profilo + nome */}
+          <div className="flex flex-col items-center gap-2 py-2">
+            <AvatarGrande
+              url={profilo?.avatar_url}
+              displayName={profilo?.display_name}
+              isLoading={isLoadingProfilo}
+            />
+            {!isLoadingProfilo && (
+              <p className="font-dm-sans text-base font-semibold text-roamly-g0 mt-1">
+                {profilo?.display_name || 'Il tuo nome'}
+              </p>
+            )}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingAvatar}
-              className="relative group focus:outline-none"
-              aria-label="Cambia foto profilo"
+              className="
+                px-4 py-1.5 rounded-full
+                border border-roamly-g4
+                font-dm-sans text-xs font-medium text-roamly-g0
+                active:scale-[0.97] transition-transform
+                disabled:opacity-50
+              "
             >
-              <AvatarGrande
-                url={profilo?.avatar_url}
-                displayName={profilo?.display_name}
-                isLoading={isLoadingProfilo}
-              />
-              <span className="
-                absolute bottom-0 right-0
-                w-8 h-8 rounded-full
-                bg-roamly-coral shadow-roamly-lg
-                flex items-center justify-center
-                text-white
-                border-2 border-white
-              ">
-                {isUploadingAvatar ? (
-                  <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                ) : (
-                  <Camera size={14} />
-                )}
-              </span>
+              {isUploadingAvatar ? 'Caricamento…' : 'Cambia foto'}
             </button>
             <input
               ref={fileInputRef}
@@ -136,17 +133,13 @@ export function ImpostazioniAccountPage() {
             {avatarError && (
               <p className="font-dm-sans text-xs text-red-500 text-center">{avatarError}</p>
             )}
-            <p className="font-dm-sans text-sm text-roamly-text/40">
-              {user?.email}
-            </p>
           </div>
 
-          {/* Form modifica nome + bio */}
-          <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-4">
-            <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider">
-              Informazioni personali
-            </h2>
-
+          {/* Form modifica nome + bio — campi diretti, senza card,
+              come nel mockup. L'email resta di sola lettura: cambiarla
+              richiederebbe un flusso di riconferma via Supabase Auth
+              non ancora costruito. */}
+          <div className="flex flex-col gap-4">
             {updateError && (
               <div className="px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
                 <p className="font-dm-sans text-sm text-red-600">{updateError}</p>
@@ -162,7 +155,7 @@ export function ImpostazioniAccountPage() {
             )}
 
             <Input
-              label="Nome visualizzato"
+              label="Nome e cognome"
               type="text"
               placeholder="Il tuo nome"
               autoComplete="name"
@@ -170,13 +163,21 @@ export function ImpostazioniAccountPage() {
               {...register('display_name')}
             />
 
-            <div className="flex flex-col gap-2">
+            <Input
+              label="Email"
+              type="email"
+              value={user?.email ?? ''}
+              disabled
+              readOnly
+            />
+
+            <div className="flex flex-col gap-1.5">
               <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
-                Bio <span className="text-roamly-text/35 font-normal">(opzionale)</span>
+                Bio
               </label>
               <textarea
                 {...register('bio')}
-                rows={3}
+                rows={2}
                 placeholder="Racconta qualcosa di te e del tuo modo di viaggiare..."
                 className="
                   w-full px-4 py-3
@@ -192,20 +193,22 @@ export function ImpostazioniAccountPage() {
               )}
             </div>
 
-            <Button
-              onClick={handleSubmit(onSubmit)}
-              isLoading={isUpdating}
-              disabled={!isDirty || isUpdating}
-              fullWidth
-            >
-              Salva modifiche
-            </Button>
+            {isDirty && (
+              <Button
+                onClick={handleSubmit(onSubmit)}
+                isLoading={isUpdating}
+                disabled={isUpdating}
+                fullWidth
+              >
+                Salva modifiche
+              </Button>
+            )}
           </div>
 
-          {/* Preferenze notifiche */}
+          {/* Preferenze — una card per toggle, come nel mockup */}
           {!isLoadingProfilo && profilo && (
-            <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-1">
-              <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider mb-2">
+            <div className="flex flex-col gap-2.5">
+              <h2 className="font-dm-mono text-[11px] font-medium text-roamly-g2 uppercase tracking-wider px-1">
                 Preferenze
               </h2>
               <PreferenzaToggle
@@ -230,13 +233,11 @@ export function ImpostazioniAccountPage() {
           )}
 
           {/* Info account */}
-          <div className="bg-white rounded-2xl shadow-roamly p-5 flex flex-col gap-3">
-            <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60 uppercase tracking-wider">
+          <div className="flex flex-col gap-2.5">
+            <h2 className="font-dm-mono text-[11px] font-medium text-roamly-g2 uppercase tracking-wider px-1">
               Account
             </h2>
-
-            <div className="flex flex-col gap-2">
-              <InfoRow label="Email" value={user?.email ?? '—'} />
+            <div className="bg-white rounded-2xl shadow-roamly p-4 flex flex-col gap-2">
               <InfoRow
                 label="Membro dal"
                 value={
@@ -258,17 +259,28 @@ export function ImpostazioniAccountPage() {
 
         </div>
 
-        {/* Logout */}
+        {/* Logout — pillola outline, non un'azione distruttiva:
+            colore neutro, non rosso (il rosso resta riservato a
+            "elimina account" qui sotto). */}
         <div className="px-5 pt-4 pb-3">
-          <Button
-            variant="ghost"
-            fullWidth
+          <button
             onClick={logout}
-            isLoading={isLoggingOut}
-            className="text-red-500 hover:bg-red-50"
+            disabled={isLoggingOut}
+            className="
+              w-full h-12 rounded-full
+              border border-roamly-g4
+              font-dm-sans text-sm font-medium text-roamly-g0
+              active:scale-[0.99] transition-transform
+              disabled:opacity-50
+              flex items-center justify-center gap-2
+            "
           >
-            Esci dall'account
-          </Button>
+            {isLoggingOut ? (
+              <span className="w-4 h-4 rounded-full border-2 border-roamly-g0 border-t-transparent animate-spin" />
+            ) : (
+              "Esci dall'account"
+            )}
+          </button>
         </div>
 
         {/* Danger zone — elimina account */}
@@ -279,14 +291,12 @@ export function ImpostazioniAccountPage() {
             </p>
           )}
           {!showDeleteConfirm ? (
-            <Button
-              variant="ghost"
-              fullWidth
+            <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="text-red-500/70 hover:bg-red-50 hover:text-red-500"
+              className="w-full py-2 font-dm-sans text-sm font-medium text-red-500/80 active:text-red-500"
             >
-              Elimina account
-            </Button>
+              Elimina account e ricordi
+            </button>
           ) : (
             <div className="flex flex-col gap-2 bg-red-50 rounded-2xl p-4">
               <p className="font-dm-sans text-sm font-medium text-red-600">
@@ -383,7 +393,7 @@ function PreferenzaToggle({
   onChange: (v: boolean) => void
 }) {
   return (
-    <div className="flex items-center gap-3 py-2.5">
+    <div className="flex items-center gap-3 bg-white rounded-2xl shadow-roamly p-4">
       <div className="flex-1 min-w-0">
         <p className="font-dm-sans text-sm font-medium text-roamly-text">{titolo}</p>
         <p className="font-dm-sans text-xs text-roamly-text/45 mt-0.5">{descrizione}</p>

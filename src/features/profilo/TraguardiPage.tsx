@@ -73,42 +73,49 @@ export function TraguardiPage() {
   )
 }
 
+// Sbloccati = card scura in evidenza; da sbloccare = card chiara e
+// discreta — stessa gerarchia del mockup (il traguardo raggiunto è
+// "in vetrina", quello ancora da fare resta sullo sfondo). Niente
+// barra di progresso per i non sbloccati: lo schema badge non porta
+// una soglia/percentuale, quindi mostrarla vorrebbe dire inventarla.
 function BadgeTile({ badge }: { badge: BadgeConStato }) {
   const Icon = (badge.icona && ICONE[badge.icona]) || Award
 
   return (
     <div
       className={`
-        flex flex-col items-center text-center gap-2 p-4 rounded-2xl
+        flex flex-col items-start text-left gap-2.5 p-4 rounded-2xl
         ${badge.posseduto
-          ? 'bg-white shadow-roamly'
-          : 'bg-roamly-g7 shadow-none'
+          ? 'bg-roamly-g0 shadow-roamly-lg'
+          : 'bg-white shadow-roamly'
         }
       `}
     >
       <div
         className={`
-          w-12 h-12 rounded-2xl flex items-center justify-center relative
-          ${badge.posseduto ? 'bg-roamly-g0' : 'bg-roamly-g6'}
+          w-10 h-10 rounded-xl flex items-center justify-center relative
+          ${badge.posseduto ? 'bg-white/15' : 'bg-roamly-g6'}
         `}
       >
-        <Icon size={22} className={badge.posseduto ? 'text-white' : 'text-roamly-text/25'} />
+        <Icon size={18} className={badge.posseduto ? 'text-white' : 'text-roamly-text/35'} />
         {!badge.posseduto && (
-          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-roamly-g5 flex items-center justify-center">
-            <Lock size={10} className="text-roamly-text/50" />
+          <div className="absolute -bottom-1 -right-1 w-[18px] h-[18px] rounded-full bg-roamly-g5 flex items-center justify-center">
+            <Lock size={9} className="text-roamly-text/50" />
           </div>
         )}
       </div>
 
-      <p className={`font-dm-sans text-sm font-semibold ${badge.posseduto ? 'text-roamly-g0' : 'text-roamly-text/40'}`}>
-        {badge.nome}
-      </p>
-      <p className={`font-dm-sans text-xs leading-snug ${badge.posseduto ? 'text-roamly-text/50' : 'text-roamly-text/30'}`}>
-        {badge.descrizione}
-      </p>
+      <div className="flex flex-col gap-0.5">
+        <p className={`font-dm-sans text-sm font-semibold ${badge.posseduto ? 'text-white' : 'text-roamly-g0'}`}>
+          {badge.nome}
+        </p>
+        <p className={`font-dm-sans text-xs leading-snug ${badge.posseduto ? 'text-white/55' : 'text-roamly-text/40'}`}>
+          {badge.descrizione}
+        </p>
+      </div>
 
       {badge.posseduto && badge.earned_at && (
-        <p className="font-dm-mono text-[10px] text-roamly-text/30 mt-0.5">
+        <p className="font-dm-mono text-[10px] text-white/40 mt-0.5">
           {new Date(badge.earned_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })}
         </p>
       )}

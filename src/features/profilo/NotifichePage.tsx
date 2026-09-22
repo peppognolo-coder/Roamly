@@ -91,11 +91,9 @@ function NotificaCard({ notifica, onOpen }: { notifica: Notifica; onOpen: () => 
       onClick={onOpen}
       className={`
         flex items-start gap-3 p-3.5 rounded-2xl text-left
+        bg-white shadow-roamly border border-roamly-g5/70
         transition-all duration-150 active:scale-[0.99]
-        ${nuova
-          ? 'bg-white shadow-roamly border border-roamly-g5/70'
-          : 'bg-white/60 shadow-roamly border border-transparent'
-        }
+        ${!nuova ? 'opacity-80' : ''}
       `}
     >
       <span
