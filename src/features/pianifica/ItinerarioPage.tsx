@@ -299,7 +299,7 @@ function TappaCard({ tappa: t, onTap }: { tappa: TappaViaggio; onTap: () => void
   return (
     <div className="
       flex items-center gap-3 p-3.5
-      bg-white rounded-2xl shadow-roamly
+      bg-white rounded-2xl shadow-roamly border border-roamly-g5/60
       hover:shadow-roamly-lg transition-all duration-150
     ">
       <button
