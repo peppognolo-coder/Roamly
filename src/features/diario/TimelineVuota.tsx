@@ -103,7 +103,7 @@ export function SezioneVuota({ viaggioId }: { viaggioId: string }) {
       px-4 py-3
       bg-roamly-g7 rounded-xl
     ">
-      <p className="font-dm-sans text-sm text-roamly-text/40">
+      <p className="font-dm-sans text-sm text-roamly-g2">
         Nessun ricordo ancora
       </p>
       <button

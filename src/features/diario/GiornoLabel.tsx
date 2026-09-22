@@ -11,9 +11,9 @@ export function GiornoLabel({ dataFormattata }: GiornoLabelProps) {
   return (
     <div className="flex items-center gap-3 py-1">
       <span className="
-        font-dm-sans text-[10px] font-semibold
+        font-dm-mono text-[10px] font-medium
         tracking-widest uppercase
-        text-roamly-text/35
+        text-roamly-g2
         shrink-0
       ">
         {dataFormattata}

@@ -100,7 +100,7 @@ export function FiltriBar({
                 active:scale-95
                 ${attivo
                   ? 'bg-roamly-g0 border-roamly-g0 text-white shadow-sm'
-                  : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50 hover:border-roamly-g4'
+                  : 'bg-roamly-g7 border-roamly-g6 text-roamly-g2 hover:border-roamly-g4'
                 }
               `}
             >
@@ -125,7 +125,7 @@ export function FiltriBar({
             active:scale-[0.98]
             ${filtri.soloPreferiti
               ? 'bg-roamly-g0 border-roamly-g0 text-white shadow-sm'
-              : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50 hover:border-roamly-g4'
+              : 'bg-roamly-g7 border-roamly-g6 text-roamly-g2 hover:border-roamly-g4'
             }
           `}
         >
@@ -155,7 +155,7 @@ export function FiltriBar({
                   active:scale-95
                   ${attivo
                     ? 'bg-roamly-g0 border-roamly-g0 text-white shadow-sm'
-                    : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50 hover:border-roamly-g4'
+                    : 'bg-roamly-g7 border-roamly-g6 text-roamly-g2 hover:border-roamly-g4'
                   }
                 `}
               >

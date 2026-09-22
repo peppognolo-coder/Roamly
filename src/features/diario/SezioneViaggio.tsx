@@ -67,11 +67,11 @@ export function SezioneViaggio({ sezione, isExpanded, onToggle }: SezioneViaggio
               </p>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <span className="font-dm-mono text-[10px] text-roamly-text/35 truncate">
+              <span className="font-dm-mono text-[10px] text-roamly-g2 truncate">
                 {dataViaggio}
               </span>
               <span className="text-roamly-text/20 text-[10px]">·</span>
-              <span className="font-dm-sans text-[10px] text-roamly-text/35 shrink-0">
+              <span className="font-dm-sans text-[10px] text-roamly-g2 shrink-0">
                 {labelContatore()}
               </span>
             </div>
@@ -97,7 +97,7 @@ export function SezioneViaggio({ sezione, isExpanded, onToggle }: SezioneViaggio
           className="
             w-7 h-7 rounded-lg
             flex items-center justify-center
-            text-roamly-g3/60 hover:text-roamly-g2 hover:bg-roamly-g6
+            text-roamly-g4 hover:text-roamly-g2 hover:bg-roamly-g6
             transition-all duration-150
             shrink-0
             focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
@@ -132,7 +132,7 @@ export function SezioneViaggio({ sezione, isExpanded, onToggle }: SezioneViaggio
 
               {/* Filtri azzerano i risultati */}
               {isEmptyConFiltri && (
-                <p className="font-dm-sans text-sm text-roamly-text/40 text-center py-3">
+                <p className="font-dm-sans text-sm text-roamly-g2 text-center py-3">
                   Nessun ricordo corrisponde ai filtri attivi.
                 </p>
               )}
