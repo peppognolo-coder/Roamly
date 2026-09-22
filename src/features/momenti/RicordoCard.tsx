@@ -76,7 +76,7 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
           Fallback: gradient mood + emoji centrata (nessuna foto).
           ──────────────────────────────────────────────────────────── */}
       <div className={`
-        w-20 shrink-0 relative overflow-hidden
+        w-[72px] shrink-0 relative overflow-hidden
         bg-gradient-to-br ${gradient}
         flex items-center justify-center
       `}>
@@ -113,13 +113,13 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
             {ricordo.titolo}
           </p>
           {ricordo.preferito && (
-            <Heart size={14} className="fill-red-400 text-red-400 shrink-0 mt-0.5" />
+            <Heart size={14} className="fill-roamly-coral-dark text-roamly-coral-dark shrink-0 mt-0.5" />
           )}
         </div>
 
         {/* Corpo: descrizione preview */}
         {ricordo.testo && (
-          <p className="font-dm-sans text-xs text-roamly-text/50 mt-1 line-clamp-2 leading-relaxed">
+          <p className="font-dm-sans text-xs text-roamly-g2 mt-1 line-clamp-2 leading-relaxed">
             {ricordo.testo}
           </p>
         )}
