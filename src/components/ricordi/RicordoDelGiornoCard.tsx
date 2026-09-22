@@ -66,13 +66,18 @@ export function RicordoDelGiornoCard({
         focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
       "
     >
-      {/* Thumbnail mood */}
+      {/* Thumbnail — un anno fa: identità fissa (lavanda + scintilla),
+          indipendente dal mood, per farla riconoscere a colpo d'occhio
+          come "ricordo che torna" e non come un ricordo qualsiasi;
+          fallback a mood-based solo per il generico "Ricordo del giorno". */}
       <div className={`
         w-12 h-12 rounded-xl shrink-0
-        bg-gradient-to-br ${gradient}
         flex items-center justify-center
-      `}>
-        {moodOption ? (
+        ${labelTempo ? '' : `bg-gradient-to-br ${gradient}`}
+      `} style={labelTempo ? { background: 'linear-gradient(135deg,#DDD6FE,#F5F3FF)' } : undefined}>
+        {labelTempo ? (
+          <span className="text-xl">✨</span>
+        ) : moodOption ? (
           <span className="text-2xl">{moodOption.emoji}</span>
         ) : (
           <NotebookPen size={20} className="opacity-50 text-roamly-g2" />
@@ -87,7 +92,7 @@ export function RicordoDelGiornoCard({
             {labelTempo ?? 'Ricordo del giorno'}
           </span>
           {ricordo.preferito && (
-            <Heart size={11} className="fill-red-400 text-red-400" />
+            <Heart size={11} className="fill-roamly-coral-dark text-roamly-coral-dark" />
           )}
         </div>
 
