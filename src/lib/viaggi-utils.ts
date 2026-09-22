@@ -1,6 +1,25 @@
 import type { Viaggio, ViaggioConStato, StatoViaggio } from '@/types'
 
 // ------------------------------------------------------------
+// coloreCopertinaViaggio
+// Colore decorativo per la fascia di copertina della card viaggio
+// (lista "I tuoi viaggi", schermata "Mappa" ecc.) — nessun campo
+// colore esiste in DB, quindi lo deriviamo in modo deterministico
+// dall'id del viaggio: stesso viaggio → sempre lo stesso colore,
+// senza dover salvare/inventare un dato che non c'è.
+// ------------------------------------------------------------
+
+const PALETTE_COPERTINA = ['#0C2A3D', '#0B6F99', '#D9A63C', '#7C6FC4', '#3C7A5E']
+
+export function coloreCopertinaViaggio(id: string): string {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  }
+  return PALETTE_COPERTINA[hash % PALETTE_COPERTINA.length]
+}
+
+// ------------------------------------------------------------
 // isoDateLocale
 // Converte un oggetto Date in stringa 'YYYY-MM-DD' usando i
 // componenti data LOCALI (anno/mese/giorno), non UTC.
