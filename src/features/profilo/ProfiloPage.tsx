@@ -124,7 +124,7 @@ export function ProfiloPage() {
                   {profilo?.display_name ?? 'Utente Roamly'}
                 </p>
               )}
-              <p className="font-dm-sans text-sm text-roamly-text/40 truncate">
+              <p className="font-dm-sans text-sm text-roamly-g2 truncate">
                 {user?.email}
               </p>
             </div>
@@ -168,7 +168,7 @@ export function ProfiloPage() {
                     <p className="font-dm-sans text-sm font-semibold text-roamly-g0">
                       {voce.label}
                     </p>
-                    <p className="font-dm-sans text-xs text-roamly-text/45 truncate">
+                    <p className="font-dm-sans text-xs text-roamly-g2 truncate">
                       {voce.descrizione}
                     </p>
                   </div>
@@ -227,7 +227,7 @@ function StatTile({
           {valore}
         </span>
       )}
-      <span className={`font-dm-sans text-[10.5px] ${scuro ? 'text-white/55' : 'text-roamly-text/45'}`}>
+      <span className={`font-dm-sans text-[10.5px] ${scuro ? 'text-white/55' : 'text-roamly-g2'}`}>
         {etichetta}
       </span>
     </div>

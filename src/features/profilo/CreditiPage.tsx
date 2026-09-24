@@ -48,7 +48,7 @@ export function CreditiPage() {
 
           {/* Storico */}
           <div className="flex flex-col gap-2">
-            <h2 className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-text/50 px-1">
+            <h2 className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-g2 px-1">
               Storico
             </h2>
 
@@ -62,7 +62,7 @@ export function CreditiPage() {
 
             {!isLoadingStorico && (!storico || storico.length === 0) && (
               <div className="py-8 text-center">
-                <p className="font-dm-sans text-sm text-roamly-text/40">
+                <p className="font-dm-sans text-sm text-roamly-g2">
                   Nessun movimento ancora — completa qualche missione per iniziare
                 </p>
               </div>
@@ -79,7 +79,7 @@ export function CreditiPage() {
                       <p className="font-dm-sans text-sm font-medium text-roamly-text truncate">
                         {descrizioneMovimento(mov.motivo)}
                       </p>
-                      <p className="font-dm-mono text-xs text-roamly-text/35 mt-0.5">
+                      <p className="font-dm-mono text-xs text-roamly-g2 mt-0.5">
                         {new Date(mov.created_at).toLocaleDateString('it-IT', {
                           day: 'numeric', month: 'long', year: 'numeric',
                         })}
@@ -142,7 +142,7 @@ function ReferralCard({ codice, isLoading }: { codice: string | null | undefined
           Invita un amico
         </p>
       </div>
-      <p className="font-dm-sans text-xs text-roamly-text/50 leading-relaxed">
+      <p className="font-dm-sans text-xs text-roamly-g2 leading-relaxed">
         Condividi il tuo codice: quando qualcuno si registra usandolo, ricevete
         entrambi dei crediti.
       </p>
