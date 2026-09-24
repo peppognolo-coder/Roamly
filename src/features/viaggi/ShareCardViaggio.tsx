@@ -1,20 +1,35 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion }  from 'framer-motion'
 import { toPng }                   from 'html-to-image'
+import { PenLine }                 from 'lucide-react'
 import { ViaggioCoverIcon }         from '@/components/ui/ViaggioCoverIcon'
 import { formatDataViaggio }        from '@/lib/viaggi-utils'
 import { calcolaDurataViaggio }     from '@/lib/viaggi-utils'
-import { urlToDataUrl }             from '@/lib/share-utils'
+import { gradienteCopertinaViaggio } from '@/lib/viaggi-utils'
+import {
+  urlToDataUrl,
+  DIMENSIONI_SHARE as DIMENSIONI,
+  FORMATO_LABEL,
+  TEMI_SFONDO,
+  GRADIENTI_SFONDO,
+} from '@/lib/share-utils'
+import type { FormatoShare as Formato, Sfondo } from '@/lib/share-utils'
 import type { ViaggioConStato }     from '@/types'
 
 // ============================================================
 // ShareCardViaggio — genera e scarica una share card del viaggio
 //
 // Flusso:
-//   1. Mostra modal con anteprima card (scalata al 35%)
-//   2. Selector formato: Story 9:16 · Square 1:1
-//   3. Export PNG via html-to-image sul DOM a dimensioni reali
-//   4. Download automatico + pulsante Condividi (Web Share API)
+//   1. Mostra modal con anteprima card (scalata al 28%)
+//   2. Selector formato: Story 9:16 · Square 1:1 · Polaroid 4:5
+//   3. Selettore sfondo: Mood (colore di copertina del viaggio) ·
+//      Notte · Oceano · Tramonto · Foto (cover reale, se presente)
+//   4. Didascalia pronta, copiabile
+//   5. Export PNG via html-to-image sul DOM a dimensioni reali
+//   6. Download automatico + pulsante Condividi (Web Share API)
+//
+// I tipi/temi condivisi con ShareCardRicordo vivono in
+// src/lib/share-utils.ts, così i due restano coerenti.
 //
 // NOTA immagini crossorigin: vedi urlToDataUrl in lib/share-utils.
 // ============================================================
@@ -27,19 +42,8 @@ interface ShareCardViaggioProps {
   onClose:     () => void
 }
 
-type Formato = 'story' | 'square'
-
-// Dimensioni reali del PNG esportato
-const DIMENSIONI: Record<Formato, { w: number; h: number }> = {
-  story:  { w: 1080, h: 1920 },
-  square: { w: 1080, h: 1080 },
-}
-
 // Scala dell'anteprima in-screen (la card reale è 1080px)
 const SCALA_ANTEPRIMA = 0.28
-
-// Converte URL remota in dataURL per html-to-image (bypass CORS canvas)
-// — vedi src/lib/share-utils.ts (urlToDataUrl), importata sopra.
 
 // ============================================================
 // CardContent — il contenuto visivo della card (usato per anteprima e export)
@@ -51,6 +55,7 @@ interface CardContentProps {
   numRicordi: number
   numFoto:    number
   formato:    Formato
+  sfondo:     Sfondo
   // Dimensioni passate esplicitamente (anteprima vs export)
   width:      number
   height:     number
@@ -62,18 +67,90 @@ function CardContent({
   numRicordi,
   numFoto,
   formato,
+  sfondo,
   width,
   height,
 }: CardContentProps) {
   const durataGiorni = calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const dataStr      = formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const coverValue   = viaggio.cover_emoji
-  const isStory      = formato === 'story'
+  const moodGradiente = gradienteCopertinaViaggio(viaggio.id)
+  const usaFoto       = sfondo === 'foto' && !!coverData
+  const [colA, colB]  = sfondo === 'mood' || sfondo === 'foto'
+    ? moodGradiente
+    : GRADIENTI_SFONDO[sfondo]
+  const isStory    = formato === 'story'
+  const isPolaroid = formato === 'polaroid'
 
   // Font sizes scalati sulla larghezza reale (1080px base)
   const scale = width / 1080
+
+  // ---- Polaroid: cornice chiara, foto/tema in alto, didascalia sotto ----
+  if (isPolaroid) {
+    const pad = Math.round(52 * scale)
+    return (
+      <div
+        style={{
+          width, height,
+          background: '#FDFBF7',
+          padding: pad,
+          display: 'flex', flexDirection: 'column', gap: Math.round(22 * scale),
+          fontFamily: "'DM Sans', sans-serif",
+          boxSizing: 'border-box',
+        }}
+      >
+        <div style={{
+          flex: 1, position: 'relative', overflow: 'hidden',
+          borderRadius: Math.round(14 * scale),
+          background: usaFoto ? '#0C2A3D' : `linear-gradient(150deg, ${colA} 0%, ${colB} 100%)`,
+        }}>
+          {usaFoto && coverData && (
+            <>
+              <img src={coverData} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(12,42,61,0.55) 0%, rgba(12,42,61,0.05) 45%, transparent 70%)' }} />
+            </>
+          )}
+          {!usaFoto && (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+              <ViaggioCoverIcon value={coverValue} size={Math.round(100 * scale)} />
+            </div>
+          )}
+          <div style={{
+            position: 'absolute', top: Math.round(16 * scale), left: Math.round(16 * scale),
+            display: 'flex', alignItems: 'center', gap: Math.round(6 * scale),
+          }}>
+            <div style={{
+              width: Math.round(26 * scale), height: Math.round(26 * scale),
+              borderRadius: Math.round(7 * scale),
+              background: 'rgba(255,255,255,0.22)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: Math.round(13 * scale),
+            }}>
+              📖
+            </div>
+            <span style={{ fontSize: Math.round(18 * scale), color: 'rgba(255,255,255,0.85)', fontWeight: 500, letterSpacing: '0.05em' }}>
+              Roamly
+            </span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: Math.round(6 * scale) }}>
+          <h1 style={{
+            fontSize: Math.round(42 * scale), fontWeight: 700, color: '#0C2A3D',
+            lineHeight: 1.2, margin: 0, fontFamily: "'Lora', Georgia, serif",
+          }}>
+            {viaggio.nome}
+          </h1>
+          <span style={{ fontSize: Math.round(23 * scale), color: '#154B63' }}>
+            {[viaggio.destinazione ?? viaggio.paese, dataStr].filter(Boolean).join(' · ')}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  // ---- Story / Square: card immersiva a tutto sfondo ----
   const fs = {
-    tag:    Math.round(22 * scale),
     nome:   Math.round(isStory ? 72 * scale : 60 * scale),
     dest:   Math.round(36 * scale),
     date:   Math.round(28 * scale),
@@ -92,14 +169,14 @@ function CardContent({
         height,
         position: 'relative',
         overflow: 'hidden',
-        background: '#0C2A3D',
+        background: usaFoto ? '#0C2A3D' : `linear-gradient(150deg, ${colA} 0%, ${colB} 100%)`,
         fontFamily: "'DM Sans', sans-serif",
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* ── Background foto cover ── */}
-      {coverData && (
+      {/* ── Background foto cover — solo se il tema "Foto" è attivo ── */}
+      {usaFoto && coverData && (
         <>
           <img
             src={coverData}
@@ -118,8 +195,8 @@ function CardContent({
             position: 'absolute',
             inset: 0,
             background: isStory
-              ? 'linear-gradient(to bottom, rgba(4,52,44,0.5) 0%, rgba(4,52,44,0.1) 35%, rgba(4,52,44,0.15) 65%, rgba(4,52,44,0.85) 100%)'
-              : 'linear-gradient(135deg, rgba(4,52,44,0.6) 0%, rgba(4,52,44,0.2) 50%, rgba(4,52,44,0.7) 100%)',
+              ? 'linear-gradient(to bottom, rgba(12,42,61,0.5) 0%, rgba(12,42,61,0.1) 35%, rgba(12,42,61,0.15) 65%, rgba(12,42,61,0.85) 100%)'
+              : 'linear-gradient(135deg, rgba(12,42,61,0.6) 0%, rgba(12,42,61,0.2) 50%, rgba(12,42,61,0.7) 100%)',
           }} />
         </>
       )}
@@ -166,8 +243,8 @@ function CardContent({
         {/* Spacer story */}
         {isStory && <div style={{ flex: 1 }} />}
 
-        {/* Emoji/icona viaggio — solo se no cover */}
-        {!coverData && (
+        {/* Emoji/icona viaggio — solo se non si usa una foto */}
+        {!usaFoto && (
           <div style={{
             display: 'flex',
             justifyContent: isStory ? 'center' : 'flex-start',
@@ -291,9 +368,11 @@ export function ShareCardViaggio({
   onClose,
 }: ShareCardViaggioProps) {
   const [formato, setFormato]         = useState<Formato>('story')
+  const [sfondo, setSfondo]           = useState<Sfondo>('mood')
   const [coverData, setCoverData]     = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [exported, setExported]       = useState<string | null>(null)
+  const [didascaliaCopiata, setDidascaliaCopiata] = useState(false)
   const exportRef                     = useRef<HTMLDivElement>(null)
 
   // Converte la cover in dataURL al mount / cambio URL
@@ -302,7 +381,18 @@ export function ShareCardViaggio({
     urlToDataUrl(coverUrl).then(setCoverData)
   }, [coverUrl])
 
+  const moodGradiente = gradienteCopertinaViaggio(viaggio.id)
   const dim = DIMENSIONI[formato]
+
+  function cambiaFormato(f: Formato) {
+    setFormato(f)
+    setExported(null)
+  }
+
+  function cambiaSfondo(s: Sfondo) {
+    setSfondo(s)
+    setExported(null)
+  }
 
   const generaImmagine = useCallback(async (): Promise<string | null> => {
     if (exported) return exported
@@ -335,9 +425,19 @@ export function ShareCardViaggio({
     a.click()
   }, [generaImmagine, formato, viaggio.nome])
 
-  // Testo che accompagna la condivisione — mancava, chi condivideva
-  // doveva scrivere la didascalia da zero.
+  // Testo che accompagna la condivisione — mostrato anche nella card
+  // "Didascalia già pronta", copiabile per chi condivide a mano.
   const testoCondivisione = `Sto organizzando ${viaggio.nome} su Roamly.`
+
+  async function handleCopiaDidascalia() {
+    try {
+      await navigator.clipboard.writeText(testoCondivisione)
+      setDidascaliaCopiata(true)
+      setTimeout(() => setDidascaliaCopiata(false), 2000)
+    } catch {
+      /* noop */
+    }
+  }
 
   // "Condividi" è il pulsante primario: genera l'immagine al volo e
   // apre subito il foglio di condivisione di sistema.
@@ -359,6 +459,18 @@ export function ShareCardViaggio({
   const anteprimaW = Math.round(dim.w * SCALA_ANTEPRIMA)
   const anteprimaH = Math.round(dim.h * SCALA_ANTEPRIMA)
   const canShare   = typeof navigator !== 'undefined' && 'share' in navigator
+
+  // Sfondo del pill del selettore — riflette il tema reale della card
+  function pillStyle(id: Sfondo): React.CSSProperties {
+    if (id === 'mood') return { background: `linear-gradient(135deg, ${moodGradiente[0]}, ${moodGradiente[1]})` }
+    if (id === 'foto') {
+      return coverData
+        ? { backgroundImage: `url(${coverData})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+        : { background: '#0C2A3D' }
+    }
+    const [a, b] = GRADIENTI_SFONDO[id]
+    return { background: `linear-gradient(135deg, ${a}, ${b})` }
+  }
 
   return (
     <AnimatePresence>
@@ -419,10 +531,10 @@ export function ShareCardViaggio({
 
           {/* Selector formato */}
           <div className="flex gap-2 px-5 pb-5 shrink-0">
-            {(['story', 'square'] as Formato[]).map((f) => (
+            {(['story', 'square', 'polaroid'] as Formato[]).map((f) => (
               <button
                 key={f}
-                onClick={() => { setFormato(f); setExported(null) }}
+                onClick={() => cambiaFormato(f)}
                 className={`
                   flex-1 flex flex-col items-center gap-1.5 py-3
                   rounded-2xl border transition-all duration-150
@@ -436,10 +548,10 @@ export function ShareCardViaggio({
                 <div className={`
                   border-2 rounded-md
                   ${formato === f ? 'border-roamly-g2' : 'border-roamly-g5'}
-                  ${f === 'story' ? 'w-5 h-9' : 'w-7 h-7'}
+                  ${f === 'story' ? 'w-5 h-9' : f === 'square' ? 'w-7 h-7' : 'w-6 h-7 border-b-[5px]'}
                 `} />
                 <span className="font-dm-sans text-xs font-medium text-roamly-text/70">
-                  {f === 'story' ? 'Story 9:16' : 'Square 1:1'}
+                  {FORMATO_LABEL[f]}
                 </span>
               </button>
             ))}
@@ -463,11 +575,69 @@ export function ShareCardViaggio({
                   numRicordi={numRicordi}
                   numFoto={numFoto}
                   formato={formato}
+                  sfondo={sfondo}
                   width={dim.w}
                   height={dim.h}
                 />
               </div>
             </div>
+          </div>
+
+          {/* Selettore sfondo */}
+          <div className="px-5 pb-4 shrink-0">
+            <p className="font-dm-mono text-[10px] uppercase tracking-widest text-roamly-g2 mb-2">
+              Sfondo
+            </p>
+            <div className="flex gap-1.5">
+              {TEMI_SFONDO.map((t) => {
+                const disabilitato = !!t.richiedeFoto && !coverData
+                const selezionato  = sfondo === t.id
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    disabled={disabilitato}
+                    onClick={() => cambiaSfondo(t.id)}
+                    style={pillStyle(t.id)}
+                    className={`
+                      flex-1 h-8 rounded-full
+                      font-dm-sans text-[11px] font-medium text-white
+                      transition-all duration-150
+                      ${selezionato ? 'ring-2 ring-roamly-g3 ring-offset-2 ring-offset-roamly-bg' : ''}
+                      ${disabilitato ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.97]'}
+                    `}
+                  >
+                    {t.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Didascalia già pronta */}
+          <div className="mx-5 mb-5 flex items-start gap-3 p-3.5 bg-white rounded-2xl shadow-roamly shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-roamly-g7 flex items-center justify-center shrink-0 text-roamly-g2">
+              <PenLine size={14} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-dm-sans text-xs font-semibold text-roamly-g0 mb-1">
+                Didascalia già pronta
+              </p>
+              <p className="font-dm-sans text-xs text-roamly-g2 leading-relaxed">
+                {testoCondivisione}
+              </p>
+            </div>
+            <button
+              onClick={handleCopiaDidascalia}
+              className="
+                shrink-0 h-8 px-3 rounded-full
+                bg-roamly-g7 hover:bg-roamly-g6
+                font-dm-sans text-xs font-medium text-roamly-g1
+                transition-colors duration-150
+              "
+            >
+              {didascaliaCopiata ? 'Copiato' : 'Copia'}
+            </button>
           </div>
 
           {/* Azioni */}
@@ -522,7 +692,7 @@ export function ShareCardViaggio({
                     <polyline points="7 10 12 15 17 10"/>
                     <line x1="12" y1="15" x2="12" y2="3"/>
                   </svg>
-                  <span>Scarica PNG</span>
+                  <span>Scarica PNG · {dim.w}×{dim.h}</span>
                 </button>
               </>
             ) : (
@@ -550,7 +720,7 @@ export function ShareCardViaggio({
                       <polyline points="7 10 12 15 17 10"/>
                       <line x1="12" y1="15" x2="12" y2="3"/>
                     </svg>
-                    <span>Scarica PNG</span>
+                    <span>Scarica PNG · {dim.w}×{dim.h}</span>
                   </>
                 )}
               </button>
@@ -576,6 +746,7 @@ export function ShareCardViaggio({
                 numRicordi={numRicordi}
                 numFoto={numFoto}
                 formato={formato}
+                sfondo={sfondo}
                 width={dim.w}
                 height={dim.h}
               />
