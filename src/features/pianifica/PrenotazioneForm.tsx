@@ -348,7 +348,7 @@ export function PrenotazioneForm({
                               border transition-all duration-150
                               ${field.value === opt.value
                                 ? 'bg-white border-roamly-g4 text-roamly-g1 shadow-sm'
-                                : 'bg-transparent border-roamly-g5 text-roamly-text/50'
+                                : 'bg-transparent border-roamly-g5 text-roamly-g2'
                               }
                             `}
                           >
@@ -453,7 +453,7 @@ export function PrenotazioneForm({
                           border transition-all duration-150
                           ${field.value === opt.value
                             ? 'bg-roamly-g6 border-roamly-g4 text-roamly-g1'
-                            : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/50'
+                            : 'bg-roamly-g7 border-roamly-g6 text-roamly-g2'
                           }
                         `}
                       >
@@ -495,7 +495,7 @@ export function PrenotazioneForm({
                   key={r.k}
                   className={`flex justify-between gap-3 py-3 ${i > 0 ? 'border-t border-roamly-text/[0.06]' : ''}`}
                 >
-                  <span className="font-dm-sans text-xs text-roamly-text/45 shrink-0">{r.k}</span>
+                  <span className="font-dm-sans text-xs text-roamly-g2 shrink-0">{r.k}</span>
                   <span className="font-dm-sans text-xs font-medium text-roamly-g0 text-right">{r.v}</span>
                 </div>
               ))}
