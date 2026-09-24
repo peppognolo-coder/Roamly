@@ -66,7 +66,7 @@ export function PageHeader({
             {title}
           </h1>
           {subtitle && (
-            <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate">
+            <p className="font-dm-sans text-xs text-roamly-g2 mt-0.5 truncate">
               {subtitle}
             </p>
           )}
