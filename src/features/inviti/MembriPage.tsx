@@ -103,7 +103,7 @@ export function MembriPage() {
                       <p className="font-dm-sans text-[13.5px] font-medium text-roamly-g0 truncate">
                         {sonoIo ? `${nome} (tu)` : nome}
                       </p>
-                      <p className="font-dm-sans text-[11px] text-roamly-text/40 mt-0.5">
+                      <p className="font-dm-sans text-[11px] text-roamly-g2 mt-0.5">
                         Dal {formatData(m.joined_at)}
                       </p>
                     </div>
@@ -139,11 +139,11 @@ export function MembriPage() {
               <p className="font-lora text-sm font-semibold text-roamly-g0">
                 Invita chi manca
               </p>
-              <p className="font-dm-sans text-[11.5px] text-roamly-text/50 leading-relaxed mt-1.5 mb-3">
+              <p className="font-dm-sans text-[11.5px] text-roamly-g2 leading-relaxed mt-1.5 mb-3">
                 Il link resta valido 7 giorni. Chi entra può aggiungere tappe, spese e ricordi.
               </p>
               <div className="flex items-center gap-2">
-                <span className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-white border border-roamly-g5/90 font-dm-mono text-[11px] text-roamly-text/50 truncate">
+                <span className="flex-1 min-w-0 px-3.5 py-2.5 rounded-xl bg-white border border-roamly-g5/90 font-dm-mono text-[11px] text-roamly-g2 truncate">
                   {isCaricandoLink ? 'Genero il link…' : linkInvito?.replace(/^https?:\/\//, '')}
                 </span>
                 <button
@@ -203,7 +203,7 @@ export function MembriPage() {
               <p className="font-lora text-base font-semibold text-roamly-g0">
                 Rimuovere {confermaRimozione.display_name ?? 'questo membro'}?
               </p>
-              <p className="font-dm-sans text-sm text-roamly-text/50">
+              <p className="font-dm-sans text-sm text-roamly-g2">
                 Non avrà più accesso al viaggio. I contenuti che ha già aggiunto resteranno.
               </p>
               <div className="flex gap-2 mt-2">
