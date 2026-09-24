@@ -254,7 +254,7 @@ export function RicordoForm({
       >
         <Heart
           size={20}
-          className={preferitoValue ? 'fill-red-400 text-red-400' : 'text-roamly-text/40'}
+          className={preferitoValue ? 'fill-roamly-coral-dark text-roamly-coral-dark' : 'text-roamly-text/40'}
         />
         <div className="flex-1 text-left">
           <p className="font-dm-sans font-medium text-sm">

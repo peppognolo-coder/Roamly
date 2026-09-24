@@ -159,7 +159,7 @@ export function RicordoDetailPage() {
           >
             <Heart
               size={17}
-              className={ricordo.preferito ? 'fill-red-400 text-red-400' : 'text-roamly-text/40'}
+              className={ricordo.preferito ? 'fill-roamly-coral-dark text-roamly-coral-dark' : 'text-roamly-text/40'}
             />
           </button>
           <button
