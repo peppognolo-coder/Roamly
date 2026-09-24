@@ -59,7 +59,7 @@ export function OfflinePage() {
                 <div className="w-9 h-9 rounded-xl bg-roamly-g7 flex items-center justify-center shrink-0 text-roamly-g3">
                   <WifiOff size={16} />
                 </div>
-                <p className="font-dm-sans text-xs text-roamly-text/50 leading-relaxed pt-1.5">
+                <p className="font-dm-sans text-xs text-roamly-g2 leading-relaxed pt-1.5">
                   Quando la connessione torna, Roamly si aggiorna automaticamente — non serve
                   ricaricare la pagina o fare nulla di particolare.
                 </p>
@@ -70,7 +70,7 @@ export function OfflinePage() {
               <div className="w-9 h-9 rounded-xl bg-roamly-g7 flex items-center justify-center shrink-0 text-roamly-g3">
                 <Wifi size={16} />
               </div>
-              <p className="font-dm-sans text-xs text-roamly-text/50 leading-relaxed pt-1.5">
+              <p className="font-dm-sans text-xs text-roamly-g2 leading-relaxed pt-1.5">
                 La connessione è tornata — tutto è di nuovo aggiornato.
               </p>
             </div>
