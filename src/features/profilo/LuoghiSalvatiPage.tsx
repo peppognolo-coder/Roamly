@@ -78,7 +78,7 @@ export function LuoghiSalvatiPage() {
                       {clusterPrincipale.length} luoghi salvati sono vicini tra loro
                     </p>
                   </div>
-                  <p className="font-dm-sans text-xs text-roamly-text/50 leading-relaxed">
+                  <p className="font-dm-sans text-xs text-roamly-g2 leading-relaxed">
                     Potrebbero stare bene nello stesso viaggio — dai un'occhiata prima di pianificare.
                   </p>
                   <button
@@ -169,7 +169,7 @@ function LuogoCard({
           {luogo.nome}
         </p>
         {luogo.indirizzo && (
-          <p className="font-dm-sans text-[11px] text-roamly-text/42 truncate mt-1">
+          <p className="font-dm-sans text-[11px] text-roamly-g2 truncate mt-1">
             {luogo.indirizzo}
           </p>
         )}
