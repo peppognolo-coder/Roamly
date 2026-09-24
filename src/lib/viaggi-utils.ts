@@ -10,13 +10,28 @@ import type { Viaggio, ViaggioConStato, StatoViaggio } from '@/types'
 // ------------------------------------------------------------
 
 const PALETTE_COPERTINA = ['#0C2A3D', '#0B6F99', '#D9A63C', '#7C6FC4', '#3C7A5E']
+// Tono più scuro abbinato a ciascun colore sopra, stesso indice — usato
+// per il gradiente del tema "Mood" nella share card del viaggio.
+const PALETTE_COPERTINA_SCURA = ['#081D2A', '#074A66', '#B3822A', '#5B4F99', '#295942']
 
-export function coloreCopertinaViaggio(id: string): string {
+function hashId(id: string): number {
   let hash = 0
   for (let i = 0; i < id.length; i++) {
     hash = (hash * 31 + id.charCodeAt(i)) >>> 0
   }
-  return PALETTE_COPERTINA[hash % PALETTE_COPERTINA.length]
+  return hash % PALETTE_COPERTINA.length
+}
+
+export function coloreCopertinaViaggio(id: string): string {
+  return PALETTE_COPERTINA[hashId(id)]
+}
+
+// Coppia [chiaro, scuro] per lo stesso indice di coloreCopertinaViaggio —
+// così il tema "Mood" della share card resta coerente con il colore
+// della fascia di copertina ovunque il viaggio compaia.
+export function gradienteCopertinaViaggio(id: string): [string, string] {
+  const i = hashId(id)
+  return [PALETTE_COPERTINA[i], PALETTE_COPERTINA_SCURA[i]]
 }
 
 // ------------------------------------------------------------
