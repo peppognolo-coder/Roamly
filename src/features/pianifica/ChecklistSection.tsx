@@ -199,7 +199,7 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
               style={{ width: `${stats.percentuale}%` }}
             />
           </div>
-          <p className="mt-2.5 font-dm-sans text-xs text-roamly-text/45">
+          <p className="mt-2.5 font-dm-sans text-xs text-roamly-g2">
             {stats.percentuale === 100
               ? 'Tutto dentro. Puoi chiudere la valigia.'
               : `Ancora ${stats.totale - stats.completati} da mettere in valigia.`}
@@ -236,13 +236,13 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                   style={{ width: `${stats.percentuale}%` }}
                 />
               </div>
-              <span className="font-dm-mono text-[10px] text-roamly-text/40 shrink-0">
+              <span className="font-dm-mono text-[10px] text-roamly-g2 shrink-0">
                 {stats.completati}/{stats.totale}
               </span>
             </div>
           )}
           {!hasItems && !abilitato && (
-            <p className="font-dm-sans text-[10px] text-roamly-text/35 mt-0.5">
+            <p className="font-dm-sans text-[10px] text-roamly-g2 mt-0.5">
               Nessun punto ancora
             </p>
           )}
@@ -292,7 +292,7 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                   viene aggiunta (vedi blocchiSuggerimentiAttivi sopra). */}
               {!isLoadingChecklist && blocchiSuggerimentiAttivi.length > 0 && (
                 <div className="flex flex-col gap-2 p-3.5 rounded-2xl bg-roamly-g7 border border-roamly-g6">
-                  <p className="font-dm-mono text-[9.5px] font-medium tracking-wider uppercase text-roamly-text/35">
+                  <p className="font-dm-mono text-[9.5px] font-medium tracking-wider uppercase text-roamly-g2">
                     I suggerimenti seguono il viaggio
                   </p>
                   {blocchiSuggerimentiAttivi.map((blocco) => {
@@ -317,7 +317,7 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                           <p className="font-dm-sans text-xs font-semibold text-roamly-g0 truncate">
                             {blocco.titolo}
                           </p>
-                          <p className="font-dm-sans text-[11px] text-roamly-text/50 truncate">
+                          <p className="font-dm-sans text-[11px] text-roamly-g2 truncate">
                             {blocco.sottotitolo} · {blocco.items.length} {blocco.items.length === 1 ? 'voce' : 'voci'}
                           </p>
                         </div>
@@ -334,7 +334,7 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                       dove c'è già la card di progresso sopra */}
                   {!paginaDedicata && (
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-dm-sans text-xs text-roamly-text/50 flex items-center gap-1">
+                      <span className="font-dm-sans text-xs text-roamly-g2 flex items-center gap-1">
                         {stats.percentuale === 100
                           ? <><CheckCircle2 size={12} className="text-roamly-g3" /> Tutto pronto!</>
                           : `${stats.completati} di ${stats.totale} completati`
@@ -362,10 +362,10 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                         return (
                           <div key={sez.id} className="flex flex-col gap-1.5">
                             <div className="flex items-baseline justify-between px-0.5">
-                              <span className="font-dm-mono text-[11px] font-medium tracking-wide uppercase text-roamly-text/40">
+                              <span className="font-dm-mono text-[11px] font-medium tracking-wide uppercase text-roamly-g2">
                                 {sez.titolo}
                               </span>
-                              <span className="font-dm-mono text-[10px] text-roamly-text/30">
+                              <span className="font-dm-mono text-[10px] text-roamly-g2">
                                 {itemsSezione.filter((i) => i.completato).length}/{itemsSezione.length}
                               </span>
                             </div>
@@ -396,7 +396,7 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                   (sempre visibili, non solo qui) */}
               {!isLoadingChecklist && !hasItems && (
                 <div className="flex flex-col items-center gap-3 py-4 text-center">
-                  <p className="font-dm-sans text-sm text-roamly-text/40">
+                  <p className="font-dm-sans text-sm text-roamly-g2">
                     {blocchiSuggerimentiAttivi.length > 0
                       ? 'Oppure parti da un tipo di viaggio:'
                       : 'La checklist è vuota. Parti da un template:'}
@@ -455,8 +455,8 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                 <button
                   onClick={() => setShowSuggerimenti(true)}
                   className="
-                    font-dm-sans text-xs text-roamly-text/40
-                    hover:text-roamly-g2
+                    font-dm-sans text-xs text-roamly-g2
+                    hover:text-roamly-g1
                     transition-colors duration-150
                     text-center py-1
                     flex items-center justify-center gap-1

@@ -56,7 +56,7 @@ export function BudgetPage() {
             <SettleUpCard viaggioId={viaggioId ?? ''} />
           ) : (
             <div className="bg-white rounded-2xl shadow-roamly p-5">
-              <p className="font-dm-sans text-xs text-roamly-text/45">Totale del viaggio</p>
+              <p className="font-dm-sans text-xs text-roamly-g2">Totale del viaggio</p>
               <p className="font-dm-mono text-[1.75rem] leading-tight font-semibold text-roamly-g0">
                 {formatEuro(totale)}
               </p>
@@ -67,10 +67,10 @@ export function BudgetPage() {
           <div className="flex flex-col gap-2">
             {!isLoading && voci.length > 0 && (
               <div className="flex items-baseline justify-between px-1">
-                <p className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-text/45">
+                <p className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-g2">
                   Ogni spesa
                 </p>
-                <p className="font-dm-sans text-xs text-roamly-text/35">
+                <p className="font-dm-sans text-xs text-roamly-g2">
                   {voci.length} {voci.length === 1 ? 'voce' : 'voci'}
                 </p>
               </div>
@@ -84,7 +84,7 @@ export function BudgetPage() {
               </div>
             ) : voci.length === 0 ? (
               <div className="py-8 text-center">
-                <p className="font-dm-sans text-sm text-roamly-text/40">
+                <p className="font-dm-sans text-sm text-roamly-g2">
                   Nessuna spesa registrata ancora
                 </p>
               </div>
@@ -114,7 +114,7 @@ export function BudgetPage() {
                       <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
                         {v.nota || categoriaLabel}
                       </p>
-                      <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 truncate">
+                      <p className="font-dm-sans text-xs text-roamly-g2 mt-0.5 truncate">
                         {[
                           categoriaLabel,
                           condiviso ? (autore?.display_name ?? 'Utente') : null,
