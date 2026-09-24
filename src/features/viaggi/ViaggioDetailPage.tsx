@@ -285,7 +285,7 @@ export function ViaggioDetailPage() {
               su sfondo scuro sarebbe illeggibile per lo StatoBadge chiaro) */}
           {(viaggio.destinazione || viaggio.paese) && (
             <div className="flex items-center gap-2 mb-2">
-              <p className="font-dm-sans text-sm text-roamly-text/50">
+              <p className="font-dm-sans text-sm text-roamly-g2">
                 {[viaggio.destinazione, viaggio.paese].filter(Boolean).join(', ')}
               </p>
               <StatoBadge stato={viaggio.stato_effettivo} size="sm" />
@@ -368,7 +368,7 @@ export function ViaggioDetailPage() {
           {/* Form modifica */}
           {isEditing && (
             <div className="bg-white rounded-2xl shadow-roamly p-5">
-              <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60
+              <h2 className="font-dm-sans font-semibold text-sm text-roamly-g2
                 uppercase tracking-wider mb-4">
                 Modifica viaggio
               </h2>
@@ -394,7 +394,7 @@ export function ViaggioDetailPage() {
 
           {/* Statistiche */}
           <div className="bg-white rounded-2xl shadow-roamly p-5">
-            <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60
+            <h2 className="font-dm-sans font-semibold text-sm text-roamly-g2
               uppercase tracking-wider mb-4">
               Statistiche
             </h2>
@@ -555,7 +555,7 @@ export function ViaggioDetailPage() {
                     <p className="font-dm-sans text-sm font-semibold text-roamly-g0">
                       {membri.length === 1 ? 'Solo tu nel viaggio' : `${membri.length} persone nel viaggio`}
                     </p>
-                    <p className="font-dm-sans text-xs text-roamly-text/45 truncate mt-0.5">
+                    <p className="font-dm-sans text-xs text-roamly-g2 truncate mt-0.5">
                       {membri.map((m) => (m.user_id === user?.id ? 'Tu' : (m.display_name ?? 'Utente'))).join(', ')}
                     </p>
                   </div>
