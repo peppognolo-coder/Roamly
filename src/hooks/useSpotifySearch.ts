@@ -7,7 +7,9 @@ import { queryKeys } from '@/lib/queryKeys'
 // Query di ricerca brani (Spotify), pensata per un input debounced
 // a monte — stesso pattern di useLuogoSearch/LuogoSearchInput.
 // keepPreviousData evita che la lista sparisca per un istante tra
-// un giro di digitazione e il successivo.
+// un giro di digitazione e il successivo. cercaBraniSpotify lancia
+// un'eccezione sugli errori reali (non "nessun risultato"), quindi
+// qui arrivano già separati in isError/error — vedi spotifyService.ts.
 // ============================================================
 
 export function useSpotifySearch(query: string) {
@@ -16,7 +18,6 @@ export function useSpotifySearch(query: string) {
   return useQuery({
     queryKey: queryKeys.spotify.search(query.trim().toLowerCase()),
     queryFn: () => cercaBraniSpotify(query),
-    select: (result) => result.data,
     enabled: abilitato,
     staleTime: 1000 * 60 * 30,
     retry: false,
