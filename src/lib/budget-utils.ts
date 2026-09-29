@@ -34,11 +34,19 @@ export function calcolaSaldi(
 ): SaldoMembro[] {
   if (membri.length === 0) return []
 
-  const totale = voci.reduce((s, v) => s + v.importo, 0)
+  // Solo le voci 'quota' entrano nel pareggio — 'offerta' e
+  // 'cointestato' contano nel totale del viaggio (mostrato altrove,
+  // es. BudgetPage/SettleUpCard calcolano il proprio totale su TUTTE
+  // le voci) ma sono neutre qui: non generano debiti né crediti.
+  // Voci senza modalita_pagamento (righe pre-esistenti) sono trattate
+  // come 'quota' — comportamento storico invariato.
+  const vociDaDividere = voci.filter((v) => (v.modalita_pagamento ?? 'quota') === 'quota')
+
+  const totale = vociDaDividere.reduce((s, v) => s + v.importo, 0)
   const quota = totale / membri.length
 
   return membri.map((m) => {
-    const pagato = voci
+    const pagato = vociDaDividere
       .filter((v) => v.user_id === m.userId)
       .reduce((s, v) => s + v.importo, 0)
 
