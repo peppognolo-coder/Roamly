@@ -107,6 +107,7 @@ export function NuovoRicordoPage() {
       testo:      data.testo     || null,
       luogo:      data.luogo     || null,
       mood:       data.mood,
+      emozione_testo: data.emozioneTesto || null,
       data:       data.data,
       preferito:  data.preferito,
       spotify_track_id:           data.spotifyTrack?.id          ?? null,

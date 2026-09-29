@@ -42,6 +42,11 @@ const MOOD_COLORI: Record<string, [string, string]> = {
   sereno:       ['#0F7EA8', '#0C2A3D'],
   entusiasta:   ['#FF6B4A', '#C23A1E'],
   ispirato:     ['#C084FC', '#6B21A8'],
+  grato:        ['#22C55E', '#15803D'],
+  nostalgico:   ['#94A3B8', '#475569'],
+  sorpreso:     ['#22D3EE', '#0E7490'],
+  stanco:       ['#A8A29E', '#57534E'],
+  divertito:    ['#FDE047', '#CA8A04'],
 }
 
 // ============================================================

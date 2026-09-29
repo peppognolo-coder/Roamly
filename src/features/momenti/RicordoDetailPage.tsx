@@ -103,6 +103,7 @@ export function RicordoDetailPage() {
       testo:     data.testo     || null,
       luogo:     data.luogo     || null,
       mood:      data.mood,
+      emozione_testo: data.emozioneTesto || null,
       data:      data.data,
       preferito: data.preferito,
       spotify_track_id:           data.spotifyTrack?.id          ?? null,
@@ -247,6 +248,13 @@ export function RicordoDetailPage() {
                   <span className="ml-auto text-lg">⭐</span>
                 )}
               </div>
+
+              {/* Emozione a mano — se presente */}
+              {ricordo.emozione_testo && (
+                <p className="font-lora italic text-sm text-roamly-g2 leading-relaxed">
+                  “{ricordo.emozione_testo}”
+                </p>
+              )}
 
               {/* Autore — solo su viaggi con più collaboratori */}
               {autore && (

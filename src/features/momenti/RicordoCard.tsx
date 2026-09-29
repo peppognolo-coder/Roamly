@@ -29,6 +29,11 @@ const MOOD_GRADIENT: Record<string, string> = {
   sereno:      'from-roamly-g7 to-roamly-g6',
   entusiasta:  'from-orange-100 to-amber-50',
   ispirato:    'from-violet-100 to-purple-50',
+  grato:       'from-emerald-100 to-green-50',
+  nostalgico:  'from-slate-100 to-gray-50',
+  sorpreso:    'from-cyan-100 to-sky-50',
+  stanco:      'from-stone-200 to-stone-50',
+  divertito:   'from-lime-100 to-yellow-50',
 }
 
 export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {

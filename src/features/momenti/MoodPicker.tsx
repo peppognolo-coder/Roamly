@@ -2,8 +2,10 @@ import { MOOD_OPTIONS } from '@/types'
 import type { Mood } from '@/types'
 
 // ============================================================
-// MoodPicker — selezione mood con card grandi e tappabili
-// Ogni card mostra emoji grande + label leggibile.
+// MoodPicker — selezione mood, solo emoji (senza etichetta a vista,
+// per non affollare la griglia con 10 opzioni) — il nome resta
+// comunque leggibile al tap/hover (title) e agli screen reader
+// (aria-label), non è rimosso, solo non stampato sotto l'emoji.
 // Design: facilmente tappabile su mobile, chiaro a colpo d'occhio.
 // ============================================================
 
@@ -28,9 +30,12 @@ export function MoodPicker({ value, onChange, error }: MoodPickerProps) {
               key={option.value}
               type="button"
               onClick={() => onChange(option.value)}
+              title={option.label}
+              aria-label={option.label}
+              aria-pressed={isSelected}
               className={`
-                flex flex-col items-center justify-center
-                gap-1.5 py-3 px-1
+                flex items-center justify-center
+                py-3 px-1
                 rounded-2xl border
                 transition-all duration-150
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
@@ -43,12 +48,6 @@ export function MoodPicker({ value, onChange, error }: MoodPickerProps) {
             >
               <span className={`text-2xl leading-none transition-transform duration-150 ${isSelected ? 'scale-110' : ''}`}>
                 {option.emoji}
-              </span>
-              <span className={`
-                font-dm-sans text-[10px] font-medium leading-tight text-center
-                ${isSelected ? 'text-white' : 'text-roamly-text/50'}
-              `}>
-                {option.label}
               </span>
             </button>
           )

@@ -32,9 +32,14 @@ function oggi(): string {
 
 const ricordoSchema = z.object({
   mood: z.enum(
-    ['felice', 'meravigliato', 'sereno', 'entusiasta', 'ispirato'],
+    ['felice', 'meravigliato', 'sereno', 'entusiasta', 'ispirato', 'grato', 'nostalgico', 'sorpreso', 'stanco', 'divertito'],
     { errorMap: () => ({ message: 'Seleziona come ti senti' }) }
   ),
+  emozioneTesto: z
+    .string()
+    .max(300, 'Massimo 300 caratteri')
+    .optional()
+    .or(z.literal('')),
   titolo: z
     .string()
     .min(1, 'Il titolo è obbligatorio')
@@ -110,7 +115,8 @@ export function RicordoForm({
   // Non si usa cast insicuro: il tipo del valore di `values` è
   // `RicordoFormData | Partial<RicordoFormData>` per React Hook Form.
   const initialValues = {
-    mood:      ricordo?.mood,
+    mood:          ricordo?.mood,
+    emozioneTesto: ricordo?.emozione_testo ?? '',
     titolo:    ricordo?.titolo    ?? '',
     testo:     ricordo?.testo     ?? '',
     luogo:     ricordo?.luogo     ?? '',
@@ -162,6 +168,33 @@ export function RicordoForm({
           />
         )}
       />
+
+      {/* Emozione a mano — libera, in aggiunta al mood guidato sopra */}
+      <div className="flex flex-col gap-1.5">
+        <label className="font-dm-sans text-[12.5px] font-medium text-roamly-text/70">
+          Come ti senti, con parole tue <span className="text-roamly-text/35 font-normal">(opzionale)</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Agrodolce, felice ma già con la nostalgia del rientro..."
+          autoComplete="off"
+          maxLength={300}
+          className="
+            h-[46px] px-4
+            bg-roamly-g7 border border-roamly-g5
+            rounded-2xl
+            font-dm-sans text-sm text-roamly-text
+            placeholder:text-roamly-text/30
+            transition-all duration-150
+            outline-none
+            focus:border-roamly-g3 focus:bg-white focus:ring-2 focus:ring-roamly-g3/20
+          "
+          {...register('emozioneTesto')}
+        />
+        {errors.emozioneTesto && (
+          <p className="text-xs font-dm-sans text-red-500">{errors.emozioneTesto.message}</p>
+        )}
+      </div>
 
       {beforeTitolo}
 
