@@ -31,6 +31,11 @@ const MOOD_GRADIENT_LIGHT: Record<string, string> = {
   sereno:       'from-roamly-g7  to-roamly-g6',
   entusiasta:   'from-orange-50  to-amber-50',
   ispirato:     'from-violet-50  to-purple-50',
+  grato:        'from-emerald-50 to-green-50',
+  nostalgico:   'from-slate-50   to-gray-50',
+  sorpreso:     'from-cyan-50    to-sky-50',
+  stanco:       'from-stone-100  to-stone-50',
+  divertito:    'from-lime-50    to-yellow-50',
 }
 
 // ── Props ─────────────────────────────────────────────────────

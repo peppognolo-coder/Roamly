@@ -32,6 +32,11 @@ const CAPITOLO_GRADIENT: Record<string, string> = {
   sereno:       'linear-gradient(135deg,#A3DAEC,#DFF3FA 55%,#F0FAFD)',
   entusiasta:   'linear-gradient(135deg,#FFE4DC,#FFEDE7 55%,#FFF7F4)',
   ispirato:     'linear-gradient(135deg,#DDD6FE,#EDE9FE 55%,#F5F3FF)',
+  grato:        'linear-gradient(135deg,#BBF7D0,#DCFCE7 55%,#F0FDF4)',
+  nostalgico:   'linear-gradient(135deg,#E2E8F0,#F1F5F9 55%,#F8FAFC)',
+  sorpreso:     'linear-gradient(135deg,#A5F3FC,#CFFAFE 55%,#ECFEFF)',
+  stanco:       'linear-gradient(135deg,#E7E5E4,#F5F5F4 55%,#FAFAF9)',
+  divertito:    'linear-gradient(135deg,#FEF08A,#FEF9C3 55%,#FEFCE8)',
 }
 
 // Estratto breve da mostrare sotto il titolo del capitolo —
@@ -131,7 +136,7 @@ export function RecapViaggioPage() {
                 <ArrowLeft size={16} />
               </button>
               <div className="absolute left-5 right-5 bottom-5">
-                <p className="font-dm-mono text-[9px] font-medium uppercase tracking-[0.18em] text-roamly-g5/85">
+                <p className="font-dm-mono text-[9px] font-medium uppercase tracking-[0.18em] text-roamly-g5">
                   Il tuo racconto{durataGiorni ? ` · ${durataGiorni} ${durataGiorni === 1 ? 'giorno' : 'giorni'}` : ''}
                 </p>
                 <h1 className="font-lora text-[28px] leading-[1.15] font-semibold text-white mt-2">
@@ -190,13 +195,13 @@ export function RecapViaggioPage() {
                               calcolato da buildRacconto) — non la data di calendario
                               completa: nel racconto di un viaggio concluso l'utente
                               pensa in giorni di viaggio, non in giorni della settimana. */}
-                          <p className="font-dm-mono text-[9px] font-medium uppercase tracking-[0.12em] text-roamly-text/30 truncate">
+                          <p className="font-dm-mono text-[9px] font-medium uppercase tracking-[0.12em] text-roamly-g2 truncate">
                             Giorno {capitolo.numeroCapitolo}
                           </p>
                           <p className="font-lora text-sm font-semibold text-roamly-g0 mt-1.5 truncate">
                             {primo?.titolo ?? 'Ricordo'}
                           </p>
-                          <p className="font-dm-sans text-[11.5px] text-roamly-text/45 mt-1 truncate">
+                          <p className="font-dm-sans text-[11.5px] text-roamly-g2 mt-1 truncate">
                             {estrattoCapitolo(capitolo)}
                           </p>
                         </div>
@@ -221,7 +226,7 @@ export function RecapViaggioPage() {
                     <Heart size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-dm-sans text-xs text-roamly-text/45">
+                    <p className="font-dm-sans text-xs text-roamly-g2">
                       Il ricordo più apprezzato
                     </p>
                     <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
@@ -250,7 +255,7 @@ export function RecapViaggioPage() {
                   <p className="font-dm-sans text-sm font-medium text-roamly-g0">
                     Rileggi il racconto completo
                   </p>
-                  <p className="font-dm-sans text-xs text-roamly-text/45">
+                  <p className="font-dm-sans text-xs text-roamly-g2">
                     L'esperienza immersiva, capitolo per capitolo
                   </p>
                 </div>
@@ -282,8 +287,8 @@ export function RecapViaggioPage() {
                     transition-all duration-150
                   "
                 >
-                  <Wallet size={14} className="text-roamly-g1" />
-                  <span className="font-dm-sans text-sm font-medium text-roamly-g1">
+                  <Wallet size={14} className="text-roamly-g2" />
+                  <span className="font-dm-sans text-sm font-medium text-roamly-g2">
                     Spese
                   </span>
                 </button>
@@ -321,7 +326,7 @@ function NumeroTile({
       <p className="font-dm-mono text-[22px] font-semibold text-roamly-g0 leading-none">
         {valore}
       </p>
-      <p className="font-dm-sans text-[11.5px] leading-snug text-roamly-text/45 mt-1.5">
+      <p className="font-dm-sans text-[11.5px] leading-snug text-roamly-g2 mt-1.5">
         {etichetta}
       </p>
     </div>
