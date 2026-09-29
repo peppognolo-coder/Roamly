@@ -24,6 +24,11 @@ const MOOD_GRADIENT: Record<string, string> = {
   sereno:       'from-roamly-g5 via-roamly-g6 to-roamly-g7',
   entusiasta:   'from-orange-200 via-amber-100 to-orange-50',
   ispirato:     'from-violet-200 via-purple-100 to-violet-50',
+  grato:        'from-emerald-200 via-green-100 to-emerald-50',
+  nostalgico:   'from-slate-200 via-gray-100 to-slate-50',
+  sorpreso:     'from-cyan-200 via-sky-100 to-cyan-50',
+  stanco:       'from-stone-200 via-stone-100 to-stone-50',
+  divertito:    'from-lime-200 via-yellow-100 to-lime-50',
 }
 
 export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
