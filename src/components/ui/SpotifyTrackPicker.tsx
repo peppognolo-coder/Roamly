@@ -23,7 +23,7 @@ export function SpotifyTrackPicker({ value, onChange, error }: SpotifyTrackPicke
   const [aperto, setAperto] = useState(false)
 
   const queryDebounced = useDebouncedValue(query, 450)
-  const { data: risultati = [], isFetching } = useSpotifySearch(queryDebounced)
+  const { data: risultati = [], isFetching, isError, error: erroreRicerca } = useSpotifySearch(queryDebounced)
 
   const mostraDropdown = aperto && queryDebounced.trim().length >= 2
 
@@ -156,7 +156,19 @@ export function SpotifyTrackPicker({ value, onChange, error }: SpotifyTrackPicke
         </div>
       )}
 
-      {mostraDropdown && !isFetching && risultati.length === 0 && (
+      {mostraDropdown && isError && (
+        <div className="
+          absolute top-full left-0 right-0 mt-1 z-20
+          bg-red-50 rounded-2xl shadow-roamly-lg border border-red-200
+          px-3.5 py-3
+        ">
+          <p className="font-dm-sans text-xs text-red-600">
+            Ricerca non riuscita: {erroreRicerca instanceof Error ? erroreRicerca.message : 'errore sconosciuto'}
+          </p>
+        </div>
+      )}
+
+      {mostraDropdown && !isFetching && !isError && risultati.length === 0 && (
         <div className="
           absolute top-full left-0 right-0 mt-1 z-20
           bg-white rounded-2xl shadow-roamly-lg border border-roamly-g6
