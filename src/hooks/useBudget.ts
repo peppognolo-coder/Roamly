@@ -134,7 +134,7 @@ export function useBudgetPagamenti(viaggioId: string | undefined) {
 export function useCreateBudgetPagamento(viaggioId: string) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const { showSuccess } = useToast()
+  const { showSuccess, showError } = useToast()
   const [error, setError] = useState<string | null>(null)
 
   const mutation = useMutation({
@@ -145,13 +145,17 @@ export function useCreateBudgetPagamento(viaggioId: string) {
     onSuccess: (result) => {
       if (result.error) {
         setError('Impossibile registrare il pareggio. Riprova.')
+        showError('Impossibile registrare il pareggio. Riprova.')
         return
       }
       setError(null)
       queryClient.invalidateQueries({ queryKey: queryKeys.budget.pagamenti(viaggioId) })
       showSuccess('Segnato come saldato')
     },
-    onError: () => setError('Impossibile registrare il pareggio. Riprova.'),
+    onError: () => {
+      setError('Impossibile registrare il pareggio. Riprova.')
+      showError('Impossibile registrare il pareggio. Riprova.')
+    },
   })
 
   return {
