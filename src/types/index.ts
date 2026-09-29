@@ -12,6 +12,11 @@ export type Mood =
   | 'sereno'
   | 'entusiasta'
   | 'ispirato'
+  | 'grato'
+  | 'nostalgico'
+  | 'sorpreso'
+  | 'stanco'
+  | 'divertito'
 
 export type StatoViaggio =
   | 'pianificato'
@@ -131,6 +136,10 @@ export interface Ricordo {
   lat: number | null
   lng: number | null
   mood: Mood
+  // Emozione scritta a mano, libera — in aggiunta al mood guidato
+  // (chip emoji), non in sostituzione. Es. "un po' agrodolce, felice
+  // ma già con la nostalgia del rientro". Opzionale.
+  emozione_testo: string | null
   preferito: boolean
   highlight: boolean
   data: string                 // ISO date string 'YYYY-MM-DD'
@@ -160,6 +169,7 @@ export type NuovoRicordo = Pick<
   | 'testo'
   | 'luogo'
   | 'mood'
+  | 'emozione_testo'
   | 'data'
   | 'preferito'
   | 'spotify_track_id'
@@ -178,6 +188,7 @@ export type ModificaRicordo = Partial<
     | 'testo'
     | 'luogo'
     | 'mood'
+    | 'emozione_testo'
     | 'data'
     | 'preferito'
     | 'highlight'
@@ -303,6 +314,11 @@ export const MOOD_OPTIONS: MoodOption[] = [
   { value: 'sereno',      label: 'Sereno',       emoji: '😌' },
   { value: 'entusiasta',  label: 'Entusiasta',   emoji: '🎉' },
   { value: 'ispirato',    label: 'Ispirato',     emoji: '🤩' },
+  { value: 'grato',       label: 'Grato',        emoji: '🙏' },
+  { value: 'nostalgico',  label: 'Nostalgico',   emoji: '🥹' },
+  { value: 'sorpreso',    label: 'Sorpreso',     emoji: '😮' },
+  { value: 'stanco',      label: 'Stanco',       emoji: '😴' },
+  { value: 'divertito',   label: 'Divertito',    emoji: '😄' },
 ]
 
 // ------------------------------------------------------------
