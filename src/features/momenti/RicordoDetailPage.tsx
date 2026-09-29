@@ -7,6 +7,7 @@ import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }      from '@/components/layout/BottomNav'
 import { Button }         from '@/components/ui/Button'
 import { RicordoForm }    from './RicordoForm'
+import { SpotifyEmbedPlayer } from '@/components/ui/SpotifyEmbedPlayer'
 import { useRicordo }     from '@/hooks/useRicordi'
 import { useViaggi }      from '@/hooks/useViaggi'
 import { useUpdateRicordo, useDeleteRicordo, useTogglePreferito } from '@/hooks/useCrudRicordo'
@@ -104,6 +105,10 @@ export function RicordoDetailPage() {
       mood:      data.mood,
       data:      data.data,
       preferito: data.preferito,
+      spotify_track_id:           data.spotifyTrack?.id          ?? null,
+      spotify_track_nome:         data.spotifyTrack?.nome         ?? null,
+      spotify_track_artista:      data.spotifyTrack?.artista      ?? null,
+      spotify_track_immagine_url: data.spotifyTrack?.immagineUrl  ?? null,
     })
   }
 
@@ -277,6 +282,11 @@ export function RicordoDetailPage() {
                     {ricordo.testo}
                   </p>
                 </div>
+              )}
+
+              {/* Colonna sonora */}
+              {ricordo.spotify_track_id && (
+                <SpotifyEmbedPlayer trackId={ricordo.spotify_track_id} />
               )}
             </div>
           )}

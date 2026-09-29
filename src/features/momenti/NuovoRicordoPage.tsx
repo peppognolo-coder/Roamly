@@ -109,6 +109,10 @@ export function NuovoRicordoPage() {
       mood:       data.mood,
       data:       data.data,
       preferito:  data.preferito,
+      spotify_track_id:           data.spotifyTrack?.id          ?? null,
+      spotify_track_nome:         data.spotifyTrack?.nome         ?? null,
+      spotify_track_artista:      data.spotifyTrack?.artista      ?? null,
+      spotify_track_immagine_url: data.spotifyTrack?.immagineUrl  ?? null,
     })
   }
 
@@ -210,7 +214,7 @@ export function NuovoRicordoPage() {
       <AnimatedPage className="flex flex-col h-screen overflow-hidden">
 
         {/* Header */}
-        <div className="flex-none px-5 pt-3 pb-3 flex items-center gap-3">
+        <div className="flex-none px-5 pt-14 pb-3 flex items-center gap-3">
           <button
             onClick={() => navigate(-1)}
             aria-label="Chiudi"

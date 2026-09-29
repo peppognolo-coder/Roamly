@@ -5,7 +5,8 @@ import { Heart, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { MoodPicker } from './MoodPicker'
-import type { Ricordo } from '@/types'
+import { SpotifyTrackPicker } from '@/components/ui/SpotifyTrackPicker'
+import type { Ricordo, SpotifyTrackSelezionato } from '@/types'
 
 // ============================================================
 // ROAMLY — RicordoForm
@@ -16,6 +17,8 @@ import type { Ricordo } from '@/types'
 //   4. Luogo (opzionale)
 //   5. Data (default: oggi in timezone locale)
 //   6. Preferito (toggle)
+//   7. Colonna sonora (opzionale, brano Spotify — aggiunta dopo
+//      il Master Prompt, in coda per non alterare l'ordine sopra)
 // ============================================================
 
 // Data locale oggi — evita bug UTC per utenti in fuso orario italiano
@@ -49,6 +52,14 @@ const ricordoSchema = z.object({
     .or(z.literal('')),
   data: z.string().min(1, 'La data è obbligatoria'),
   preferito: z.boolean(),
+  spotifyTrack: z
+    .object({
+      id: z.string(),
+      nome: z.string(),
+      artista: z.string(),
+      immagineUrl: z.string().nullable(),
+    })
+    .nullable(),
 })
 
 export type RicordoFormData = z.infer<typeof ricordoSchema>
@@ -105,6 +116,14 @@ export function RicordoForm({
     luogo:     ricordo?.luogo     ?? '',
     data:      ricordo?.data      ?? oggi(),
     preferito: ricordo?.preferito ?? false,
+    spotifyTrack: ricordo?.spotify_track_id
+      ? {
+          id:          ricordo.spotify_track_id,
+          nome:        ricordo.spotify_track_nome ?? '',
+          artista:     ricordo.spotify_track_artista ?? '',
+          immagineUrl: ricordo.spotify_track_immagine_url,
+        } satisfies SpotifyTrackSelezionato
+      : null,
   } as RicordoFormData
 
   const {
@@ -275,6 +294,18 @@ export function RicordoForm({
           )}
         </div>
       </button>
+
+      {/* 7. Colonna sonora */}
+      <Controller
+        name="spotifyTrack"
+        control={control}
+        render={({ field }) => (
+          <SpotifyTrackPicker
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
 
       {!hideSubmitButton && (
         <Button
