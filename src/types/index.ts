@@ -135,6 +135,21 @@ export interface Ricordo {
   highlight: boolean
   data: string                 // ISO date string 'YYYY-MM-DD'
   created_at: string
+  // "Colonna sonora" del ricordo — brano Spotify collegato (opzionale).
+  // I 4 campi vanno sempre insieme: o tutti valorizzati o tutti null.
+  spotify_track_id: string | null
+  spotify_track_nome: string | null
+  spotify_track_artista: string | null
+  spotify_track_immagine_url: string | null
+}
+
+// Brano Spotify selezionato nel form — forma "comoda" per l'UI,
+// mappata sui 4 campi flat di Ricordo al submit (vedi RicordoForm).
+export interface SpotifyTrackSelezionato {
+  id: string
+  nome: string
+  artista: string
+  immagineUrl: string | null
 }
 
 // Payload per creare un nuovo ricordo
@@ -147,6 +162,10 @@ export type NuovoRicordo = Pick<
   | 'mood'
   | 'data'
   | 'preferito'
+  | 'spotify_track_id'
+  | 'spotify_track_nome'
+  | 'spotify_track_artista'
+  | 'spotify_track_immagine_url'
 > & {
   tipo?: TipoRicordo
 }
@@ -163,6 +182,10 @@ export type ModificaRicordo = Partial<
     | 'preferito'
     | 'highlight'
     | 'tipo'
+    | 'spotify_track_id'
+    | 'spotify_track_nome'
+    | 'spotify_track_artista'
+    | 'spotify_track_immagine_url'
   >
 >
 
