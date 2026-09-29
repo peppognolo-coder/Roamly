@@ -450,6 +450,18 @@ export const TIPO_PRENOTAZIONE_OPTIONS: TipoPrenotazioneOption[] = [
 export type CategoriaBudget =
   | 'trasporto' | 'alloggio' | 'food' | 'attivita' | 'shopping' | 'altro'
 
+// Come questa spesa entra nel calcolo dei pareggi tra membri
+// (calcolaSaldi, src/lib/budget-utils.ts):
+//   'quota'       — spesa normale: si divide equamente, chi non ha
+//                   pagato è in debito verso chi ha pagato (comportamento
+//                   storico, resta il default)
+//   'offerta'     — chi ha pagato offre, non vuole essere rimborsato:
+//                   conta nel totale del viaggio ma non genera debiti
+//   'cointestato' — pagata da un conto già comune a tutti i membri:
+//                   stesso trattamento di 'offerta' nei saldi (neutra),
+//                   distinta solo per come viene etichettata in UI
+export type ModalitaPagamentoVoce = 'quota' | 'offerta' | 'cointestato'
+
 export interface BudgetVoce {
   id: string
   viaggio_id: string
@@ -457,6 +469,7 @@ export interface BudgetVoce {
   categoria: CategoriaBudget
   importo: number
   nota: string | null
+  modalita_pagamento: ModalitaPagamentoVoce
   created_at: string
 }
 
@@ -465,11 +478,12 @@ export interface BudgetVoce {
 // quando il viaggio è condiviso). Vedi RLS in
 // supabase-migration-spese-gruppo.sql: chi la registra deve comunque
 // essere un membro del viaggio, ma non deve coincidere con chi paga.
+// 'modalita_pagamento' è opzionale: assente = 'quota' (default DB).
 export type NuovaBudgetVoce = Pick<BudgetVoce, 'viaggio_id' | 'categoria' | 'importo'> &
-  Partial<Pick<BudgetVoce, 'nota' | 'user_id'>>
+  Partial<Pick<BudgetVoce, 'nota' | 'user_id' | 'modalita_pagamento'>>
 
 export type ModificaBudgetVoce = Partial<
-  Pick<BudgetVoce, 'categoria' | 'importo' | 'nota' | 'user_id'>
+  Pick<BudgetVoce, 'categoria' | 'importo' | 'nota' | 'user_id' | 'modalita_pagamento'>
 >
 
 // ------------------------------------------------------------
@@ -504,6 +518,35 @@ export const CATEGORIA_BUDGET_OPTIONS: CategoriaBudgetOption[] = [
   { value: 'attivita',  label: 'Attività' },
   { value: 'shopping',  label: 'Shopping' },
   { value: 'altro',     label: 'Altro' },
+]
+
+export interface ModalitaPagamentoOption {
+  value: ModalitaPagamentoVoce
+  label: string
+  /** Etichetta breve mostrata come badge nella lista spese */
+  badge: string
+  descrizione: string
+}
+
+export const MODALITA_PAGAMENTO_OPTIONS: ModalitaPagamentoOption[] = [
+  {
+    value: 'quota',
+    label: 'Pago e ho la mia quota',
+    badge: 'Quota',
+    descrizione: 'Si divide equamente tra tutti — chi non ha pagato è in debito verso chi ha pagato.',
+  },
+  {
+    value: 'offerta',
+    label: 'Offro io',
+    badge: 'Offerta',
+    descrizione: 'Nessuno ti deve nulla per questa spesa — conta nel totale del viaggio, non nei pareggi.',
+  },
+  {
+    value: 'cointestato',
+    label: 'Conto cointestato',
+    badge: 'Conto comune',
+    descrizione: 'Pagata da un conto già comune a tutti — nessun debito da pareggiare.',
+  },
 ]
 
 // ------------------------------------------------------------
