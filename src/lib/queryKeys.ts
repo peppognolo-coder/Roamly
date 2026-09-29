@@ -150,6 +150,14 @@ export const queryKeys = {
       ['geocoding', 'search', query, lat ?? null, lng ?? null, codicePaese ?? null] as const,
   },
 
+  // ----------------------------------------------------------
+  // SPOTIFY — ricerca brani per "colonna sonora" del ricordo
+  // ----------------------------------------------------------
+  spotify: {
+    /** ['spotify', 'search', query] */
+    search: (query: string) => ['spotify', 'search', query] as const,
+  },
+
   reazioni: {
     /** ['reazioni', 'list', ricordoId] */
     byRicordo: (ricordoId: string) => ['reazioni', 'list', ricordoId] as const,
