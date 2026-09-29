@@ -31,9 +31,10 @@ export function SettleUpCard({ viaggioId, variante = 'completa' }: SettleUpCardP
   const { data: pagamenti = [] } = useBudgetPagamenti(viaggioId)
   const { creaPagamento, isLoading: isSaldando } = useCreateBudgetPagamento(viaggioId)
 
+  // Totale REALE del viaggio (tutte le voci, incluse 'offerta' e
+  // 'cointestato') — informativo, per "Totale del viaggio".
   const totale = voci.reduce((sum, v) => sum + v.importo, 0)
   const condiviso = membri.length > 1
-  const quota = condiviso ? totale / membri.length : 0
 
   if (isLoading || !condiviso || totale === 0) return null
 
@@ -44,6 +45,14 @@ export function SettleUpCard({ viaggioId, variante = 'completa' }: SettleUpCardP
   ).sort((a, b) => b.pagato - a.pagato)
 
   const giroConti = calcolaGiroConti(saldi)
+
+  // Quota effettiva usata nel pareggio (solo voci 'quota' —
+  // calcolaSaldi esclude 'offerta'/'cointestato', vedi budget-utils.ts).
+  // Presa da saldi invece che ricalcolata qui, per restare sempre
+  // coerente con ciò che genera davvero i debiti.
+  const quota = saldi[0]?.quota ?? 0
+  const totaleDaDividere = quota * membri.length
+  const escluso = totale - totaleDaDividere
 
   const membroDi = (userId: string) => membri.find((m) => m.user_id === userId)
   const avatarDi = (userId: string, nome: string) => {
@@ -77,9 +86,15 @@ export function SettleUpCard({ viaggioId, variante = 'completa' }: SettleUpCardP
             </div>
           </div>
 
+          {escluso > 0.01 && (
+            <p className="font-dm-sans text-[11px] text-roamly-text/35 -mt-2">
+              {formatEuro(escluso)} offerti o da conto cointestato — esclusi dal pareggio
+            </p>
+          )}
+
           <div className="flex flex-col gap-3 pt-4 border-t border-roamly-g6">
             {saldi.map((s) => {
-              const percentuale = totale > 0 ? (s.pagato / totale) * 100 : 0
+              const percentuale = totaleDaDividere > 0 ? (s.pagato / totaleDaDividere) * 100 : 0
               const inPareggio = Math.abs(s.saldo) < 0.01
               return (
                 <div key={s.userId} className="flex items-center gap-3">

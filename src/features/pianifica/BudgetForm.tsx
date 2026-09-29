@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { CATEGORIA_BUDGET_OPTIONS } from '@/types'
+import { CATEGORIA_BUDGET_OPTIONS, MODALITA_PAGAMENTO_OPTIONS } from '@/types'
 import type { BudgetVoce } from '@/types'
 
 // ============================================================
@@ -18,6 +18,10 @@ const budgetFormSchema = z.object({
   // Assente = chi registra la spesa (default). Presente solo quando
   // il viaggio è condiviso e si sceglie "Ha pagato" un altro membro.
   pagatoDa: z.string().optional(),
+  // Come entra nel pareggio — vedi ModalitaPagamentoVoce in types/index.ts.
+  // Il picker compare solo su viaggi condivisi (paganti.length > 1);
+  // in un viaggio solo il default 'quota' non ha comunque effetto.
+  modalitaPagamento: z.enum(['quota', 'offerta', 'cointestato']),
 })
 
 export type BudgetFormData = z.infer<typeof budgetFormSchema>
@@ -60,6 +64,7 @@ export function BudgetForm({
       importo: voce?.importo != null ? String(voce.importo) : '',
       nota: voce?.nota ?? '',
       pagatoDa: voce?.user_id ?? mioUserId,
+      modalitaPagamento: voce?.modalita_pagamento ?? 'quota',
     },
   })
 
@@ -131,6 +136,45 @@ export function BudgetForm({
                     `}
                   >
                     {p.userId === mioUserId ? 'Tu' : p.nome}
+                  </button>
+                ))}
+              </div>
+            )}
+          />
+        </div>
+      )}
+
+      {/* Come si divide — solo su viaggi condivisi */}
+      {paganti.length > 1 && (
+        <div className="flex flex-col gap-2">
+          <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+            Come si divide
+          </label>
+          <Controller
+            name="modalitaPagamento"
+            control={control}
+            render={({ field }) => (
+              <div className="flex flex-col gap-2">
+                {MODALITA_PAGAMENTO_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => field.onChange(opt.value)}
+                    className={`
+                      flex flex-col items-start gap-0.5 px-3.5 py-2.5 text-left
+                      rounded-2xl border transition-all duration-150
+                      ${field.value === opt.value
+                        ? 'bg-roamly-g0 border-roamly-g0'
+                        : 'bg-roamly-g7 border-roamly-g6 hover:border-roamly-g4'
+                      }
+                    `}
+                  >
+                    <span className={`font-dm-sans text-sm font-medium ${field.value === opt.value ? 'text-white' : 'text-roamly-text'}`}>
+                      {opt.label}
+                    </span>
+                    <span className={`font-dm-sans text-xs ${field.value === opt.value ? 'text-white/60' : 'text-roamly-text/40'}`}>
+                      {opt.descrizione}
+                    </span>
                   </button>
                 ))}
               </div>

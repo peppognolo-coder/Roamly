@@ -40,6 +40,7 @@ export function BudgetVocePage() {
       importo: Number(data.importo.replace(',', '.')),
       nota: data.nota || null,
       user_id: data.pagatoDa,
+      modalita_pagamento: data.modalitaPagamento,
     }
 
     if (isEdit && voceId) {

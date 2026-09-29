@@ -8,7 +8,7 @@ import { useBudgetVoci } from '@/hooks/useBudget'
 import { useMembriViaggio } from '@/hooks/useMembri'
 import { SettleUpCard } from './SettleUpCard'
 import type { CategoriaBudget } from '@/types'
-import { CATEGORIA_BUDGET_OPTIONS } from '@/types'
+import { CATEGORIA_BUDGET_OPTIONS, MODALITA_PAGAMENTO_OPTIONS } from '@/types'
 
 // ============================================================
 // BudgetPage — /viaggi/:id/budget
@@ -92,6 +92,9 @@ export function BudgetPage() {
               voci.map((v) => {
                 const categoriaLabel = CATEGORIA_BUDGET_OPTIONS.find((o) => o.value === v.categoria)?.label
                 const autore = membri.find((m) => m.user_id === v.user_id)
+                const modalitaBadge = condiviso && v.modalita_pagamento && v.modalita_pagamento !== 'quota'
+                  ? MODALITA_PAGAMENTO_OPTIONS.find((o) => o.value === v.modalita_pagamento)?.badge
+                  : null
 
                 return (
                   <button
@@ -121,6 +124,14 @@ export function BudgetPage() {
                           formatDataBreve(v.created_at),
                         ].filter(Boolean).join(' · ')}
                       </p>
+                      {modalitaBadge && (
+                        <span className="
+                          inline-block mt-1 px-2 py-0.5 rounded-full
+                          bg-roamly-g6 font-dm-sans text-[10px] font-medium text-roamly-g1
+                        ">
+                          {modalitaBadge}
+                        </span>
+                      )}
                     </div>
                     <span className="font-dm-mono text-sm text-roamly-text/70 shrink-0">
                       {formatEuro(v.importo)}
