@@ -8,7 +8,7 @@ import { Input }  from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { useUploadDocumento } from '@/hooks/useWallet'
 import { useViaggi } from '@/hooks/useViaggi'
-import { CATEGORIA_DOCUMENTO_OPTIONS } from '@/types'
+import { CATEGORIA_DOCUMENTO_OPTIONS, CAMPI_DETTAGLIO_WALLET } from '@/types'
 import type { CategoriaDocumento } from '@/types'
 
 // ============================================================
@@ -41,7 +41,21 @@ export function NuovoDocumentoWalletPage() {
   const [nome, setNome] = useState('')
   const [categoria, setCategoria] = useState<CategoriaDocumento>('carta_imbarco')
   const [viaggioId, setViaggioId] = useState<string | null>(viaggioIdPreselezionato)
+  const [dettaglioValues, setDettaglioValues] = useState<Record<string, string>>({})
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const campiDettaglio = CAMPI_DETTAGLIO_WALLET[categoria]
+
+  function handleCategoriaChange(nuova: CategoriaDocumento) {
+    setCategoria(nuova)
+    // Cambiare categoria cambia l'insieme dei campi — ripulisce i
+    // valori per non lasciare chiavi "orfane" di una categoria diversa.
+    setDettaglioValues({})
+  }
+
+  function handleDettaglioChange(key: string, value: string) {
+    setDettaglioValues((prev) => ({ ...prev, [key]: value }))
+  }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
@@ -62,8 +76,14 @@ export function NuovoDocumentoWalletPage() {
     e.preventDefault()
     if (!file || !nome.trim()) return
 
+    // Solo i campi effettivamente compilati — niente chiavi vuote in DB
+    const dettaglioCompilato = Object.fromEntries(
+      Object.entries(dettaglioValues).filter(([, v]) => v.trim().length > 0)
+    )
+    const dettaglio = Object.keys(dettaglioCompilato).length > 0 ? dettaglioCompilato : null
+
     uploadDocumento(
-      { file, payload: { categoria, nome: nome.trim(), viaggio_id: viaggioId } },
+      { file, payload: { categoria, nome: nome.trim(), viaggio_id: viaggioId, dettaglio } },
       { onSuccess: () => navigate(viaggioId ? `/profilo/wallet?viaggioId=${viaggioId}` : '/profilo/wallet') }
     )
   }
@@ -141,7 +161,7 @@ export function NuovoDocumentoWalletPage() {
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => setCategoria(opt.value)}
+                  onClick={() => handleCategoriaChange(opt.value)}
                   className={`
                     px-3.5 py-2 rounded-full
                     font-dm-sans text-sm font-medium
@@ -157,6 +177,29 @@ export function NuovoDocumentoWalletPage() {
               ))}
             </div>
           </div>
+
+          {/* Campi specifici per categoria — opzionali, scritti a mano.
+              Alimentano il "pass" nella schermata di dettaglio; il file
+              caricato resta comunque visibile per intero (vedi nota in
+              DocumentoWalletDetailPage). 'altro' non ha campi. */}
+          {campiDettaglio.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+                Dettagli <span className="text-roamly-text/35 font-normal">(opzionali)</span>
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {campiDettaglio.map((campo) => (
+                  <Input
+                    key={campo.key}
+                    label={campo.label}
+                    type={campo.type === 'date' ? 'date' : 'text'}
+                    value={dettaglioValues[campo.key] ?? ''}
+                    onChange={(e) => handleDettaglioChange(campo.key, e.target.value)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Viaggio collegato — opzionale */}
           {viaggi.length > 0 && (
