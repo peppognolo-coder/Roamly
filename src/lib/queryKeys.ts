@@ -237,6 +237,16 @@ export const queryKeys = {
   },
 
   // ----------------------------------------------------------
+  // WALLET — documenti personali
+  // ----------------------------------------------------------
+  wallet: {
+    /** ['documenti-wallet'] — tutti i documenti dell'utente corrente, ogni viaggio */
+    mie: ['documenti-wallet'] as const,
+    /** ['documenti-wallet', viaggioId] — solo quelli legati a un viaggio specifico */
+    byViaggio: (viaggioId: string) => ['documenti-wallet', viaggioId] as const,
+  },
+
+  // ----------------------------------------------------------
   // BADGES / TRAGUARDI
   // ----------------------------------------------------------
   badges: {
