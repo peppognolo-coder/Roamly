@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, Trash2, ExternalLink, FileText, X } from 'lucide-react'
+import { Plus, FileText, X } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { useDocumentiWallet, useDeleteDocumento } from '@/hooks/useWallet'
+import { useDocumentiWallet } from '@/hooks/useWallet'
 import { useViaggio } from '@/hooks/useViaggi'
 import { CATEGORIA_DOCUMENTO_OPTIONS } from '@/types'
 import type { CategoriaDocumento, DocumentoWalletConUrl } from '@/types'
@@ -12,9 +12,17 @@ import type { CategoriaDocumento, DocumentoWalletConUrl } from '@/types'
 // ============================================================
 // WalletPage — /profilo/wallet
 //
-// Lista globale dei documenti personali, con filtro per categoria
-// (pill, client-side) e filtro opzionale per viaggio via query
-// param ?viaggioId= (arrivo da PianificaHub → "Documenti").
+// Lista a "mazzo di carte" in stile Apple Wallet: ogni documento è
+// una card colorata per categoria, impilata sulla precedente — se
+// ne vede solo la striscia superiore, tranne l'ultima (in cima al
+// mazzo) che resta interamente visibile. Si tocca una card per
+// aprire la schermata di dettaglio (DocumentoWalletDetailPage),
+// dove vivono anteprima file, download ed eliminazione — qui nella
+// lista niente azioni, solo il tocco.
+//
+// Filtro per categoria (pill, client-side) e filtro opzionale per
+// viaggio via query param ?viaggioId= (arrivo da PianificaHub →
+// "Documenti").
 //
 // Un documento è sempre privato al proprietario — anche quando è
 // collegato a un viaggio condiviso, vedi la nota in
@@ -24,6 +32,13 @@ import type { CategoriaDocumento, DocumentoWalletConUrl } from '@/types'
 const formatDataBreve = (iso: string) =>
   new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'short', year: 'numeric' })
 
+// Ogni card ha altezza fissa — garantisce che la sovrapposizione
+// (vedi WalletCard) resti precisa indipendentemente dal contenuto.
+// PEEK_PX è quanto resta visibile della card quando è coperta dalla
+// successiva; solo l'ultima del mazzo è scoperta per intero.
+const CARD_HEIGHT_PX = 84
+const PEEK_PX = 60
+
 export function WalletPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -31,21 +46,13 @@ export function WalletPage() {
 
   const { data: viaggioFiltro } = useViaggio(viaggioIdFiltro)
   const { documenti, isLoading } = useDocumentiWallet(viaggioIdFiltro)
-  const { deleteDocumento, isLoading: isDeleting } = useDeleteDocumento(viaggioIdFiltro)
 
   const [categoriaFiltro, setCategoriaFiltro] = useState<CategoriaDocumento | null>(null)
-  const [daEliminare, setDaEliminare] = useState<DocumentoWalletConUrl | null>(null)
 
   const documentiFiltrati = useMemo(
     () => categoriaFiltro ? documenti.filter((d) => d.categoria === categoriaFiltro) : documenti,
     [documenti, categoriaFiltro]
   )
-
-  function handleEliminaConfirm() {
-    if (!daEliminare) return
-    deleteDocumento(daEliminare)
-    setDaEliminare(null)
-  }
 
   const nuovoDocumentoHref = viaggioIdFiltro
     ? `/profilo/wallet/nuovo?viaggioId=${viaggioIdFiltro}`
@@ -119,13 +126,21 @@ export function WalletPage() {
                 </p>
               </div>
             </div>
+          ) : documentiFiltrati.length === 0 ? (
+            <p className="font-dm-sans text-sm text-roamly-text/40 text-center py-8">
+              Nessun documento in questa categoria.
+            </p>
           ) : (
-            <div className="flex flex-col gap-2">
-              {documentiFiltrati.map((doc) => (
-                <DocumentoRow
+            // pt extra in cima: la prima card del mazzo è quella più in
+            // fondo (z-index più basso) — lo spazio evita che la striscia
+            // della card successiva "tagli" visivamente la prima.
+            <div className="flex flex-col pt-1">
+              {documentiFiltrati.map((doc, i) => (
+                <WalletCard
                   key={doc.id}
                   doc={doc}
-                  onElimina={() => setDaEliminare(doc)}
+                  index={i}
+                  onClick={() => navigate(`/profilo/wallet/${doc.id}`)}
                 />
               ))}
             </div>
@@ -133,36 +148,6 @@ export function WalletPage() {
 
         </div>
       </div>
-
-      {/* Conferma eliminazione */}
-      {daEliminare && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setDaEliminare(null)}
-          />
-          <div className="relative w-full max-w-[430px] bg-roamly-bg rounded-t-3xl p-5 flex flex-col gap-3">
-            <p className="font-dm-sans text-sm font-medium text-roamly-g0">
-              Eliminare "{daEliminare.nome}"? L'azione non può essere annullata.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setDaEliminare(null)}
-                className="flex-1 h-11 rounded-2xl bg-roamly-g7 font-dm-sans text-sm font-medium text-roamly-g0"
-              >
-                Annulla
-              </button>
-              <button
-                onClick={handleEliminaConfirm}
-                disabled={isDeleting}
-                className="flex-1 h-11 rounded-2xl bg-red-500 hover:bg-red-600 font-dm-sans text-sm font-medium text-white disabled:opacity-60"
-              >
-                Elimina
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Aggiungi documento — CTA fissa in fondo */}
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-mobile px-5 pt-3 pb-6 bg-gradient-to-t from-roamly-bg via-roamly-bg to-transparent">
@@ -211,55 +196,51 @@ function FiltroPill({ attivo, onClick, label }: { attivo: boolean; onClick: () =
 }
 
 // ------------------------------------------------------------
-// DocumentoRow
+// WalletCard — una "tessera" del mazzo, colorata per categoria.
+// Tutte si sovrappongono (margin-top negativo + z-index crescente)
+// lasciando solo PEEK_PX di striscia visibile, tranne l'ultima
+// (in cima al mazzo) che resta aperta per intero.
 // ------------------------------------------------------------
 
-function DocumentoRow({ doc, onElimina }: { doc: DocumentoWalletConUrl; onElimina: () => void }) {
+function WalletCard({
+  doc,
+  index,
+  onClick,
+}: {
+  doc: DocumentoWalletConUrl
+  index: number
+  onClick: () => void
+}) {
   const opt = CATEGORIA_DOCUMENTO_OPTIONS.find((o) => o.value === doc.categoria)
+  const [colA, colB] = opt?.gradiente ?? ['#9AA5AD', '#6B747B']
 
   return (
-    <div className="flex items-center gap-3 p-3.5 bg-white rounded-2xl shadow-roamly">
-      <div className="w-11 h-11 rounded-xl bg-roamly-g6 flex items-center justify-center shrink-0 overflow-hidden">
-        {doc.thumbnailSignedUrl ? (
-          <img src={doc.thumbnailSignedUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-lg">{opt?.emoji ?? '📎'}</span>
-        )}
+    <button
+      onClick={onClick}
+      style={{
+        height: CARD_HEIGHT_PX,
+        marginTop: index === 0 ? 0 : -(CARD_HEIGHT_PX - PEEK_PX),
+        zIndex: index + 1,
+        background: `linear-gradient(135deg, ${colA} 0%, ${colB} 100%)`,
+      }}
+      className="
+        relative text-left shrink-0
+        rounded-[22px] shadow-lg shadow-black/15
+        px-4 flex items-center
+        active:scale-[0.99] transition-transform duration-150
+      "
+    >
+      <div className="flex items-center gap-2.5 w-full min-w-0">
+        <span className="text-xl leading-none shrink-0">{opt?.emoji ?? '📎'}</span>
+        <div className="flex-1 min-w-0">
+          <p className="font-dm-sans text-sm font-semibold text-white truncate">
+            {doc.nome}
+          </p>
+          <p className="font-dm-sans text-[11px] text-white/70 mt-0.5 truncate">
+            {[opt?.label, formatDataBreve(doc.created_at)].filter(Boolean).join(' · ')}
+          </p>
+        </div>
       </div>
-
-      <div className="flex-1 min-w-0">
-        <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
-          {doc.nome}
-        </p>
-        <p className="font-dm-sans text-xs text-roamly-g2 mt-0.5 truncate">
-          {[opt?.label, formatDataBreve(doc.created_at)].filter(Boolean).join(' · ')}
-        </p>
-      </div>
-
-      <a
-        href={doc.signedUrl}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Apri documento"
-        className="
-          w-9 h-9 rounded-full bg-roamly-g7 flex items-center justify-center shrink-0
-          hover:bg-roamly-g6 transition-colors duration-150
-        "
-      >
-        <ExternalLink size={14} className="text-roamly-g2" />
-      </a>
-
-      <button
-        onClick={onElimina}
-        aria-label="Elimina documento"
-        className="
-          w-9 h-9 rounded-full bg-roamly-g7 flex items-center justify-center shrink-0
-          hover:bg-red-50 hover:text-red-500 text-roamly-g2
-          transition-colors duration-150
-        "
-      >
-        <Trash2 size={14} />
-      </button>
-    </div>
+    </button>
   )
 }
