@@ -140,6 +140,7 @@ export function WalletPage() {
                   key={doc.id}
                   doc={doc}
                   index={i}
+                  totale={documentiFiltrati.length}
                   onClick={() => navigate(`/profilo/wallet/${doc.id}`)}
                 />
               ))}
@@ -205,14 +206,23 @@ function FiltroPill({ attivo, onClick, label }: { attivo: boolean; onClick: () =
 function WalletCard({
   doc,
   index,
+  totale,
   onClick,
 }: {
   doc: DocumentoWalletConUrl
   index: number
+  totale: number
   onClick: () => void
 }) {
   const opt = CATEGORIA_DOCUMENTO_OPTIONS.find((o) => o.value === doc.categoria)
   const [colA, colB] = opt?.gradiente ?? ['#9AA5AD', '#6B747B']
+
+  // Solo l'ultima del mazzo (in cima) è "attiva": le altre, coperte,
+  // restano leggermente più strette e scurite — lo stesso effetto di
+  // profondità del mazzo di Apple Wallet, che le distingue nettamente
+  // anche quando condividono lo stesso colore di categoria.
+  const inCima = index === totale - 1
+  const scalaCoperta = 0.965
 
   return (
     <button
@@ -222,13 +232,17 @@ function WalletCard({
         marginTop: index === 0 ? 0 : -(CARD_HEIGHT_PX - PEEK_PX),
         zIndex: index + 1,
         background: `linear-gradient(135deg, ${colA} 0%, ${colB} 100%)`,
+        transform: inCima ? undefined : `scale(${scalaCoperta})`,
+        transformOrigin: 'top center',
       }}
-      className="
-        relative text-left shrink-0
-        rounded-[22px] shadow-lg shadow-black/15
+      className={`
+        relative text-left shrink-0 w-full
+        rounded-[22px]
+        ring-1 ring-white/25
         px-4 flex items-center
         active:scale-[0.99] transition-transform duration-150
-      "
+        ${inCima ? 'shadow-xl shadow-black/25' : 'shadow-md shadow-black/20 brightness-[0.92]'}
+      `}
     >
       <div className="flex items-center gap-2.5 w-full min-w-0">
         <span className="text-xl leading-none shrink-0">{opt?.emoji ?? '📎'}</span>

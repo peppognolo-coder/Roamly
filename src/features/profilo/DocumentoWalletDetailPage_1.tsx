@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { X, Download, Trash2, FileText, Plane } from 'lucide-react'
 import { useDocumentoWallet, useDeleteDocumento } from '@/hooks/useWallet'
 import { useViaggio } from '@/hooks/useViaggi'
 import { CATEGORIA_DOCUMENTO_OPTIONS, CAMPI_DETTAGLIO_WALLET } from '@/types'
+import { renderPdfFirstPageAsDataUrl } from '@/lib/pdfPreview'
+
+// Larghezza del riquadro file dentro la card (max-w-[380px] - px-5 su
+// entrambi i lati, vedi il contenitore qui sotto) — usata per renderizzare
+// il PDF alla risoluzione giusta, non più larga del necessario.
+const PDF_PREVIEW_WIDTH_PX = 340
 
 // ============================================================
 // DocumentoWalletDetailPage — /profilo/wallet/:documentoId
@@ -32,6 +38,36 @@ export function DocumentoWalletDetailPage() {
 
   const [confermaElimina, setConfermaElimina] = useState(false)
 
+  const isImmagine = documento?.mime_type.startsWith('image/') ?? false
+
+  // Il PDF viene convertito in immagine (prima pagina) invece di essere
+  // incorporato in un <iframe>: il viewer nativo del browser spesso lo
+  // mostra a uno zoom più largo della card (tipico con le carte d'imbarco,
+  // in formato orizzontale) — tagliandolo a destra finché non si scorre.
+  // Come immagine si comporta esattamente come un file caricato come foto:
+  // sempre a piena larghezza, senza tagli. In caso di errore (PDF
+  // protetto, rete) resta il link per aprirlo a schermo intero.
+  const [pdfPreviewSrc, setPdfPreviewSrc] = useState<string | null>(null)
+  const [pdfPreviewLoading, setPdfPreviewLoading] = useState(false)
+
+  useEffect(() => {
+    if (!documento || isImmagine) return
+    let cancellato = false
+    setPdfPreviewSrc(null)
+    setPdfPreviewLoading(true)
+
+    renderPdfFirstPageAsDataUrl(documento.signedUrl, PDF_PREVIEW_WIDTH_PX)
+      .then((dataUrl) => { if (!cancellato) setPdfPreviewSrc(dataUrl) })
+      .catch((err) => {
+        // Conversione fallita (PDF protetto, errore di rete...) —
+        // resta il fallback <iframe> più sotto, nessun dato perso.
+        console.warn('Anteprima PDF non disponibile, uso il fallback:', err)
+      })
+      .finally(() => { if (!cancellato) setPdfPreviewLoading(false) })
+
+    return () => { cancellato = true }
+  }, [documento?.signedUrl, isImmagine])
+
   function handleEliminaConfirm() {
     if (!documento) return
     deleteDocumento(documento, { onSuccess: () => navigate(-1) })
@@ -39,7 +75,6 @@ export function DocumentoWalletDetailPage() {
 
   const opt = documento ? CATEGORIA_DOCUMENTO_OPTIONS.find((o) => o.value === documento.categoria) : undefined
   const [colA, colB] = opt?.gradiente ?? ['#9AA5AD', '#6B747B']
-  const isImmagine = documento?.mime_type.startsWith('image/') ?? false
 
   const formatData = (iso: string) =>
     new Date(iso).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -166,11 +201,31 @@ export function DocumentoWalletDetailPage() {
                 </div>
               )}
 
-              {/* File — immagine a piena larghezza, o PDF incorporato */}
+              {/* File — immagine a piena larghezza, o prima pagina del
+                  PDF renderizzata come immagine (vedi nota sopra) */}
               <div className="mt-1 rounded-2xl overflow-hidden bg-roamly-g7">
                 {isImmagine ? (
                   <img src={documento.signedUrl} alt={documento.nome} className="w-full h-auto block" />
+                ) : pdfPreviewSrc ? (
+                  <>
+                    <img src={pdfPreviewSrc} alt={documento.nome} className="w-full h-auto block" />
+                    <div className="p-3 text-center">
+                      <a
+                        href={documento.signedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-dm-sans text-xs font-medium text-roamly-g1 underline underline-offset-2"
+                      >
+                        Apri il PDF a schermo intero
+                      </a>
+                    </div>
+                  </>
+                ) : pdfPreviewLoading ? (
+                  <div className="w-full aspect-[3/4] bg-roamly-g6 animate-pulse" />
                 ) : (
+                  // Fallback se la conversione in immagine fallisce
+                  // (PDF protetto, errore di rete...) — resta comunque
+                  // possibile aprirlo a schermo intero.
                   <>
                     <iframe
                       src={documento.signedUrl}
