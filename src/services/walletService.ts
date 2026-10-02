@@ -170,6 +170,7 @@ export async function uploadDocumento(
       viaggio_id: payload.viaggio_id,
       categoria:  payload.categoria,
       nome:       payload.nome,
+      dettaglio:  payload.dettaglio,
       bucket:     STORAGE_BUCKETS.DOCUMENTI_WALLET,
       path,
       mime_type:  file.type,
