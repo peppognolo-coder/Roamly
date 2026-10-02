@@ -19,7 +19,8 @@ interface VoceHub {
   label: string
   descrizione: string
   tag: string
-  path?: string   // assente = non ancora disponibile
+  path?: string         // assente = non ancora disponibile — annidato sotto /viaggi/:id/
+  pathAssoluto?: string // per sezioni globali (es. Wallet) — non annidate sotto /viaggi/:id/
 }
 
 const VOCI: VoceHub[] = [
@@ -29,6 +30,13 @@ const VOCI: VoceHub[] = [
     descrizione: 'Trasporti, alloggi, musei, eventi...',
     tag: 'PRE',
     path: 'prenotazioni',
+  },
+  {
+    id: 'wallet',
+    label: 'Documenti',
+    descrizione: "Carta d'imbarco, conferme, documenti",
+    tag: 'DOC',
+    pathAssoluto: '/profilo/wallet',
   },
   {
     id: 'budget',
@@ -80,13 +88,16 @@ export function PianificaHub({ viaggioId }: PianificaHubProps) {
   return (
     <div className="flex flex-col gap-2.5">
       {VOCI.map((voce) => {
-        const disponibile = !!voce.path
+        const disponibile = !!voce.path || !!voce.pathAssoluto
 
         return (
           <button
             key={voce.id}
             disabled={!disponibile}
-            onClick={() => disponibile && navigate(`/viaggi/${viaggioId}/${voce.path}`)}
+            onClick={() => {
+              if (voce.pathAssoluto) navigate(`${voce.pathAssoluto}?viaggioId=${viaggioId}`)
+              else if (voce.path) navigate(`/viaggi/${viaggioId}/${voce.path}`)
+            }}
             className={`
               flex items-center gap-3.5 p-4
               bg-white rounded-2xl shadow-roamly
