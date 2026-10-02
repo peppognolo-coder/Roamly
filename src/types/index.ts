@@ -648,13 +648,17 @@ export interface CategoriaDocumentoOption {
   value:      CategoriaDocumento
   label:      string
   emoji:      string
+  // Gradiente [chiaro, scuro] per la "card" in stile Apple Wallet —
+  // stessa logica dei temi sfondo delle share card (vedi share-utils.ts),
+  // qui applicata per categoria invece che per mood/viaggio.
+  gradiente:  [string, string]
 }
 
 export const CATEGORIA_DOCUMENTO_OPTIONS: CategoriaDocumentoOption[] = [
-  { value: 'carta_imbarco',      label: "Carta d'imbarco",     emoji: '✈️' },
-  { value: 'documento_identita', label: "Documento d'identità", emoji: '🪪' },
-  { value: 'assicurazione',      label: 'Assicurazione',       emoji: '🛡️' },
-  { value: 'visto',              label: 'Visto',                emoji: '📋' },
-  { value: 'prenotazione',       label: 'Prenotazione',         emoji: '🏨' },
-  { value: 'altro',              label: 'Altro',                emoji: '📎' },
+  { value: 'carta_imbarco',      label: "Carta d'imbarco",      emoji: '✈️', gradiente: ['#FF6B4A', '#E5563A'] },
+  { value: 'documento_identita', label: "Documento d'identità", emoji: '🪪', gradiente: ['#123F58', '#0C2A3D'] },
+  { value: 'assicurazione',      label: 'Assicurazione',        emoji: '🛡️', gradiente: ['#D9636F', '#A53139'] },
+  { value: 'visto',              label: 'Visto',                 emoji: '📋', gradiente: ['#5FB8D9', '#0B6F99'] },
+  { value: 'prenotazione',       label: 'Prenotazione',          emoji: '🏨', gradiente: ['#E8C170', '#C9962E'] },
+  { value: 'altro',              label: 'Altro',                 emoji: '📎', gradiente: ['#9AA5AD', '#6B747B'] },
 ]
