@@ -623,6 +623,13 @@ export interface DocumentoWallet {
   viaggio_id: string | null   // null = documento personale, non legato a un viaggio
   categoria:  CategoriaDocumento
   nome:       string          // es. "Carta d'imbarco FR1234" — scelto dall'utente
+  // Campi strutturati specifici per categoria (tratta/posto/gate per una
+  // carta d'imbarco, scadenza per un visto...) — scritti a mano dall'utente
+  // al caricamento, MAI estratti o dedotti dal file. Stesso pattern JSONB
+  // già usato da Prenotazione.dettaglio — niente colonne dedicate per
+  // ogni campo, niente migrazione per aggiungerne di nuovi in futuro.
+  // Chiavi per categoria: vedi CAMPI_DETTAGLIO_WALLET più sotto.
+  dettaglio:  Record<string, string> | null
   bucket:     string          // sempre 'documenti-wallet'
   path:       string          // '{userId}/{uuid}.ext'
   mime_type:  string
@@ -633,7 +640,7 @@ export interface DocumentoWallet {
 // Payload per registrare un documento dopo l'upload completato
 export type NuovoDocumentoWallet = Pick<
   DocumentoWallet,
-  'viaggio_id' | 'categoria' | 'nome' | 'path' | 'mime_type' | 'size_bytes'
+  'viaggio_id' | 'categoria' | 'nome' | 'dettaglio' | 'path' | 'mime_type' | 'size_bytes'
 >
 
 // Documento arricchito con signed URL — usata nei componenti UI.
@@ -662,3 +669,53 @@ export const CATEGORIA_DOCUMENTO_OPTIONS: CategoriaDocumentoOption[] = [
   { value: 'prenotazione',       label: 'Prenotazione',          emoji: '🏨', gradiente: ['#E8C170', '#C9962E'] },
   { value: 'altro',              label: 'Altro',                 emoji: '📎', gradiente: ['#9AA5AD', '#6B747B'] },
 ]
+
+// ------------------------------------------------------------
+// CAMPI DETTAGLIO WALLET — per categoria, opzionali
+// Usati sia dal form di caricamento (NuovoDocumentoWalletPage) sia
+// dalla schermata di dettaglio (DocumentoWalletDetailPage) per
+// costruire il "pass" in stile Apple Wallet. Scritti a mano
+// dall'utente — mai estratti dal file caricato (vedi nota su
+// DocumentoWallet.dettaglio). 'altro' non ha campi: resta il solo
+// file, senza un pass costruito sopra.
+// ------------------------------------------------------------
+
+export interface CampoDettaglioWallet {
+  key:   string
+  label: string
+  type?: 'text' | 'date'   // assente = 'text'
+}
+
+export const CAMPI_DETTAGLIO_WALLET: Record<CategoriaDocumento, CampoDettaglioWallet[]> = {
+  carta_imbarco: [
+    { key: 'numero_volo',      label: 'Volo' },
+    { key: 'data_volo',        label: 'Data', type: 'date' },
+    { key: 'da',               label: 'Da' },
+    { key: 'a',                label: 'A' },
+    { key: 'passeggero',       label: 'Passeggero' },
+    { key: 'posto',            label: 'Posto' },
+    { key: 'gate',             label: 'Gate' },
+    { key: 'orario_partenza',  label: 'Orario partenza' },
+  ],
+  documento_identita: [
+    { key: 'tipo_documento', label: 'Tipo documento' },
+    { key: 'numero',         label: 'Numero' },
+    { key: 'scadenza',       label: 'Scadenza', type: 'date' },
+  ],
+  assicurazione: [
+    { key: 'numero_polizza',      label: 'Numero polizza' },
+    { key: 'scadenza',             label: 'Scadenza', type: 'date' },
+    { key: 'telefono_assistenza',  label: 'Telefono assistenza' },
+  ],
+  visto: [
+    { key: 'numero_pratica', label: 'Numero pratica' },
+    { key: 'scadenza',       label: 'Scadenza', type: 'date' },
+  ],
+  prenotazione: [
+    { key: 'numero_conferma', label: 'Numero conferma' },
+    { key: 'checkin',         label: 'Check-in', type: 'date' },
+    { key: 'checkout',        label: 'Check-out', type: 'date' },
+    { key: 'indirizzo',       label: 'Indirizzo' },
+  ],
+  altro: [],
+}
