@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
-import { getDocumentiConUrl, uploadDocumento, deleteDocumento } from '@/services/walletService'
+import { getDocumentiConUrl, getDocumentoConUrlById, uploadDocumento, deleteDocumento } from '@/services/walletService'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import type { DocumentoWallet, NuovoDocumentoWallet } from '@/types'
@@ -32,6 +32,34 @@ export function useDocumentiWallet(viaggioId?: string) {
   return {
     documenti: query.data ?? [],
     isLoading: query.isLoading,
+  }
+}
+
+// ------------------------------------------------------------
+// useDocumentoWallet — singolo documento, per la schermata di
+// dettaglio in stile Apple Wallet (/profilo/wallet/:documentoId).
+// Fetch dedicato per id — non dipende dalla lista già in cache,
+// quindi funziona anche con accesso diretto/refresh della pagina.
+// ------------------------------------------------------------
+
+export function useDocumentoWallet(id: string | undefined) {
+  const { user } = useAuth()
+
+  const query = useQuery({
+    queryKey: queryKeys.wallet.detail(id ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getDocumentoConUrlById(id!)
+      if (error) throw new Error(error)
+      return data
+    },
+    enabled: !!user && !!id,
+    staleTime: 1000 * 60 * 5,
+  })
+
+  return {
+    documento: query.data ?? null,
+    isLoading: query.isLoading,
+    isError: query.isError,
   }
 }
 
