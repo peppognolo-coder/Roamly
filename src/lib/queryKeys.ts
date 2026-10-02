@@ -244,6 +244,8 @@ export const queryKeys = {
     mie: ['documenti-wallet'] as const,
     /** ['documenti-wallet', viaggioId] — solo quelli legati a un viaggio specifico */
     byViaggio: (viaggioId: string) => ['documenti-wallet', viaggioId] as const,
+    /** ['documenti-wallet', 'detail', documentoId] — singolo documento (schermata dettaglio) */
+    detail: (documentoId: string) => ['documenti-wallet', 'detail', documentoId] as const,
   },
 
   // ----------------------------------------------------------
