@@ -112,6 +112,34 @@ export async function getDocumentiConUrl(viaggioId?: string): Promise<{
 }
 
 // ------------------------------------------------------------
+// getDocumentoConUrlById — singolo documento con signed URL
+// Usata da DocumentoWalletDetailPage — fetch dedicato per id,
+// robusto anche ad un accesso diretto/refresh della pagina (non
+// dipende dalla lista già in cache).
+// ------------------------------------------------------------
+
+export async function getDocumentoConUrlById(id: string): Promise<{
+  data: DocumentoWalletConUrl | null
+  error: string | null
+}> {
+  const { data: doc, error } = await supabase
+    .from('documenti_wallet')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) return { data: null, error: error.message }
+  if (!doc) return { data: null, error: 'Documento non trovato' }
+
+  const { signedUrl, thumbnailSignedUrl, error: urlErr } =
+    await generaSignedUrlDocumento(doc as DocumentoWallet)
+
+  if (urlErr || !signedUrl) return { data: null, error: urlErr ?? 'URL non generata' }
+
+  return { data: { ...(doc as DocumentoWallet), signedUrl, thumbnailSignedUrl }, error: null }
+}
+
+// ------------------------------------------------------------
 // uploadDocumento — upload file + registrazione DB
 // Flusso completo: genera path, upload su Storage, inserisce la
 // riga, risolve la signed URL per uso immediato.
