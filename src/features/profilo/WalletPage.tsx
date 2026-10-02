@@ -4,7 +4,6 @@ import { Plus, Trash2, ExternalLink, FileText, X } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { useDocumentiWallet, useDeleteDocumento } from '@/hooks/useWallet'
 import { useViaggio } from '@/hooks/useViaggi'
 import { CATEGORIA_DOCUMENTO_OPTIONS } from '@/types'
@@ -184,7 +183,6 @@ export function WalletPage() {
         </button>
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }
