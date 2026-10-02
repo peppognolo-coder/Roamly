@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import {
-  UserCog, BarChart3, Trophy, HelpCircle, Info, ChevronRight, Clock, Bell, Map, Coins, Bookmark,
+  UserCog, BarChart3, Trophy, HelpCircle, Info, ChevronRight, Clock, Bell, Map, Coins, Bookmark, Wallet,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
@@ -40,6 +40,13 @@ const VOCI: VoceHub[] = [
     descrizione: 'Posti che vuoi visitare, da tutti i viaggi',
     icon: Bookmark,
     path: '/profilo/salvati',
+  },
+  {
+    id: 'wallet',
+    label: 'Wallet',
+    descrizione: "Carta d'imbarco, documenti, assicurazioni",
+    icon: Wallet,
+    path: '/profilo/wallet',
   },
   {
     id: 'impostazioni',
