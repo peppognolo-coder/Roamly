@@ -291,8 +291,9 @@ export interface FotoConUrl extends Foto {
 
 // Nomi bucket come costanti — evita stringhe magiche nel codice
 export const STORAGE_BUCKETS = {
-  FOTO_RICORDI:   'ricordi-foto',
-  AVATAR_PROFILI: 'profili-avatar',
+  FOTO_RICORDI:     'ricordi-foto',
+  AVATAR_PROFILI:   'profili-avatar',
+  DOCUMENTI_WALLET: 'documenti-wallet',
 } as const
 
 export type StorageBucket = typeof STORAGE_BUCKETS[keyof typeof STORAGE_BUCKETS]
@@ -595,3 +596,65 @@ export interface Notifica {
    *  usa allora il glifo di default del tipo (vedi aspettoNotifica). */
   glifo: string | null
 }
+
+// ------------------------------------------------------------
+// WALLET — documenti personali (carte d'imbarco, documenti
+// d'identità, assicurazioni, visti, conferme di prenotazione...)
+//
+// Sezione globale (/profilo/wallet), non annidata sotto un
+// viaggio: un documento può restare personale (passaporto) oppure
+// collegarsi a un viaggio specifico (viaggio_id valorizzato), nel
+// qual caso compare anche lì. Resta SEMPRE privato al proprietario
+// — anche su un viaggio condiviso, i compagni di viaggio non
+// vedono i documenti altrui (RLS: solo user_id = auth.uid()).
+// ------------------------------------------------------------
+
+export type CategoriaDocumento =
+  | 'carta_imbarco'
+  | 'documento_identita'
+  | 'assicurazione'
+  | 'visto'
+  | 'prenotazione'
+  | 'altro'
+
+export interface DocumentoWallet {
+  id:         string
+  user_id:    string
+  viaggio_id: string | null   // null = documento personale, non legato a un viaggio
+  categoria:  CategoriaDocumento
+  nome:       string          // es. "Carta d'imbarco FR1234" — scelto dall'utente
+  bucket:     string          // sempre 'documenti-wallet'
+  path:       string          // '{userId}/{uuid}.ext'
+  mime_type:  string
+  size_bytes: number | null
+  created_at: string
+}
+
+// Payload per registrare un documento dopo l'upload completato
+export type NuovoDocumentoWallet = Pick<
+  DocumentoWallet,
+  'viaggio_id' | 'categoria' | 'nome' | 'path' | 'mime_type' | 'size_bytes'
+>
+
+// Documento arricchito con signed URL — usata nei componenti UI.
+// thumbnailSignedUrl è presente solo per le immagini (Transformation
+// API Supabase); per i PDF resta null e l'UI mostra un'icona fissa.
+export interface DocumentoWalletConUrl extends DocumentoWallet {
+  signedUrl:          string
+  thumbnailSignedUrl: string | null
+}
+
+export interface CategoriaDocumentoOption {
+  value:      CategoriaDocumento
+  label:      string
+  emoji:      string
+}
+
+export const CATEGORIA_DOCUMENTO_OPTIONS: CategoriaDocumentoOption[] = [
+  { value: 'carta_imbarco',      label: "Carta d'imbarco",     emoji: '✈️' },
+  { value: 'documento_identita', label: "Documento d'identità", emoji: '🪪' },
+  { value: 'assicurazione',      label: 'Assicurazione',       emoji: '🛡️' },
+  { value: 'visto',              label: 'Visto',                emoji: '📋' },
+  { value: 'prenotazione',       label: 'Prenotazione',         emoji: '🏨' },
+  { value: 'altro',              label: 'Altro',                emoji: '📎' },
+]
