@@ -13,6 +13,7 @@ import type { FormatoShare as Formato, Sfondo } from '@/lib/share-utils'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 import { RoamlyMark } from '@/components/ui/RoamlyMark'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // ShareCardRicordo — genera e scarica una share card di un ricordo
@@ -113,7 +114,7 @@ function CardContent({ ricordo, viaggio, coverData, formato, sfondo, width, heig
           )}
           {!usaFoto && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: Math.round(110 * scale), lineHeight: 1 }}>{moodOption?.emoji}</span>
+              {moodOption && <MoodIcon mood={ricordo.mood} size={Math.round(110 * scale)} />}
             </div>
           )}
           <div style={{
@@ -227,7 +228,7 @@ function CardContent({ ricordo, viaggio, coverData, formato, sfondo, width, heig
         {/* Emoji mood grande — solo se non si usa una foto */}
         {!usaFoto && (
           <div style={{ display: 'flex', justifyContent: isStory ? 'center' : 'flex-start' }}>
-            <span style={{ fontSize: fs.emoji, lineHeight: 1 }}>{moodOption?.emoji}</span>
+            {moodOption && <MoodIcon mood={ricordo.mood} size={fs.emoji} />}
           </div>
         )}
 

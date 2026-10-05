@@ -4,6 +4,7 @@ import { MOOD_OPTIONS } from '@/types'
 import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
 import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import type { Ricordo } from '@/types'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // RicordoCard — card per la lista ricordi in ViaggioDetailPage
@@ -97,16 +98,21 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
             {/* Mood badge secondario — visibile sopra la foto */}
             <div className="
               absolute bottom-1.5 left-1.5
-              w-6 h-6 rounded-full
-              bg-black/40 backdrop-blur-sm
+              rounded-full ring-2 ring-white shadow-roamly
               flex items-center justify-center
               text-sm leading-none
             ">
-              {moodOption?.emoji ?? '📝'}
+              {moodOption ? <MoodIcon mood={ricordo.mood} size={20} /> : '📝'}
             </div>
           </>
         ) : (
-          <span className="text-3xl opacity-70">{moodOption?.emoji ?? '📝'}</span>
+          moodOption ? (
+            <div className="w-12 h-12 rounded-2xl bg-roamly-g7 shadow-roamly flex items-center justify-center">
+              <MoodIcon mood={ricordo.mood} size={32} />
+            </div>
+          ) : (
+            <span className="text-3xl opacity-70">📝</span>
+          )
         )}
       </div>
 

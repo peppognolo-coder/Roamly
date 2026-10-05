@@ -19,6 +19,7 @@ import { ReazioniRicordo } from '@/components/ricordi/ReazioniRicordo'
 import { MOOD_OPTIONS }   from '@/types'
 import type { RicordoFormData } from './RicordoForm'
 import { FotoGalleria }    from './FotoGalleria'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // RicordoDetailPage — /ricordi/:id
@@ -234,9 +235,9 @@ export function RicordoDetailPage() {
               <div className="flex items-center gap-3">
                 <div className="
                   w-12 h-12 rounded-2xl bg-roamly-g7 shadow-roamly
-                  flex items-center justify-center text-2xl shrink-0
+                  flex items-center justify-center shrink-0
                 ">
-                  {moodOption?.emoji}
+                  {moodOption && <MoodIcon mood={ricordo.mood} size={32} />}
                 </div>
                 <div>
                   <p className="font-dm-sans text-xs text-roamly-text/40 uppercase tracking-wider">

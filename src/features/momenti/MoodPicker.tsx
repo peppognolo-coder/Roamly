@@ -1,5 +1,6 @@
 import { MOOD_OPTIONS } from '@/types'
 import type { Mood } from '@/types'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // MoodPicker — selezione mood, solo emoji (senza etichetta a vista,
@@ -46,8 +47,8 @@ export function MoodPicker({ value, onChange, error }: MoodPickerProps) {
                 }
               `}
             >
-              <span className={`text-2xl leading-none transition-transform duration-150 ${isSelected ? 'scale-110' : ''}`}>
-                {option.emoji}
+              <span className={`flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-150 ${isSelected ? 'bg-roamly-g7' : ''}`}>
+                <MoodIcon mood={option.value} size={32} />
               </span>
             </button>
           )
