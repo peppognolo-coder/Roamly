@@ -7,16 +7,30 @@
 // ------------------------------------------------------------
 
 export type Mood =
+  // Gioia
   | 'felice'
-  | 'meravigliato'
-  | 'sereno'
   | 'entusiasta'
-  | 'ispirato'
-  | 'grato'
-  | 'nostalgico'
-  | 'sorpreso'
-  | 'stanco'
   | 'divertito'
+  | 'innamorato'
+  | 'orgoglioso'
+  // Meraviglia
+  | 'meravigliato'
+  | 'ispirato'
+  | 'sorpreso'
+  | 'curioso'
+  | 'avventuroso'
+  // Calma
+  | 'sereno'
+  | 'grato'
+  | 'commosso'
+  | 'spensierato'
+  | 'nostalgico'
+  // Fatica
+  | 'stanco'
+  | 'affamato'
+  | 'confuso'
+  | 'ansioso'
+  | 'frustrato'
 
 export type StatoViaggio =
   | 'pianificato'
@@ -318,17 +332,58 @@ export interface MoodOption {
 }
 
 export const MOOD_OPTIONS: MoodOption[] = [
-  { value: 'felice',      label: 'Felice',      emoji: '😊' },
-  { value: 'meravigliato',label: 'Meravigliato', emoji: '😍' },
-  { value: 'sereno',      label: 'Sereno',       emoji: '😌' },
-  { value: 'entusiasta',  label: 'Entusiasta',   emoji: '🎉' },
-  { value: 'ispirato',    label: 'Ispirato',     emoji: '🤩' },
-  { value: 'grato',       label: 'Grato',        emoji: '🙏' },
-  { value: 'nostalgico',  label: 'Nostalgico',   emoji: '🥹' },
-  { value: 'sorpreso',    label: 'Sorpreso',     emoji: '😮' },
-  { value: 'stanco',      label: 'Stanco',       emoji: '😴' },
-  { value: 'divertito',   label: 'Divertito',    emoji: '😄' },
+  // Gioia
+  { value: 'felice',       label: 'Felice',       emoji: '😊' },
+  { value: 'entusiasta',   label: 'Entusiasta',   emoji: '🎉' },
+  { value: 'divertito',    label: 'Divertito',    emoji: '😄' },
+  { value: 'innamorato',   label: 'Innamorato',   emoji: '😍' },
+  { value: 'orgoglioso',   label: 'Orgoglioso',   emoji: '😎' },
+  // Meraviglia
+  { value: 'meravigliato', label: 'Meravigliato', emoji: '😍' },
+  { value: 'ispirato',     label: 'Ispirato',     emoji: '🤩' },
+  { value: 'sorpreso',     label: 'Sorpreso',     emoji: '😮' },
+  { value: 'curioso',      label: 'Curioso',      emoji: '🧐' },
+  { value: 'avventuroso',  label: 'Avventuroso',  emoji: '🧭' },
+  // Calma
+  { value: 'sereno',       label: 'Sereno',       emoji: '😌' },
+  { value: 'grato',        label: 'Grato',        emoji: '🙏' },
+  { value: 'commosso',     label: 'Commosso',     emoji: '🥲' },
+  { value: 'spensierato',  label: 'Spensierato',  emoji: '🎶' },
+  { value: 'nostalgico',   label: 'Nostalgico',   emoji: '🥹' },
+  // Fatica
+  { value: 'stanco',       label: 'Stanco',       emoji: '😴' },
+  { value: 'affamato',     label: 'Affamato',     emoji: '🍽️' },
+  { value: 'confuso',      label: 'Confuso',      emoji: '😵‍💫' },
+  { value: 'ansioso',      label: 'Ansioso',      emoji: '😰' },
+  { value: 'frustrato',    label: 'Frustrato',    emoji: '😤' },
 ]
+
+// Famiglie del MoodPicker: cinque mood per volta, un tocco per cambiare.
+export interface MoodFamiglia {
+  id:    string
+  label: string
+  sub:   string
+  moods: Mood[]
+}
+
+export const MOOD_FAMIGLIE: MoodFamiglia[] = [
+  { id: 'gioia',      label: 'Gioia',      sub: 'quando va tutto bene',          moods: ['felice', 'entusiasta', 'divertito', 'innamorato', 'orgoglioso'] },
+  { id: 'meraviglia', label: 'Meraviglia', sub: 'quando il posto ti sorprende',  moods: ['meravigliato', 'ispirato', 'sorpreso', 'curioso', 'avventuroso'] },
+  { id: 'calma',      label: 'Calma',      sub: 'i momenti lenti',               moods: ['sereno', 'grato', 'commosso', 'spensierato', 'nostalgico'] },
+  { id: 'fatica',     label: 'Fatica',     sub: 'anche questi sono ricordi',     moods: ['stanco', 'affamato', 'confuso', 'ansioso', 'frustrato'] },
+]
+
+// Domanda guida mostrata sotto il picker per il mood scelto.
+export const MOOD_PROMPT: Record<Mood, string> = {
+  felice: 'Cosa ti ha fatto sorridere?', entusiasta: 'Cosa non vedevi l’ora di fare?', divertito: 'Chi ti ha fatto ridere?',
+  innamorato: 'Di chi, o di cosa?', orgoglioso: 'Cosa ce l’hai fatta a fare?',
+  meravigliato: 'Cosa ti ha lasciato senza parole?', ispirato: 'Che idea ti è venuta?', sorpreso: 'Cosa non ti aspettavi?',
+  curioso: 'Cosa vuoi scoprire ancora?', avventuroso: 'Dove ti sei spinto?',
+  sereno: 'Dove eri, in quel momento?', grato: 'A chi diresti grazie?', commosso: 'Cosa ti ha toccato?',
+  spensierato: 'Cosa hai lasciato andare?', nostalgico: 'A cosa ti ha fatto pensare?',
+  stanco: 'Ne è valsa la pena?', affamato: 'Cosa hai mangiato, alla fine?', confuso: 'Dove ti sei perso?',
+  ansioso: 'Com’è andata a finire?', frustrato: 'Cosa è andato storto?',
+}
 
 // ------------------------------------------------------------
 // TAPPE VIAGGIO
