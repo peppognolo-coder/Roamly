@@ -117,18 +117,56 @@ export async function createRicordo(
   data: Ricordo | null
   error: string | null
 }> {
+  // Il nuovo ricordo va sempre in cima all'ordine manuale del viaggio
+  // (indipendentemente dalla data), quindi prende MIN(ordine) - 1.
+  // Non blocca la creazione se la lettura fallisce: in quel caso si
+  // usa 0, che Postgres accetta (DEFAULT 0) — nel peggiore dei casi
+  // finisce in una posizione non ottimale, mai un errore di salvataggio.
+  const { data: minData } = await supabase
+    .from('ricordi')
+    .select('ordine')
+    .eq('viaggio_id', payload.viaggio_id)
+    .order('ordine', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  const nuovoOrdine = (minData?.ordine ?? 1) - 1
+
   const { data, error } = await supabase
     .from('ricordi')
     .insert({
       ...payload,
       user_id: userId,
       tipo: payload.tipo ?? 'testo',
+      ordine: nuovoOrdine,
     })
     .select()
     .single()
 
   if (error) return { data: null, error: error.message }
   return { data: data as Ricordo, error: null }
+}
+
+// ------------------------------------------------------------
+// reorderRicordi — aggiornamento ordine manuale (drag & drop),
+// scoped alla pagina del singolo viaggio. Stesso pattern di
+// reorderChecklistItems/reorderFoto: Promise.all di update
+// per-riga — non atomico ma accettabile.
+// ------------------------------------------------------------
+
+export async function reorderRicordi(
+  items: { id: string; ordine: number }[]
+): Promise<{ error: string | null }> {
+  const results = await Promise.all(
+    items.map((item) =>
+      supabase
+        .from('ricordi')
+        .update({ ordine: item.ordine })
+        .eq('id', item.id)
+    )
+  )
+  const errore = results.find((r) => r.error)?.error
+  return { error: errore?.message ?? null }
 }
 
 // ------------------------------------------------------------

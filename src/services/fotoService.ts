@@ -233,6 +233,29 @@ export async function registraFoto(
 }
 
 // ------------------------------------------------------------
+// reorderFoto — aggiornamento batch dell'ordine delle foto
+// Stesso pattern di reorderChecklistItems: N update in Promise.all,
+// non atomico ma accettabile (la finestra di inconsistenza è
+// sub-secondo e invisibile all'utente).
+// ------------------------------------------------------------
+
+export async function reorderFoto(
+  items: { id: string; ordine: number }[]
+): Promise<{ error: string | null }> {
+  const results = await Promise.all(
+    items.map((item) =>
+      supabase
+        .from('foto')
+        .update({ ordine: item.ordine })
+        .eq('id', item.id)
+    )
+  )
+
+  const errore = results.find((r) => r.error)?.error
+  return { error: errore?.message ?? null }
+}
+
+// ------------------------------------------------------------
 // setCoverFoto — promozione/demozione atomica cover
 // Imposta is_cover=true su fotoId, false su tutte le altre del ricordo.
 // Due UPDATE separati: Supabase non supporta transazioni client-side,
