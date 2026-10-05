@@ -5,6 +5,7 @@ import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
 import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // HeroCardDiario — carta editoriale del Ricordo in evidenza
@@ -68,7 +69,7 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
         relative
       `}>
         {/* Emoji mood grande */}
-        <span className="text-5xl opacity-80">{moodOption?.emoji}</span>
+        {moodOption && <MoodIcon mood={ricordo.mood} size={56} />}
 
         {/* Label "IN EVIDENZA" */}
         <div className="absolute top-3 left-4">

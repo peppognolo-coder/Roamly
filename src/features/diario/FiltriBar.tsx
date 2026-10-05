@@ -4,6 +4,7 @@ import type { Mood } from '@/types'
 import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import { haFiltriAttivi } from '@/lib/diario-utils'
 import type { FiltriDiario, AutoreFiltro } from '@/lib/diario-utils'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // FiltriBar — ricerca + pill filtri nel Diario
@@ -104,7 +105,9 @@ export function FiltriBar({
                 }
               `}
             >
-              <span className="text-sm leading-none">{option.emoji}</span>
+              <span className={`flex items-center justify-center w-5 h-5 rounded-full ${attivo ? 'bg-roamly-g7' : ''}`}>
+                <MoodIcon mood={option.value} size={attivo ? 16 : 20} />
+              </span>
               <span>{option.label}</span>
             </button>
           )
