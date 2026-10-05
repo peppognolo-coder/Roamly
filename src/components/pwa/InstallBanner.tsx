@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { useBannerOffset } from '@/contexts/BannerOffsetContext'
+import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
 // ============================================================
 // InstallBanner — banner installazione PWA
@@ -101,7 +102,7 @@ export function InstallBanner() {
               w-10 h-10 rounded-xl bg-roamly-g0
               flex items-center justify-center shrink-0
             ">
-              <img src="/favicon.svg" alt="" className="w-6 h-6" />
+              <RoamlyMark size={24} />
             </div>
 
             {/* Testo */}
