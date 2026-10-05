@@ -15,6 +15,7 @@ import {
 } from '@/lib/share-utils'
 import type { FormatoShare as Formato, Sfondo } from '@/lib/share-utils'
 import type { ViaggioConStato }     from '@/types'
+import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
 // ============================================================
 // ShareCardViaggio — genera e scarica una share card del viaggio
@@ -124,9 +125,8 @@ function CardContent({
               borderRadius: Math.round(7 * scale),
               background: 'rgba(255,255,255,0.22)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: Math.round(13 * scale),
-            }}>
-              📖
+              }}>
+              <RoamlyMark size={Math.round(18 * scale)} />
             </div>
             <span style={{ fontSize: Math.round(18 * scale), color: 'rgba(255,255,255,0.85)', fontWeight: 500, letterSpacing: '0.05em' }}>
               Roamly
@@ -226,9 +226,8 @@ function CardContent({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: Math.round(18 * scale),
-          }}>
-            📖
+            }}>
+            <RoamlyMark size={Math.round(24 * scale)} />
           </div>
           <span style={{
             fontSize: fs.brand,

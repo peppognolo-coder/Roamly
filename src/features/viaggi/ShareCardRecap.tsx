@@ -7,6 +7,7 @@ import { formatDataViaggio, calcolaDurataViaggio, gradienteCopertinaViaggio } fr
 import { urlToDataUrl, TEMI_SFONDO, GRADIENTI_SFONDO } from '@/lib/share-utils'
 import type { Sfondo } from '@/lib/share-utils'
 import type { ViaggioConStato }     from '@/types'
+import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
 // ============================================================
 // ShareCardRecap — card dedicata al recap di fine viaggio
@@ -143,9 +144,8 @@ function CardContent({
             borderRadius: Math.round(8 * scale),
             background: 'rgba(255,255,255,0.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: Math.round(18 * scale),
-          }}>
-            📖
+            }}>
+            <RoamlyMark size={Math.round(24 * scale)} />
           </div>
           <span style={{
             fontSize: fs.brand, color: 'rgba(255,255,255,0.7)',
