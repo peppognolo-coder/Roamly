@@ -8,6 +8,7 @@ import {
   updateRicordo,
   deleteRicordo,
   togglePreferito,
+  reorderRicordi,
 } from '@/services/ricordiService'
 import { useAuth } from '@/hooks/useAuth'
 import { useVerificaTraguardi } from '@/hooks/useBadges'
@@ -277,5 +278,59 @@ export function useTogglePreferito(viaggioId?: string) {
     toggle: (ricordoId: string, valoreCorrente: boolean) =>
       mutation.mutate({ ricordoId, valore: !valoreCorrente }),
     isLoading: mutation.isPending,
+  }
+}
+
+// ------------------------------------------------------------
+// useReorderRicordi — riordino manuale, scoped a ViaggioDetailPage.
+//
+// IMPORTANTE: la cache `byViaggio` è condivisa anche con
+// RecapViaggioPage e RaccontoPage, che si aspettano l'ordinamento
+// canonico (data DESC, created_at DESC) restituito dalla query.
+// L'update ottimistico qui sotto aggiorna SOLO il campo `ordine`
+// sui singoli item della cache, senza riordinare l'array: chi
+// legge la cache per data continua a vederla nell'ordine giusto,
+// mentre ViaggioDetailPage applica il proprio sort per `ordine`
+// in fase di render.
+// ------------------------------------------------------------
+
+export function useReorderRicordi(viaggioId: string) {
+  const queryClient = useQueryClient()
+  const [error, setError] = useState<string | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: (items: { id: string; ordine: number }[]) => reorderRicordi(items),
+
+    onMutate: async (items) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.ricordi.byViaggio(viaggioId) })
+      const snapshot = queryClient.getQueryData<Ricordo[]>(queryKeys.ricordi.byViaggio(viaggioId))
+      const nuovoOrdine = new Map(items.map((i) => [i.id, i.ordine]))
+      queryClient.setQueryData<Ricordo[]>(
+        queryKeys.ricordi.byViaggio(viaggioId),
+        (old) => old?.map((r) => ({ ...r, ordine: nuovoOrdine.get(r.id) ?? r.ordine }))
+      )
+      return { snapshot }
+    },
+
+    onSuccess: (result) => {
+      if (result.error) setError('Impossibile salvare il nuovo ordine.')
+      else setError(null)
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.snapshot) {
+        queryClient.setQueryData(queryKeys.ricordi.byViaggio(viaggioId), context.snapshot)
+      }
+      setError('Impossibile salvare il nuovo ordine.')
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.ricordi.byViaggio(viaggioId) })
+    },
+  })
+
+  return {
+    reorder: (items: { id: string; ordine: number }[]) => mutation.mutate(items),
+    error,
   }
 }

@@ -12,6 +12,7 @@ import {
   uploadFoto,
   deleteSingolaFoto,
   setCoverFoto,
+  reorderFoto,
   SIGNED_URL_TTL_SECONDS,
 } from '@/services/fotoService'
 import type { Foto, FotoConUrl } from '@/types'
@@ -427,6 +428,66 @@ export function useDeleteFotoSingola(ricordoId: string, viaggioId?: string) {
     isLoading:  mutation.isPending,
     error,
     clearError: () => setError(null),
+  }
+}
+
+// ------------------------------------------------------------
+// useReorderFoto — drag-and-drop dell'ordine delle foto
+// Stesso pattern di useReorderChecklist: aggiornamento ottimistico
+// sulla cache byRicordo (drag fluido), salvataggio batch in
+// background, rollback allo snapshot precedente in caso di errore.
+// ------------------------------------------------------------
+
+export function useReorderFoto(ricordoId: string, viaggioId?: string) {
+  const queryClient = useQueryClient()
+  const [error, setError] = useState<string | null>(null)
+
+  const mutation = useMutation({
+    mutationFn: (items: { id: string; ordine: number }[]) => reorderFoto(items),
+
+    onMutate: async (items) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.foto.byRicordo(ricordoId) })
+
+      const snapshot = queryClient.getQueryData<FotoConUrl[]>(queryKeys.foto.byRicordo(ricordoId))
+
+      const nuovoOrdine = new Map(items.map((i) => [i.id, i.ordine]))
+      queryClient.setQueryData<FotoConUrl[]>(
+        queryKeys.foto.byRicordo(ricordoId),
+        (old) =>
+          old
+            ?.map((f) => ({ ...f, ordine: nuovoOrdine.get(f.id) ?? f.ordine }))
+            .sort((a, b) => a.ordine - b.ordine)
+      )
+
+      return { snapshot }
+    },
+
+    onSuccess: (result) => {
+      if (result.error) setError('Impossibile salvare il nuovo ordine.')
+      else setError(null)
+    },
+
+    onError: (_err, _vars, context) => {
+      if (context?.snapshot) {
+        queryClient.setQueryData(queryKeys.foto.byRicordo(ricordoId), context.snapshot)
+      }
+      setError('Impossibile salvare il nuovo ordine.')
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.foto.byRicordo(ricordoId) })
+      // La copertina del viaggio può dipendere dalla prima foto per ordine —
+      // in realtà is_cover è indipendente da ordine, ma invalidare qui
+      // mantiene coerenti eventuali anteprime che assumono "prima foto".
+      if (viaggioId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.foto.coversByViaggio(viaggioId) })
+      }
+    },
+  })
+
+  return {
+    reorder: (items: { id: string; ordine: number }[]) => mutation.mutate(items),
+    error,
   }
 }
 
