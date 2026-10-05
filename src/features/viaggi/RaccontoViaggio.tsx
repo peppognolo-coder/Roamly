@@ -8,6 +8,7 @@ import { formatDataViaggio } from '@/lib/viaggi-utils'
 import { MOOD_OPTIONS }      from '@/types'
 import type { ViaggioConStato, Ricordo } from '@/types'
 import type { RicordoRacconto, CapitoloRacconto } from '@/lib/racconto-utils'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // RaccontoViaggio — esperienza editoriale immersiva
@@ -292,7 +293,7 @@ function BloccoFoto({
         <div className="px-6 pt-3 pb-2">
           <span className="inline-flex items-center gap-1.5
             font-dm-sans text-xs text-roamly-text/45 font-medium">
-            <span className="text-sm">{moodOpt.emoji}</span>
+            <MoodIcon mood={rr.ricordo.mood} size={16} />
             {moodOpt.label}
           </span>
         </div>
@@ -355,7 +356,7 @@ function BloccoTesto({
       {/* Emoji mood come sfondo decorativo */}
       <div className="absolute top-4 right-5 text-6xl leading-none opacity-[0.12]
         select-none pointer-events-none">
-        {moodOpt?.emoji}
+        {moodOpt && <MoodIcon mood={rr.ricordo.mood} size={64} />}
       </div>
 
       {/* Badge speciale */}
@@ -398,7 +399,7 @@ function BloccoTesto({
         {moodOpt && (
           <span className="inline-flex items-center gap-1.5
             font-dm-sans text-xs text-roamly-text/45 font-medium mt-1">
-            <span className="text-sm">{moodOpt.emoji}</span>
+            <MoodIcon mood={rr.ricordo.mood} size={16} />
             {moodOpt.label}
           </span>
         )}
