@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { LoginForm }   from './LoginForm'
 import { RegisterForm } from './RegisterForm'
 import { OAuthButton }  from './OAuthButton'
+import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
 // ============================================================
 // AuthPage — schermata di login/registrazione
@@ -26,7 +27,7 @@ export function AuthPage() {
             flex items-center justify-center
             shadow-roamly-lg
           ">
-            <img src="/favicon.svg" alt="Roamly" className="w-10 h-10" />
+            <RoamlyMark size={38} title="Roamly" />
           </div>
           <div className="text-center">
             <h1 className="font-lora text-3xl font-semibold text-roamly-g0 tracking-tight">
