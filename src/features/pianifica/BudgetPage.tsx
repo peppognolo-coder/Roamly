@@ -98,8 +98,10 @@ export function BudgetPage() {
             )}
 
             {/* Filtro categoria — tap per filtrare la lista sotto e
-                vedere il totale speso in quella categoria */}
-            {!isLoading && voci.length > 0 && categorieConSpese.length > 1 && (
+                vedere il totale speso in quella categoria. Mostrato
+                anche con una sola categoria: utile comunque per
+                vedere il totale di categoria accanto a quello generale. */}
+            {!isLoading && voci.length > 0 && categorieConSpese.length >= 1 && (
               <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
                 <button
                   type="button"
