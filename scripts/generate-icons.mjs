@@ -56,7 +56,7 @@ for (const { nome, size, maskable } of icone) {
   const outPath = join(root, 'public', 'icons', nome)
 
   if (maskable) {
-    // Per le maskable icon: logo ridotto al 80% con padding, sfondo #04342C pieno
+    // Per le maskable icon: logo ridotto al 80% con padding, sfondo #0C2A3D pieno (blu notte del nuovo logo)
     const logoSize   = Math.round(size * 0.8)
     const padding    = Math.round(size * 0.1)
 
@@ -69,7 +69,7 @@ for (const { nome, size, maskable } of icone) {
             width:      size,
             height:     size,
             channels:   4,
-            background: { r: 4, g: 52, b: 44, alpha: 1 }, // #04342C
+            background: { r: 12, g: 42, b: 61, alpha: 1 }, // #0C2A3D
           },
         })
           .composite([{ input: logoBuffer, top: padding, left: padding }])
