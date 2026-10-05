@@ -5,6 +5,7 @@ import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
 import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
+import { MoodIcon } from '@/components/ui/MoodIcon'
 
 // ============================================================
 // RicordoDelGiornoCard — componente condiviso tra Home e Diario
@@ -83,7 +84,7 @@ export function RicordoDelGiornoCard({
         {labelTempo ? (
           <span className="text-xl">✨</span>
         ) : moodOption ? (
-          <span className="text-2xl">{moodOption.emoji}</span>
+          <MoodIcon mood={ricordo.mood} size={32} />
         ) : (
           <NotebookPen size={20} className="opacity-50 text-roamly-g2" />
         )}
