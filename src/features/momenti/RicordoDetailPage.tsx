@@ -102,6 +102,8 @@ export function RicordoDetailPage() {
       titolo:    data.titolo,
       testo:     data.testo     || null,
       luogo:     data.luogo     || null,
+      lat:       data.lat,
+      lng:       data.lng,
       mood:      data.mood,
       emozione_testo: data.emozioneTesto || null,
       data:      data.data,
@@ -329,6 +331,11 @@ export function RicordoDetailPage() {
                 onSubmit={handleUpdate}
                 isLoading={isUpdating}
                 submitLabel="Salva modifiche"
+                bias={{
+                  lat: viaggio?.destinazione_lat ?? undefined,
+                  lng: viaggio?.destinazione_lng ?? undefined,
+                  codicePaese: viaggio?.paese_codice ?? undefined,
+                }}
               />
             </div>
           )}

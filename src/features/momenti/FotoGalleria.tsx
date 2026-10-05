@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Move } from 'lucide-react'
 import { FotoLightboxGrid }        from './FotoLightbox'
 import { FotoUploader }            from './FotoUploader'
 import {
@@ -7,6 +8,7 @@ import {
   useUploadFotoMultiplo,
   useDeleteFotoSingola,
   useSetCoverFoto,
+  useReorderFoto,
 } from '@/hooks/useFoto'
 import type { FotoConUrl } from '@/types'
 
@@ -31,6 +33,7 @@ export function FotoGalleria({ ricordoId, viaggioId }: FotoGalleriaProps) {
 
   const { deleteFoto, isLoading: isDeleting } = useDeleteFotoSingola(ricordoId, viaggioId)
   const setCover = useSetCoverFoto(ricordoId, viaggioId)
+  const { reorder } = useReorderFoto(ricordoId, viaggioId)
 
   const [confirmDelete, setConfirmDelete] = useState<FotoConUrl | null>(null)
 
@@ -67,7 +70,14 @@ export function FotoGalleria({ ricordoId, viaggioId }: FotoGalleriaProps) {
           onSetCover={(f) => setCover.mutate(f.id)}
           isDeleting={isDeleting}
           deletingId={confirmDelete?.id}
+          onReorder={foto.length > 1 ? reorder : undefined}
         />
+      )}
+
+      {foto.length > 1 && (
+        <p className="font-dm-sans text-[11px] text-roamly-text/35 -mt-1">
+          Tieni premuto sull'icona <Move size={10} className="inline -mt-0.5" /> per riordinare.
+        </p>
       )}
 
       {/* Errori upload */}

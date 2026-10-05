@@ -1,12 +1,14 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Heart, MapPin } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
+import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { MoodPicker } from './MoodPicker'
 import { SpotifyTrackPicker } from '@/components/ui/SpotifyTrackPicker'
 import type { Ricordo, SpotifyTrackSelezionato } from '@/types'
+import type { BiasGeocoding } from '@/lib/geocoding'
 
 // ============================================================
 // ROAMLY — RicordoForm
@@ -55,6 +57,8 @@ const ricordoSchema = z.object({
     .max(80, 'Il luogo non può superare 80 caratteri')
     .optional()
     .or(z.literal('')),
+  lat: z.number().nullable(),
+  lng: z.number().nullable(),
   data: z.string().min(1, 'La data è obbligatoria'),
   preferito: z.boolean(),
   spotifyTrack: z
@@ -91,6 +95,10 @@ interface RicordoFormProps {
   /** id dell'elemento <form>, da passare al bottone esterno quando
    *  hideSubmitButton è true. */
   formId?: string
+  /** Dà priorità ai risultati di ricerca luogo vicini alla
+   *  destinazione del viaggio, invece di una ricerca puramente
+   *  globale — vedi LuogoSearchInput. */
+  bias?: BiasGeocoding
 }
 
 // ------------------------------------------------------------
@@ -106,6 +114,7 @@ export function RicordoForm({
   beforeTitolo,
   hideSubmitButton = false,
   formId = 'ricordo-form',
+  bias,
 }: RicordoFormProps) {
   const isEdit = !!ricordo
   const label = submitLabel ?? (isEdit ? 'Salva modifiche' : 'Salva ricordo')
@@ -120,6 +129,8 @@ export function RicordoForm({
     titolo:    ricordo?.titolo    ?? '',
     testo:     ricordo?.testo     ?? '',
     luogo:     ricordo?.luogo     ?? '',
+    lat:       ricordo?.lat       ?? null,
+    lng:       ricordo?.lng       ?? null,
     data:      ricordo?.data      ?? oggi(),
     preferito: ricordo?.preferito ?? false,
     spotifyTrack: ricordo?.spotify_track_id
@@ -253,33 +264,25 @@ export function RicordoForm({
       </div>
 
       {/* 4. Luogo */}
-      <div className="flex flex-col gap-1.5">
-        <label className="font-dm-sans text-[12.5px] font-medium text-roamly-text/70">
-          Dove
-        </label>
-        <div className="
-          flex items-center gap-2.5 h-[46px] px-4
-          bg-white border border-roamly-g5 rounded-2xl
-          transition-all duration-150
-          focus-within:border-roamly-g3 focus-within:ring-2 focus-within:ring-roamly-g3/20
-        ">
-          <MapPin size={14} className="shrink-0 text-roamly-g3" />
-          <input
-            type="text"
+      <Controller
+        name="luogo"
+        control={control}
+        render={({ field }) => (
+          <LuogoSearchInput
+            label="Dove"
             placeholder="Dove eri?"
-            autoComplete="off"
-            className="
-              flex-1 min-w-0 bg-transparent outline-none
-              font-dm-sans text-sm text-roamly-text
-              placeholder:text-roamly-text/30
-            "
-            {...register('luogo')}
+            value={field.value ?? ''}
+            onChangeValue={field.onChange}
+            onSelectLuogo={(luogo) => {
+              setValue('luogo', luogo.label)
+              setValue('lat', luogo.lat)
+              setValue('lng', luogo.lng)
+            }}
+            error={errors.luogo?.message}
+            bias={bias}
           />
-        </div>
-        {errors.luogo && (
-          <p className="text-xs font-dm-sans text-red-500">{errors.luogo.message}</p>
         )}
-      </div>
+      />
 
       {/* 5. Data */}
       <Input

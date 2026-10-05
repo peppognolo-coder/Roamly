@@ -106,6 +106,8 @@ export function NuovoRicordoPage() {
       titolo:     data.titolo,
       testo:      data.testo     || null,
       luogo:      data.luogo     || null,
+      lat:        data.lat,
+      lng:        data.lng,
       mood:       data.mood,
       emozione_testo: data.emozioneTesto || null,
       data:       data.data,
@@ -239,7 +241,7 @@ export function NuovoRicordoPage() {
                 transition-colors duration-150 truncate text-left
               "
             >
-              {viaggioPreselezionato.nome} · oggi
+              {viaggioPreselezionato.nome}
             </button>
             <h1 className="font-lora text-[20px] leading-tight font-semibold text-roamly-g0 mt-1">
               Com'è andata?
@@ -256,6 +258,11 @@ export function NuovoRicordoPage() {
             error={error}
             beforeTitolo={fotoGrid}
             hideSubmitButton
+            bias={{
+              lat: viaggioPreselezionato.destinazione_lat ?? undefined,
+              lng: viaggioPreselezionato.destinazione_lng ?? undefined,
+              codicePaese: viaggioPreselezionato.paese_codice ?? undefined,
+            }}
           />
         </div>
 
