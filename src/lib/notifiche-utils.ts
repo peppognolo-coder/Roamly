@@ -53,6 +53,10 @@ export function aspettoNotifica(tipo: TipoNotifica): { glifo: string; tono: 'cor
       return { glifo: '♥', tono: 'blu' }
     case 'traguardo':
       return { glifo: '★', tono: 'blu' }
+    case 'nuovo_ricordo':
+      return { glifo: '✎', tono: 'blu' }
+    case 'nuova_spesa':
+      return { glifo: '€', tono: 'blu' }
     default:
       return { glifo: '•', tono: 'blu' }
   }
