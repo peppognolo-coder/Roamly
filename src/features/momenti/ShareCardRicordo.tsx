@@ -12,6 +12,7 @@ import {
 import type { FormatoShare as Formato, Sfondo } from '@/lib/share-utils'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
+import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
 // ============================================================
 // ShareCardRicordo — genera e scarica una share card di un ricordo
@@ -124,9 +125,8 @@ function CardContent({ ricordo, viaggio, coverData, formato, sfondo, width, heig
               borderRadius: Math.round(7 * scale),
               background: 'rgba(255,255,255,0.22)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: Math.round(13 * scale),
-            }}>
-              📖
+              }}>
+              <RoamlyMark size={Math.round(18 * scale)} />
             </div>
             <span style={{ fontSize: Math.round(18 * scale), color: 'rgba(255,255,255,0.85)', fontWeight: 500, letterSpacing: '0.05em' }}>
               Roamly
@@ -210,9 +210,8 @@ function CardContent({ ricordo, viaggio, coverData, formato, sfondo, width, heig
             borderRadius: Math.round(8 * scale),
             background: 'rgba(255,255,255,0.18)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: Math.round(18 * scale),
-          }}>
-            📖
+            }}>
+            <RoamlyMark size={Math.round(24 * scale)} />
           </div>
           <span style={{
             fontSize: fs.brand, color: 'rgba(255,255,255,0.75)',
