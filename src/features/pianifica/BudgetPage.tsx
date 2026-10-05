@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
@@ -42,6 +43,26 @@ export function BudgetPage() {
   const totale = voci.reduce((sum, v) => sum + v.importo, 0)
   const condiviso = membri.length > 1
 
+  // Filtro per categoria — "Ogni spesa" (lista + totale) riflette la
+  // categoria selezionata; il totale generale del viaggio (card in
+  // alto) resta sempre quello di TUTTE le spese, non filtrato.
+  const [categoriaFiltro, setCategoriaFiltro] = useState<CategoriaBudget | null>(null)
+
+  const totaliPerCategoria = useMemo(() => {
+    const map = new Map<CategoriaBudget, number>()
+    for (const v of voci) {
+      map.set(v.categoria, (map.get(v.categoria) ?? 0) + v.importo)
+    }
+    return map
+  }, [voci])
+
+  // Solo le categorie con almeno una spesa — niente chip vuoti
+  const categorieConSpese = CATEGORIA_BUDGET_OPTIONS.filter((o) => totaliPerCategoria.has(o.value))
+
+  const vociFiltrate = categoriaFiltro
+    ? voci.filter((v) => v.categoria === categoriaFiltro)
+    : voci
+
   return (
     <PageLayout>
       <AnimatedPage>
@@ -71,7 +92,60 @@ export function BudgetPage() {
                   Ogni spesa
                 </p>
                 <p className="font-dm-sans text-xs text-roamly-g2">
-                  {voci.length} {voci.length === 1 ? 'voce' : 'voci'}
+                  {vociFiltrate.length} {vociFiltrate.length === 1 ? 'voce' : 'voci'}
+                </p>
+              </div>
+            )}
+
+            {/* Filtro categoria — tap per filtrare la lista sotto e
+                vedere il totale speso in quella categoria */}
+            {!isLoading && voci.length > 0 && categorieConSpese.length > 1 && (
+              <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+                <button
+                  type="button"
+                  onClick={() => setCategoriaFiltro(null)}
+                  className={`
+                    shrink-0 px-3 py-1.5 rounded-full border
+                    font-dm-sans text-xs font-medium
+                    transition-colors duration-150
+                    ${categoriaFiltro === null
+                      ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                      : 'bg-white border-roamly-g5 text-roamly-text/60 hover:border-roamly-g4'
+                    }
+                  `}
+                >
+                  Tutte
+                </button>
+                {categorieConSpese.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => setCategoriaFiltro(categoriaFiltro === o.value ? null : o.value)}
+                    className={`
+                      shrink-0 px-3 py-1.5 rounded-full border
+                      font-dm-sans text-xs font-medium
+                      transition-colors duration-150
+                      ${categoriaFiltro === o.value
+                        ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                        : 'bg-white border-roamly-g5 text-roamly-text/60 hover:border-roamly-g4'
+                      }
+                    `}
+                  >
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Totale della categoria selezionata — in aggiunta al
+                totale generale del viaggio mostrato in alto */}
+            {categoriaFiltro && (
+              <div className="flex items-baseline justify-between px-1 -mt-0.5">
+                <p className="font-dm-sans text-xs text-roamly-g2">
+                  Totale {CATEGORIA_BUDGET_OPTIONS.find((o) => o.value === categoriaFiltro)?.label}
+                </p>
+                <p className="font-dm-mono text-sm font-semibold text-roamly-g0">
+                  {formatEuro(totaliPerCategoria.get(categoriaFiltro) ?? 0)}
                 </p>
               </div>
             )}
@@ -88,8 +162,14 @@ export function BudgetPage() {
                   Nessuna spesa registrata ancora
                 </p>
               </div>
+            ) : vociFiltrate.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="font-dm-sans text-sm text-roamly-g2">
+                  Nessuna spesa in questa categoria
+                </p>
+              </div>
             ) : (
-              voci.map((v) => {
+              vociFiltrate.map((v) => {
                 const categoriaLabel = CATEGORIA_BUDGET_OPTIONS.find((o) => o.value === v.categoria)?.label
                 const autore = membri.find((m) => m.user_id === v.user_id)
                 const modalitaBadge = condiviso && v.modalita_pagamento && v.modalita_pagamento !== 'quota'
