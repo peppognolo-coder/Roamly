@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { MoodPicker } from './MoodPicker'
 import { SpotifyTrackPicker } from '@/components/ui/SpotifyTrackPicker'
-import type { Ricordo, SpotifyTrackSelezionato } from '@/types'
+import { MOOD_OPTIONS } from '@/types'
+import type { Mood, Ricordo, SpotifyTrackSelezionato } from '@/types'
 import type { BiasGeocoding } from '@/lib/geocoding'
 
 // ============================================================
@@ -34,7 +35,7 @@ function oggi(): string {
 
 const ricordoSchema = z.object({
   mood: z.enum(
-    ['felice', 'meravigliato', 'sereno', 'entusiasta', 'ispirato', 'grato', 'nostalgico', 'sorpreso', 'stanco', 'divertito'],
+    MOOD_OPTIONS.map((m) => m.value) as [Mood, ...Mood[]],
     { errorMap: () => ({ message: 'Seleziona come ti senti' }) }
   ),
   emozioneTesto: z
