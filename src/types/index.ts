@@ -588,7 +588,7 @@ export interface InvitoViaggio {
 // che l'utente vede in app, in /profilo/feed.
 // ------------------------------------------------------------
 
-export type TipoNotifica = 'prenotazione' | 'nuovo_membro' | 'tappa_aggiunta' | 'anniversario' | 'traguardo'
+export type TipoNotifica = 'prenotazione' | 'nuovo_membro' | 'tappa_aggiunta' | 'anniversario' | 'traguardo' | 'nuovo_ricordo' | 'nuova_spesa'
 
 export interface Notifica {
   id: string
