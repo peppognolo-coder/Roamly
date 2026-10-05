@@ -1,7 +1,23 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { AvatarStack } from '@/components/ui/AvatarStack'
 import { PageLayout }       from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -24,6 +40,8 @@ import { RicordoCard }           from '@/features/momenti/RicordoCard'
 import { PianificaHub }          from '@/features/pianifica/PianificaHub'
 import { ShareCardViaggio }      from './ShareCardViaggio'
 import { useRicordi }       from '@/hooks/useRicordi'
+import { useReorderRicordi } from '@/hooks/useCrudRicordo'
+import type { Ricordo } from '@/types'
 import { useCoversByViaggio, useCoverViaggio, useFotoCountByViaggio } from '@/hooks/useFoto'
 import type { ViaggioFormData } from './ViaggioForm'
 
@@ -44,6 +62,56 @@ function iniziali(nome: string | null): string {
   return nome.trim().split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2)
 }
 
+// ------------------------------------------------------------
+// RicordoCardSortable — wrapper esterno a RicordoCard con la
+// maniglia di drag. Drag-and-drop: solo la maniglia (icona Move)
+// attiva il listener di dnd-kit — il resto della card resta un
+// tap normale che naviga al dettaglio, senza rischio di attivare
+// un drag per sbaglio (stesso pattern di ChecklistItemRow/FotoTile).
+// ------------------------------------------------------------
+
+interface RicordoCardSortableProps {
+  ricordo: Ricordo
+  coverUrl: string | undefined
+  riordinabile: boolean
+}
+
+function RicordoCardSortable({ ricordo, coverUrl, riordinabile }: RicordoCardSortableProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: ricordo.id,
+    disabled: !riordinabile,
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <RicordoCard ricordo={ricordo} coverUrl={coverUrl} />
+      {riordinabile && (
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          onClick={(e) => e.stopPropagation()}
+          className="
+            absolute right-2 bottom-2 z-10
+            w-7 h-7 flex items-center justify-center
+            bg-black/50 backdrop-blur-sm rounded-full
+            text-white touch-none cursor-grab active:cursor-grabbing
+          "
+          aria-label="Trascina per riordinare"
+        >
+          <Move size={13} />
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function ViaggioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -52,6 +120,27 @@ export function ViaggioDetailPage() {
   const { data: viaggio, isLoading } = useViaggio(id)
   const { data: stats } = useStatisticheViaggio(id)
   const { data: ricordi = [], isLoading: isLoadingRicordi } = useRicordi(id)
+  const { reorder: reorderRicordi } = useReorderRicordi(id ?? '')
+  // Ordine manuale (drag & drop) solo per questa pagina — Diario/Home/
+  // Racconto continuano a leggere la stessa cache nell'ordine per data.
+  const ricordiOrdinati = useMemo(
+    () => [...ricordi].sort((a, b) => a.ordine - b.ordine),
+    [ricordi]
+  )
+  const sensorsRicordi = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  )
+  function handleDragEndRicordi(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = ricordiOrdinati.findIndex((r) => r.id === active.id)
+    const newIndex = ricordiOrdinati.findIndex((r) => r.id === over.id)
+    if (oldIndex === -1 || newIndex === -1) return
+    const riordinati = arrayMove(ricordiOrdinati, oldIndex, newIndex)
+    const ordiniOriginali = ricordiOrdinati.map((r) => r.ordine).sort((a, b) => a - b)
+    reorderRicordi(riordinati.map((r, i) => ({ id: r.id, ordine: ordiniOriginali[i] })))
+  }
   // Covers caricate in parallelo con i ricordi — anti N+1 su RicordoCard
   const { data: coversMap }    = useCoversByViaggio(id)
   // Cover visuale del viaggio — foto più recente is_cover=true tra i ricordi
@@ -502,14 +591,33 @@ export function ViaggioDetailPage() {
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col gap-2">
-                  {ricordi.map((r) => (
-                    <RicordoCard
-                      key={r.id}
-                      ricordo={r}
-                      coverUrl={coversMap?.get(r.id)}
-                    />
-                  ))}
+                <div className="flex flex-col gap-2.5">
+                  <DndContext
+                    sensors={sensorsRicordi}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEndRicordi}
+                  >
+                    <SortableContext
+                      items={ricordiOrdinati.map((r) => r.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {ricordiOrdinati.map((r) => (
+                          <RicordoCardSortable
+                            key={r.id}
+                            ricordo={r}
+                            coverUrl={coversMap?.get(r.id)}
+                            riordinabile={ricordiOrdinati.length > 1}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                  {ricordiOrdinati.length > 1 && (
+                    <p className="font-dm-sans text-[11px] text-roamly-text/35 text-center">
+                      Tieni premuto sull'icona <Move size={10} className="inline -mt-0.5" /> per riordinare.
+                    </p>
+                  )}
                 </div>
               )
             )}

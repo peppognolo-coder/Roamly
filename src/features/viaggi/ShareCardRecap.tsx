@@ -283,29 +283,51 @@ export function ShareCardRecap({
     setExported(null)
   }
 
+  // Promise condivisa per evitare due toPng() in parallelo quando la
+  // pre-generazione silenziosa (vedi effect sotto) è ancora in corso
+  // nello stesso istante in cui l'utente tocca "Condividi"/"Scarica".
+  const generazioneInCorso = useRef<Promise<string | null> | null>(null)
+
   // Genera il PNG (se non già fatto per questo formato) senza
   // scaricarlo — passo comune a "Scarica" e "Condividi".
-  const generaImmagine = useCallback(async (): Promise<string | null> => {
+  const generaImmagine = useCallback(async (opts?: { silenzioso?: boolean }): Promise<string | null> => {
     if (exported) return exported
+    if (generazioneInCorso.current) return generazioneInCorso.current
     if (!exportRef.current) return null
 
-    setIsExporting(true)
-    try {
-      await document.fonts.ready
-      const dataUrl = await toPng(exportRef.current, {
-        width: dim.w, height: dim.h,
-        pixelRatio: 1,
-        filter: (node) => node !== document.body,
-      })
-      setExported(dataUrl)
-      return dataUrl
-    } catch (err) {
-      console.error('Export fallito:', err)
-      return null
-    } finally {
-      setIsExporting(false)
-    }
+    if (!opts?.silenzioso) setIsExporting(true)
+    const promise = (async () => {
+      try {
+        await document.fonts.ready
+        const dataUrl = await toPng(exportRef.current!, {
+          width: dim.w, height: dim.h,
+          pixelRatio: 1,
+          filter: (node) => node !== document.body,
+        })
+        setExported(dataUrl)
+        return dataUrl
+      } catch (err) {
+        console.error('Export fallito:', err)
+        return null
+      } finally {
+        generazioneInCorso.current = null
+      }
+    })()
+    generazioneInCorso.current = promise
+    const risultato = await promise
+    if (!opts?.silenzioso) setIsExporting(false)
+    return risultato
   }, [dim, exported])
+
+  // Pre-genera l'immagine appena formato/sfondo/cover sono pronti (in
+  // silenzio, senza mostrare lo spinner di "Generazione…") così al
+  // tap su "Condividi" l'immagine è già in cache: riduce il tempo tra
+  // il tap e la chiamata a navigator.share(), che su iOS Safari deve
+  // restare "vicina" al gesto utente o rischia di essere rifiutata.
+  useEffect(() => {
+    generaImmagine({ silenzioso: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formato, sfondo, coverData])
 
   const handleScarica = useCallback(async () => {
     const dataUrl = await generaImmagine()
