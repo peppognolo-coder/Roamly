@@ -144,6 +144,10 @@ export interface Ricordo {
   highlight: boolean
   data: string                 // ISO date string 'YYYY-MM-DD'
   created_at: string
+  // Ordine manuale nella pagina del viaggio (drag & drop) — non
+  // influenza Diario/Home/Ricordo del Giorno, che restano ordinati
+  // per data. Assegnato automaticamente alla creazione, mai nel form.
+  ordine: number
   // "Colonna sonora" del ricordo — brano Spotify collegato (opzionale).
   // I 4 campi vanno sempre insieme: o tutti valorizzati o tutti null.
   spotify_track_id: string | null
@@ -168,6 +172,8 @@ export type NuovoRicordo = Pick<
   | 'titolo'
   | 'testo'
   | 'luogo'
+  | 'lat'
+  | 'lng'
   | 'mood'
   | 'emozione_testo'
   | 'data'
@@ -187,6 +193,8 @@ export type ModificaRicordo = Partial<
     | 'titolo'
     | 'testo'
     | 'luogo'
+    | 'lat'
+    | 'lng'
     | 'mood'
     | 'emozione_testo'
     | 'data'
