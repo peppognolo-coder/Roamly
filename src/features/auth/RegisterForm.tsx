@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Check, Gift } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Button } from '@/components/ui/Button'
 import { useRegister } from '@/hooks/useAuthActions'
 import { salvaReferralInSospeso } from '@/lib/referral-utils'
@@ -95,7 +96,7 @@ function PasswordStrengthHint({ password }: { password: string }) {
             transition-colors duration-200
             ${c.ok
               ? 'bg-roamly-g6 text-roamly-g1'
-              : 'bg-roamly-text/5 text-roamly-text/30'
+              : 'bg-roamly-text/5 text-roamly-muted'
             }
           `}
         >
@@ -165,9 +166,8 @@ export function RegisterForm() {
           {...register('email')}
         />
         <div className="flex flex-col gap-1">
-          <Input
+          <PasswordInput
             label="Password"
-            type="password"
             placeholder="••••••••"
             autoComplete="new-password"
             error={errors.password?.message}
@@ -175,9 +175,8 @@ export function RegisterForm() {
           />
           <PasswordStrengthHint password={passwordValue} />
         </div>
-        <Input
+        <PasswordInput
           label="Conferma password"
-          type="password"
           placeholder="••••••••"
           autoComplete="new-password"
           error={errors.confirm_password?.message}
@@ -193,7 +192,7 @@ export function RegisterForm() {
         />
       </div>
 
-      <p className="font-dm-sans text-xs text-roamly-text/40 -mt-2 flex items-center gap-1">
+      <p className="font-dm-sans text-xs text-roamly-muted -mt-2 flex items-center gap-1">
         <Gift size={12} className="shrink-0" />
         Hai un codice di un amico? Inseriscilo e ricevete entrambi dei crediti.
       </p>

@@ -19,6 +19,7 @@ import { AuthPage } from '@/features/auth/AuthPage'
 import { HomePage } from '@/features/home/HomePage'
 
 // Pages — lazy
+const ResetPasswordPage      = lazy(() => import('@/features/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })))
 const DiarioPage             = lazy(() => import('@/features/diario/DiarioPage').then((m) => ({ default: m.DiarioPage })))
 const NuovoRicordoPage       = lazy(() => import('@/features/momenti/NuovoRicordoPage').then((m) => ({ default: m.NuovoRicordoPage })))
 const RicordoDetailPage      = lazy(() => import('@/features/momenti/RicordoDetailPage').then((m) => ({ default: m.RicordoDetailPage })))
@@ -85,6 +86,15 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<PageLoadingFallback />}>
         <InvitoPage />
+      </Suspense>
+    ),
+  },
+
+  {
+    path: '/reset-password',
+    element: (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <ResetPasswordPage />
       </Suspense>
     ),
   },

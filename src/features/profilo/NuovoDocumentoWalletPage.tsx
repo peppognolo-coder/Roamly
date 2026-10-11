@@ -106,7 +106,7 @@ export function NuovoDocumentoWalletPage() {
 
           {/* File */}
           <div className="flex flex-col gap-2">
-            <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+            <label className="font-dm-sans text-sm font-medium text-roamly-ink">
               File
             </label>
             <div
@@ -121,11 +121,11 @@ export function NuovoDocumentoWalletPage() {
                 }
               `}
             >
-              <FileText size={22} className="text-roamly-text/30" />
-              <p className="font-dm-sans text-xs text-roamly-text/40 text-center px-6">
+              <FileText size={22} className="text-roamly-muted" />
+              <p className="font-dm-sans text-xs text-roamly-muted text-center px-6">
                 {file ? file.name : 'Tocca per scegliere un file'}
               </p>
-              <p className="font-dm-sans text-[10px] text-roamly-text/25">
+              <p className="font-dm-sans text-[10px] text-roamly-muted">
                 JPEG · PNG · WebP · PDF — max 15 MB
               </p>
             </div>
@@ -138,7 +138,7 @@ export function NuovoDocumentoWalletPage() {
               disabled={isLoading}
             />
             {fileError && (
-              <p className="font-dm-sans text-xs text-red-500">{fileError}</p>
+              <p className="font-dm-sans text-xs text-red-600">{fileError}</p>
             )}
           </div>
 
@@ -153,7 +153,7 @@ export function NuovoDocumentoWalletPage() {
 
           {/* Categoria */}
           <div className="flex flex-col gap-2">
-            <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+            <label className="font-dm-sans text-sm font-medium text-roamly-ink">
               Categoria
             </label>
             <div className="flex flex-wrap gap-2">
@@ -168,7 +168,7 @@ export function NuovoDocumentoWalletPage() {
                     border transition-all duration-150
                     ${categoria === opt.value
                       ? 'bg-roamly-g0 border-roamly-g0 text-white'
-                      : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                      : 'bg-roamly-g7 border-roamly-g6 text-roamly-ink-soft hover:border-roamly-g4'
                     }
                   `}
                 >
@@ -184,8 +184,8 @@ export function NuovoDocumentoWalletPage() {
               DocumentoWalletDetailPage). 'altro' non ha campi. */}
           {campiDettaglio.length > 0 && (
             <div className="flex flex-col gap-3">
-              <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
-                Dettagli <span className="text-roamly-text/35 font-normal">(opzionali)</span>
+              <label className="font-dm-sans text-sm font-medium text-roamly-ink">
+                Dettagli <span className="text-roamly-muted font-normal">(opzionali)</span>
               </label>
               <div className="grid grid-cols-2 gap-3">
                 {campiDettaglio.map((campo) => (
@@ -204,8 +204,8 @@ export function NuovoDocumentoWalletPage() {
           {/* Viaggio collegato — opzionale */}
           {viaggi.length > 0 && (
             <div className="flex flex-col gap-2">
-              <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
-                Collega a un viaggio <span className="text-roamly-text/35 font-normal">(opzionale)</span>
+              <label className="font-dm-sans text-sm font-medium text-roamly-ink">
+                Collega a un viaggio <span className="text-roamly-muted font-normal">(opzionale)</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -217,7 +217,7 @@ export function NuovoDocumentoWalletPage() {
                     border transition-all duration-150
                     ${viaggioId === null
                       ? 'bg-roamly-g0 border-roamly-g0 text-white'
-                      : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                      : 'bg-roamly-g7 border-roamly-g6 text-roamly-ink-soft hover:border-roamly-g4'
                     }
                   `}
                 >
@@ -234,7 +234,7 @@ export function NuovoDocumentoWalletPage() {
                       border transition-all duration-150
                       ${viaggioId === v.id
                         ? 'bg-roamly-g0 border-roamly-g0 text-white'
-                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-ink-soft hover:border-roamly-g4'
                       }
                     `}
                   >

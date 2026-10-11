@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { Calendar, MapPin, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { RoamlyMark } from '@/components/ui/RoamlyMark'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { useAuth } from '@/hooks/useAuth'
 import { useAnteprimaInvito, useAccettaInvito } from '@/hooks/useInviti'
@@ -52,7 +53,7 @@ export function InvitoPage() {
         {/* Logo/marchio */}
         <div className="flex flex-col items-center gap-2">
           <div className="w-14 h-14 rounded-2xl bg-roamly-g0 shadow-roamly-lg flex items-center justify-center">
-            <span className="font-lora text-2xl font-semibold text-white">R</span>
+            <RoamlyMark size={32} />
           </div>
           <span className="font-lora text-lg font-semibold text-roamly-g0">Roamly</span>
         </div>
@@ -68,7 +69,7 @@ export function InvitoPage() {
             <p className="font-lora text-lg font-semibold text-roamly-g0">
               Invito non trovato
             </p>
-            <p className="font-dm-sans text-sm text-roamly-text/50">
+            <p className="font-dm-sans text-sm text-roamly-muted">
               Il link potrebbe essere sbagliato o non più disponibile.
             </p>
             <Button variant="ghost" onClick={() => navigate('/')} className="mt-2">
@@ -77,25 +78,31 @@ export function InvitoPage() {
           </div>
         ) : scaduto ? (
           <div className="w-full bg-white rounded-3xl shadow-roamly p-8 flex flex-col items-center gap-3">
-            <Clock size={32} className="text-roamly-text/30" />
+            <Clock size={32} className="text-roamly-muted" />
             <p className="font-lora text-lg font-semibold text-roamly-g0">
               Questo invito è scaduto
             </p>
-            <p className="font-dm-sans text-sm text-roamly-text/50">
+            <p className="font-dm-sans text-sm text-roamly-muted">
               Chiedi a chi te lo ha inviato di generarne uno nuovo.
             </p>
           </div>
         ) : anteprima ? (
           <div className="w-full bg-white rounded-3xl shadow-roamly-lg overflow-hidden">
-            <div className="bg-roamly-g0 p-8 flex flex-col items-center gap-3">
-              <div className="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center text-white">
+            <div className="relative overflow-hidden bg-roamly-g0 px-6 py-[30px] flex flex-col items-center gap-3.5">
+              {/* Trama a righe diagonali, come nelle cover del design */}
+              <div
+                aria-hidden
+                className="absolute inset-0"
+                style={{ background: 'repeating-linear-gradient(115deg, rgba(255,255,255,.05) 0 2px, transparent 2px 12px)' }}
+              />
+              <div className="relative w-16 h-16 rounded-[18px] bg-white/15 flex items-center justify-center text-white">
                 <ViaggioCoverIcon value={anteprima.cover_emoji} size={30} />
               </div>
-              <div>
-                <p className="font-dm-sans text-xs text-white/50 uppercase tracking-wider mb-1">
+              <div className="relative">
+                <p className="font-dm-sans text-[10.5px] text-roamly-g5 uppercase tracking-[0.1em] mb-1.5">
                   Sei stato invitato a organizzare
                 </p>
-                <p className="font-lora text-xl font-semibold text-white">
+                <p className="font-lora text-[23px] leading-tight font-semibold text-white">
                   {anteprima.nome}
                 </p>
               </div>
@@ -105,7 +112,7 @@ export function InvitoPage() {
               {(anteprima.destinazione || anteprima.paese) && (
                 <div className="flex items-center gap-2 justify-center">
                   <MapPin size={14} className="text-roamly-g3" />
-                  <span className="font-dm-sans text-sm text-roamly-text/70">
+                  <span className="font-dm-sans text-[13.5px] text-roamly-ink">
                     {[anteprima.destinazione, anteprima.paese].filter(Boolean).join(', ')}
                   </span>
                 </div>
@@ -113,7 +120,7 @@ export function InvitoPage() {
               {(anteprima.data_inizio || anteprima.data_fine) && (
                 <div className="flex items-center gap-2 justify-center">
                   <Calendar size={14} className="text-roamly-g3" />
-                  <span className="font-dm-sans text-sm text-roamly-text/70">
+                  <span className="font-dm-mono text-[12.5px] text-roamly-ink">
                     {formatData(anteprima.data_inizio)}
                     {anteprima.data_fine && ` – ${formatData(anteprima.data_fine)}`}
                   </span>
@@ -125,13 +132,13 @@ export function InvitoPage() {
                 isLoading={isAccettando}
                 fullWidth
                 size="lg"
-                className="mt-3"
+                className="mt-3 h-[54px]"
               >
                 {isAuthenticated ? 'Partecipa al viaggio' : 'Accedi per partecipare'}
               </Button>
 
               {!isAuthenticated && (
-                <p className="font-dm-sans text-xs text-roamly-text/35">
+                <p className="font-dm-sans text-xs text-roamly-muted">
                   Non hai un account? Potrai registrarti nella schermata successiva.
                 </p>
               )}

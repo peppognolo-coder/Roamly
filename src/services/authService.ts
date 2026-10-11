@@ -94,6 +94,29 @@ export async function loginWithGoogle() {
 }
 
 // ------------------------------------------------------------
+// Reset password
+// 1. requestPasswordReset: invia l'email col link di recupero.
+//    Il link riporta su /reset-password con una sessione "recovery".
+//    L'URL deve essere nella allow-list di Supabase
+//    (Authentication → URL Configuration → Redirect URLs).
+// 2. updatePassword: imposta la nuova password a sessione recovery attiva.
+// ------------------------------------------------------------
+
+export async function requestPasswordReset(email: string) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  })
+
+  return { data, error }
+}
+
+export async function updatePassword(newPassword: string) {
+  const { data, error } = await supabase.auth.updateUser({ password: newPassword })
+
+  return { data, error }
+}
+
+// ------------------------------------------------------------
 // Logout
 // ------------------------------------------------------------
 

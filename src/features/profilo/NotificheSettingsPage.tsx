@@ -65,7 +65,7 @@ export function NotificheSettingsPage() {
               {/* Avviso: dispositivo registrato, ma l'invio arriva con N3 */}
               <div className="flex items-start gap-2.5 px-4 py-3 bg-roamly-g7 rounded-2xl">
                 <Bell size={15} className="text-roamly-g3 mt-0.5 shrink-0" />
-                <p className="font-dm-sans text-xs text-roamly-text/55 leading-relaxed">
+                <p className="font-dm-sans text-xs text-roamly-ink-soft leading-relaxed">
                   Attivando, il tuo dispositivo viene registrato per ricevere notifiche —
                   ma l'invio vero e proprio arriverà in un secondo momento.
                   Per ora nulla verrà davvero recapitato.
@@ -108,7 +108,7 @@ export function NotificheSettingsPage() {
                   <p className="font-dm-sans text-sm font-semibold text-roamly-g0">
                     Promemoria prenotazioni
                   </p>
-                  <p className="font-dm-sans text-xs text-roamly-text/45 mt-0.5">
+                  <p className="font-dm-sans text-xs text-roamly-muted mt-0.5">
                     Un avviso quando una prenotazione si avvicina
                   </p>
                 </div>
@@ -123,7 +123,7 @@ export function NotificheSettingsPage() {
               {/* Anticipo — solo se abilitato */}
               {abilitate && (
                 <div className="flex flex-col gap-2">
-                  <p className="font-dm-sans text-sm font-medium text-roamly-text/70 px-1">
+                  <p className="font-dm-sans text-sm font-medium text-roamly-ink px-1">
                     Con quanto anticipo
                   </p>
                   <div className="flex flex-col gap-2">

@@ -56,7 +56,7 @@ export function NoteViaggioPage() {
           {/* Aggiunta rapida */}
           <div className="bg-white rounded-2xl shadow-roamly p-4 flex flex-col gap-3">
             {createError && (
-              <p className="font-dm-sans text-xs text-red-500">{createError}</p>
+              <p className="font-dm-sans text-xs text-red-600">{createError}</p>
             )}
             <textarea
               value={testoNuovaNota}
@@ -66,7 +66,7 @@ export function NoteViaggioPage() {
               className="
                 w-full px-1
                 font-dm-sans text-sm text-roamly-text
-                placeholder:text-roamly-text/30
+                placeholder:text-roamly-muted
                 resize-none focus:outline-none
               "
             />
@@ -92,14 +92,14 @@ export function NoteViaggioPage() {
           ) : note.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-10 text-center">
               <NotebookPen size={28} className="text-roamly-g3" />
-              <p className="font-dm-sans text-sm text-roamly-text/45 max-w-[220px]">
+              <p className="font-dm-sans text-sm text-roamly-muted max-w-[220px]">
                 Nessuna nota ancora. Scrivi il primo appunto qui sopra.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
               {deleteError && (
-                <p className="font-dm-sans text-xs text-red-500 text-center">{deleteError}</p>
+                <p className="font-dm-sans text-xs text-red-600 text-center">{deleteError}</p>
               )}
               {note.map((n) => (
                 <NotaCard
@@ -169,7 +169,7 @@ function NotaCard({
     <div className="bg-white rounded-2xl shadow-roamly p-4 flex flex-col gap-2">
       {inModifica ? (
         <>
-          {errore && <p className="font-dm-sans text-xs text-red-500">{errore}</p>}
+          {errore && <p className="font-dm-sans text-xs text-red-600">{errore}</p>}
           <textarea
             value={testo}
             onChange={(e) => setTesto(e.target.value)}
@@ -183,7 +183,7 @@ function NotaCard({
           <div className="flex justify-end gap-2">
             <button
               onClick={handleAnnulla}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-roamly-text/40 hover:bg-roamly-g7"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-roamly-muted hover:bg-roamly-g7"
             >
               <X size={16} />
             </button>
@@ -201,19 +201,19 @@ function NotaCard({
             {nota.contenuto}
           </p>
           <div className="flex items-center justify-between mt-1">
-            <span className="font-dm-sans text-[11px] text-roamly-text/35">
+            <span className="font-dm-sans text-[11px] text-roamly-muted">
               {formatData(nota.updated_at)}
             </span>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setInModifica(true)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-roamly-text/35 hover:bg-roamly-g7 hover:text-roamly-g2"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-roamly-muted hover:bg-roamly-g7 hover:text-roamly-g2"
               >
                 <Pencil size={13} />
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-roamly-text/35 hover:bg-red-50 hover:text-red-500"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-roamly-muted hover:bg-red-50 hover:text-red-600"
               >
                 <Trash2 size={13} />
               </button>

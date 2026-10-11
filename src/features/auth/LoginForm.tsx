@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Button } from '@/components/ui/Button'
 import { useLogin } from '@/hooks/useAuthActions'
 
@@ -25,7 +26,11 @@ type LoginFormData = z.infer<typeof loginSchema>
 // LoginForm
 // ============================================================
 
-export function LoginForm() {
+interface LoginFormProps {
+  onForgotPassword?: () => void
+}
+
+export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const { login, isLoading, error, clearError } = useLogin()
 
   const {
@@ -59,14 +64,24 @@ export function LoginForm() {
           error={errors.email?.message}
           {...register('email')}
         />
-        <Input
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          autoComplete="current-password"
-          error={errors.password?.message}
-          {...register('password')}
-        />
+        <div className="flex flex-col gap-2">
+          <PasswordInput
+            label="Password"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            error={errors.password?.message}
+            {...register('password')}
+          />
+          {onForgotPassword && (
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="self-end font-dm-sans text-[12.5px] font-medium text-roamly-g3 hover:text-roamly-g1 focus:outline-none focus-visible:underline"
+            >
+              Password dimenticata?
+            </button>
+          )}
+        </div>
       </div>
 
       <Button

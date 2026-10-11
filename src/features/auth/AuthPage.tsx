@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { LoginForm }   from './LoginForm'
 import { RegisterForm } from './RegisterForm'
+import { ForgotPasswordForm } from './ForgotPasswordForm'
 import { OAuthButton }  from './OAuthButton'
 import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
@@ -10,7 +11,7 @@ import { RoamlyMark } from '@/components/ui/RoamlyMark'
 // GuestGuard nel router impedisce l'accesso se già autenticati.
 // ============================================================
 
-type Tab = 'login' | 'register'
+type Tab = 'login' | 'register' | 'forgot'
 
 export function AuthPage() {
   const [activeTab, setActiveTab] = useState<Tab>('login')
@@ -22,7 +23,7 @@ export function AuthPage() {
         {/* Logo + tagline */}
         <div className="flex flex-col items-center gap-4">
           <div className="
-            w-16 h-16 rounded-2xl
+            w-16 h-16 rounded-[18px]
             bg-roamly-g0
             flex items-center justify-center
             shadow-roamly-lg
@@ -33,7 +34,7 @@ export function AuthPage() {
             <h1 className="font-lora text-3xl font-semibold text-roamly-g0 tracking-tight">
               Roamly
             </h1>
-            <p className="font-dm-sans text-sm text-roamly-text/50 mt-1">
+            <p className="font-dm-sans text-sm text-roamly-g2 mt-1.5">
               Conserva ogni viaggio. Rivivilo quando vuoi.
             </p>
           </div>
@@ -42,6 +43,12 @@ export function AuthPage() {
         {/* Card auth */}
         <div className="bg-white rounded-3xl shadow-roamly-lg overflow-hidden">
 
+        {activeTab === 'forgot' ? (
+          <div className="p-[22px]">
+            <ForgotPasswordForm onBack={() => setActiveTab('login')} />
+          </div>
+        ) : (
+        <>
           {/* Tab switcher */}
           <div className="flex border-b border-roamly-g6">
             <TabButton
@@ -58,14 +65,16 @@ export function AuthPage() {
 
           {/* Form */}
           <div className="p-6">
-            {activeTab === 'login' ? <LoginForm /> : <RegisterForm />}
+            {activeTab === 'login'
+              ? <LoginForm onForgotPassword={() => setActiveTab('forgot')} />
+              : <RegisterForm />}
           </div>
 
           {/* Divider */}
           <div className="px-6 pb-2">
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px bg-roamly-g6" />
-              <span className="font-dm-sans text-xs text-roamly-text/30 shrink-0">
+              <span className="font-dm-sans text-xs text-roamly-muted shrink-0">
                 oppure
               </span>
               <div className="flex-1 h-px bg-roamly-g6" />
@@ -76,10 +85,12 @@ export function AuthPage() {
           <div className="px-6 pb-6 pt-2">
             <OAuthButton />
           </div>
+        </>
+        )}
         </div>
 
         {/* Footer */}
-        <p className="font-dm-sans text-xs text-center text-roamly-text/30">
+        <p className="font-dm-sans text-xs text-center text-roamly-muted">
           Usando Roamly accetti i Termini di servizio e la Privacy policy.
         </p>
 
@@ -112,7 +123,7 @@ function TabButton({
         border-b-2
         ${active
           ? 'text-roamly-g0 border-roamly-g0'
-          : 'text-roamly-text/40 border-transparent hover:text-roamly-text/60'
+          : 'text-roamly-muted border-transparent hover:text-roamly-ink'
         }
       `}
     >

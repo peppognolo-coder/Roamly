@@ -145,7 +145,7 @@ export function CalendarioPage() {
               onClick={() => setMese(new Date(mese.getFullYear(), mese.getMonth() - 1, 1))}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-roamly-g6 transition-colors"
             >
-              <ChevronLeft size={18} className="text-roamly-text/60" />
+              <ChevronLeft size={18} className="text-roamly-ink-soft" />
             </button>
             <span className="font-lora text-base font-semibold text-roamly-g0 capitalize">
               {mese.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' })}
@@ -154,7 +154,7 @@ export function CalendarioPage() {
               onClick={() => setMese(new Date(mese.getFullYear(), mese.getMonth() + 1, 1))}
               className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-roamly-g6 transition-colors"
             >
-              <ChevronRight size={18} className="text-roamly-text/60" />
+              <ChevronRight size={18} className="text-roamly-ink-soft" />
             </button>
           </div>
 
@@ -162,7 +162,7 @@ export function CalendarioPage() {
           <div className="bg-white rounded-2xl shadow-roamly p-3">
             <div className="grid grid-cols-7 mb-1">
               {GIORNI_SETTIMANA.map((g, i) => (
-                <div key={i} className="text-center font-dm-sans text-[10px] font-medium text-roamly-text/35 py-1">
+                <div key={i} className="text-center font-dm-sans text-[10px] font-medium text-roamly-muted py-1">
                   {g}
                 </div>
               ))}
@@ -185,7 +185,7 @@ export function CalendarioPage() {
                       w-7 h-7 rounded-full flex items-center justify-center
                       font-dm-sans text-xs
                       transition-colors duration-150
-                      ${fuoriMese ? 'text-roamly-text/15' : 'text-roamly-text/70'}
+                      ${fuoriMese ? 'text-roamly-text/15' : 'text-roamly-ink'}
                       ${selezionato ? 'bg-roamly-g0 text-white font-medium' : ''}
                     `}>
                       {d.getDate()}
@@ -218,7 +218,7 @@ export function CalendarioPage() {
             {eventiVisibili.every(([, evs]) => evs.length === 0) ? (
               <div className="flex flex-col items-center gap-3 py-10 text-center">
                 <CalendarDays size={28} className="text-roamly-g3" />
-                <p className="font-dm-sans text-sm text-roamly-text/45 max-w-[220px]">
+                <p className="font-dm-sans text-sm text-roamly-muted max-w-[220px]">
                   {giornoSelezionato
                     ? 'Nessun evento in questo giorno.'
                     : 'Aggiungi tappe o prenotazioni con una data per vederle qui.'}
@@ -229,7 +229,7 @@ export function CalendarioPage() {
                 eventi.length > 0 && (
                   <div key={giorno} className="flex flex-col gap-2">
                     {!giornoSelezionato && (
-                      <p className="font-dm-sans text-xs font-medium text-roamly-text/40 px-1">
+                      <p className="font-dm-sans text-xs font-medium text-roamly-muted px-1">
                         {new Date(giorno + 'T00:00:00').toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' })}
                       </p>
                     )}
@@ -272,7 +272,7 @@ export function CalendarioPage() {
                                 <p className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
                                   {ev.data.nome}
                                 </p>
-                                <p className="font-dm-sans text-xs text-roamly-text/40 mt-0.5 flex items-center gap-1">
+                                <p className="font-dm-sans text-xs text-roamly-muted mt-0.5 flex items-center gap-1">
                                   {ora && (
                                     <span className="flex items-center gap-0.5">
                                       <Clock size={10} />
@@ -291,7 +291,7 @@ export function CalendarioPage() {
                                 className="
                                   shrink-0 w-8 h-8 rounded-full
                                   flex items-center justify-center
-                                  text-roamly-text/30 hover:bg-roamly-g6 hover:text-roamly-text/60
+                                  text-roamly-muted hover:bg-roamly-g6 hover:text-roamly-ink-soft
                                   transition-colors duration-150
                                 "
                               >
@@ -308,7 +308,7 @@ export function CalendarioPage() {
                           {senzaOrario.length > 0 && (
                             <>
                               {conOrario.length > 0 && (
-                                <p className="font-dm-sans text-[11px] font-medium text-roamly-text/30 uppercase tracking-wider px-1 pt-1">
+                                <p className="font-dm-sans text-[11px] font-medium text-roamly-muted uppercase tracking-wider px-1 pt-1">
                                   Senza orario
                                 </p>
                               )}
@@ -330,7 +330,7 @@ export function CalendarioPage() {
                 onClick={() => setMostraElencoNascoste((v) => !v)}
                 className="
                   flex items-center gap-1.5 font-dm-sans text-xs font-medium
-                  text-roamly-text/40 hover:text-roamly-text/60
+                  text-roamly-muted hover:text-roamly-ink-soft
                 "
               >
                 <EyeOff size={12} />
@@ -340,7 +340,7 @@ export function CalendarioPage() {
                 <div className="mt-2 flex flex-col gap-1.5 bg-white rounded-2xl shadow-roamly p-3">
                   {tappeNascostePersonali.map((t) => (
                     <div key={t.id} className="flex items-center justify-between gap-2">
-                      <span className="font-dm-sans text-xs text-roamly-text/70 truncate">
+                      <span className="font-dm-sans text-xs text-roamly-ink truncate">
                         {t.nome}
                       </span>
                       <button

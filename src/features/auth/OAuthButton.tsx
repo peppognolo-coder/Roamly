@@ -13,10 +13,10 @@ export function OAuthButton() {
         onClick={signInWithGoogle}
         disabled={isLoading}
         className="
-          w-full h-11 px-4
-          flex items-center justify-center gap-3
+          w-full h-[50px] px-4
+          flex items-center justify-center gap-2.5
           bg-white border border-roamly-g5
-          rounded-xl
+          rounded-full
           font-dm-sans font-medium text-sm text-roamly-text
           hover:bg-roamly-g7 hover:border-roamly-g4
           active:scale-[0.99]
@@ -34,7 +34,7 @@ export function OAuthButton() {
       </button>
 
       {error && (
-        <p className="text-xs text-center font-dm-sans text-red-500">{error}</p>
+        <p className="text-xs text-center font-dm-sans text-red-600">{error}</p>
       )}
     </div>
   )

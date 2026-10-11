@@ -13,7 +13,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const variantClasses: Record<ButtonVariant, string> = {
   primary: `
     bg-roamly-coral text-white
-    shadow-roamly
+    shadow-roamly-coral
     hover:bg-roamly-coral-dark
     active:bg-roamly-coral-dark
     disabled:bg-roamly-g5 disabled:text-white/60 disabled:shadow-none
@@ -36,7 +36,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 const sizeClasses: Record<ButtonSize, string> = {
   sm: 'h-10 px-4 text-sm rounded-full',
   md: 'h-12 px-6 text-base rounded-full',
-  lg: 'h-14 px-7 text-base font-semibold rounded-full',
+  lg: 'h-[52px] px-7 text-base font-semibold rounded-full',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

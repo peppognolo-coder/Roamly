@@ -78,7 +78,7 @@ export function BudgetForm({
 
       {/* Categoria */}
       <div className="flex flex-col gap-2">
-        <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+        <label className="font-dm-sans text-sm font-medium text-roamly-ink">
           Categoria
         </label>
         <Controller
@@ -97,7 +97,7 @@ export function BudgetForm({
                     border transition-all duration-150
                     ${field.value === opt.value
                       ? 'bg-roamly-g0 border-roamly-g0 text-white'
-                      : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                      : 'bg-roamly-g7 border-roamly-g6 text-roamly-ink-soft hover:border-roamly-g4'
                     }
                   `}
                 >
@@ -112,7 +112,7 @@ export function BudgetForm({
       {/* Ha pagato — solo se il viaggio è condiviso */}
       {paganti.length > 1 && (
         <div className="flex flex-col gap-2">
-          <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+          <label className="font-dm-sans text-sm font-medium text-roamly-ink">
             Ha pagato
           </label>
           <Controller
@@ -131,7 +131,7 @@ export function BudgetForm({
                       border transition-all duration-150
                       ${field.value === p.userId
                         ? 'bg-roamly-g0 border-roamly-g0 text-white'
-                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-ink-soft hover:border-roamly-g4'
                       }
                     `}
                   >
@@ -147,7 +147,7 @@ export function BudgetForm({
       {/* Come si divide — solo su viaggi condivisi */}
       {paganti.length > 1 && (
         <div className="flex flex-col gap-2">
-          <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+          <label className="font-dm-sans text-sm font-medium text-roamly-ink">
             Come si divide
           </label>
           <Controller
@@ -172,7 +172,7 @@ export function BudgetForm({
                     <span className={`font-dm-sans text-sm font-medium ${field.value === opt.value ? 'text-white' : 'text-roamly-text'}`}>
                       {opt.label}
                     </span>
-                    <span className={`font-dm-sans text-xs ${field.value === opt.value ? 'text-white/60' : 'text-roamly-text/40'}`}>
+                    <span className={`font-dm-sans text-xs ${field.value === opt.value ? 'text-white/60' : 'text-roamly-muted'}`}>
                       {opt.descrizione}
                     </span>
                   </button>
@@ -197,8 +197,8 @@ export function BudgetForm({
 
       {/* Nota */}
       <div className="flex flex-col gap-2">
-        <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
-          Nota <span className="text-roamly-text/35 font-normal">(opzionale)</span>
+        <label className="font-dm-sans text-sm font-medium text-roamly-ink">
+          Nota <span className="text-roamly-muted font-normal">(opzionale)</span>
         </label>
         <textarea
           {...register('nota')}
@@ -209,7 +209,7 @@ export function BudgetForm({
             bg-roamly-g7 border border-roamly-g5
             rounded-2xl resize-none
             font-dm-sans text-sm text-roamly-text
-            placeholder:text-roamly-text/30
+            placeholder:text-roamly-muted
             focus:outline-none focus:ring-2 focus:ring-roamly-g3 focus:border-transparent
           "
         />

@@ -120,7 +120,7 @@ export function ViaggioForm({
 
       {/* Icona picker */}
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-dm-sans font-medium text-roamly-text/70">
+        <label className="text-sm font-dm-sans font-medium text-roamly-ink">
           Icona viaggio
         </label>
         <Controller
@@ -142,7 +142,7 @@ export function ViaggioForm({
                       focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
                       ${field.value === opt.value
                         ? 'bg-roamly-g0 border-roamly-g0 shadow-md scale-110 text-white'
-                        : 'bg-roamly-g7 border-roamly-g5 hover:border-roamly-g3 text-roamly-text/60'
+                        : 'bg-roamly-g7 border-roamly-g5 hover:border-roamly-g3 text-roamly-ink-soft'
                       }
                     `}
                   >
@@ -239,7 +239,7 @@ export function ViaggioForm({
             <p className="font-dm-sans text-sm font-medium text-roamly-text">
               Anteprima viaggio
             </p>
-            <p className="font-dm-sans text-xs text-roamly-text/40">
+            <p className="font-dm-sans text-xs text-roamly-muted">
               Solo il nome è obbligatorio per iniziare
             </p>
           </div>

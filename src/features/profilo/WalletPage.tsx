@@ -121,13 +121,13 @@ export function WalletPage() {
                 <p className="font-lora text-base font-semibold text-roamly-g0">
                   Ancora nessun documento
                 </p>
-                <p className="font-dm-sans text-sm text-roamly-text/50 leading-relaxed max-w-[240px]">
+                <p className="font-dm-sans text-sm text-roamly-ink-soft leading-relaxed max-w-[240px]">
                   Carta d'imbarco, documento d'identità, assicurazione — tienili qui, sempre a portata di mano.
                 </p>
               </div>
             </div>
           ) : documentiFiltrati.length === 0 ? (
-            <p className="font-dm-sans text-sm text-roamly-text/40 text-center py-8">
+            <p className="font-dm-sans text-sm text-roamly-muted text-center py-8">
               Nessun documento in questa categoria.
             </p>
           ) : (
@@ -187,7 +187,7 @@ function FiltroPill({ attivo, onClick, label }: { attivo: boolean; onClick: () =
         border transition-all duration-150
         ${attivo
           ? 'bg-roamly-g0 border-roamly-g0 text-white'
-          : 'bg-white border-roamly-g5 text-roamly-text/60 hover:border-roamly-g4'
+          : 'bg-white border-roamly-g5 text-roamly-ink-soft hover:border-roamly-g4'
         }
       `}
     >

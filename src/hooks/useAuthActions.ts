@@ -7,6 +7,8 @@ import {
   logout,
   mapAuthError,
   registerWithEmail,
+  requestPasswordReset,
+  updatePassword,
   deleteAccount,
 } from '@/services/authService'
 import { useAuthStore } from '@/store/authStore'
@@ -174,4 +176,61 @@ export function useDeleteAccount() {
   }
 
   return { deleteAccount: handleDeleteAccount, isLoading, error, clearError: () => setError(null) }
+}
+
+
+// ------------------------------------------------------------
+// useForgotPassword — invia l'email di recupero
+// ------------------------------------------------------------
+
+export function useForgotPassword() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState(false)
+
+  async function sendReset(email: string) {
+    setIsLoading(true)
+    setError(null)
+
+    const { error: authError } = await requestPasswordReset(email)
+
+    setIsLoading(false)
+    if (authError) {
+      setError(mapAuthError(authError.message))
+      return { success: false }
+    }
+
+    setEmailSent(true)
+    return { success: true }
+  }
+
+  return { sendReset, isLoading, error, emailSent, clearError: () => setError(null) }
+}
+
+// ------------------------------------------------------------
+// useResetPassword — imposta la nuova password dal link di recupero
+// ------------------------------------------------------------
+
+export function useResetPassword() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+
+  async function reset(newPassword: string) {
+    setIsLoading(true)
+    setError(null)
+
+    const { error: authError } = await updatePassword(newPassword)
+
+    setIsLoading(false)
+    if (authError) {
+      setError(mapAuthError(authError.message))
+      return { success: false }
+    }
+
+    navigate('/', { replace: true })
+    return { success: true }
+  }
+
+  return { reset, isLoading, error, clearError: () => setError(null) }
 }

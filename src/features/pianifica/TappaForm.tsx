@@ -140,7 +140,7 @@ export function TappaForm({
 
       {/* Categoria */}
       <div className="flex flex-col gap-2">
-        <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
+        <label className="font-dm-sans text-sm font-medium text-roamly-ink">
           Categoria
         </label>
         <Controller
@@ -161,7 +161,7 @@ export function TappaForm({
                       border transition-all duration-150
                       ${field.value === cat.value
                         ? 'bg-roamly-g0 border-roamly-g0 text-white'
-                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-text/60 hover:border-roamly-g4'
+                        : 'bg-roamly-g7 border-roamly-g6 text-roamly-ink-soft hover:border-roamly-g4'
                       }
                     `}
                   >
@@ -220,7 +220,7 @@ export function TappaForm({
             />
           )}
         />
-        <p className="font-dm-sans text-xs text-roamly-text/40 px-1">
+        <p className="font-dm-sans text-xs text-roamly-muted px-1">
           Scegli un suggerimento dalla lista per posizionare la tappa sulla mappa in Attività.
         </p>
         {(indirizzoValue || haPosizione) && (
@@ -242,8 +242,8 @@ export function TappaForm({
 
       {/* Note */}
       <div className="flex flex-col gap-2">
-        <label className="font-dm-sans text-sm font-medium text-roamly-text/70">
-          Note <span className="text-roamly-text/35 font-normal">(opzionale)</span>
+        <label className="font-dm-sans text-sm font-medium text-roamly-ink">
+          Note <span className="text-roamly-muted font-normal">(opzionale)</span>
         </label>
         <textarea
           {...register('note')}
@@ -254,7 +254,7 @@ export function TappaForm({
             bg-roamly-g7 border border-roamly-g5
             rounded-2xl resize-none
             font-dm-sans text-sm text-roamly-text
-            placeholder:text-roamly-text/30
+            placeholder:text-roamly-muted
             focus:outline-none focus:ring-2 focus:ring-roamly-g3 focus:border-transparent
           "
         />

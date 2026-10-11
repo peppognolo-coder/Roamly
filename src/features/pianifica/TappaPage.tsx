@@ -111,7 +111,7 @@ export function TappaPage() {
           {isEdit && (
             <div className="mt-6">
               {deleteError && (
-                <p className="font-dm-sans text-sm text-red-500 mb-3 text-center">
+                <p className="font-dm-sans text-sm text-red-600 mb-3 text-center">
                   {deleteError}
                 </p>
               )}
@@ -120,7 +120,7 @@ export function TappaPage() {
                   variant="ghost"
                   fullWidth
                   onClick={() => setShowDeleteConfirm(true)}
-                  className="text-red-500/70 hover:bg-red-50 hover:text-red-500"
+                  className="text-red-600/70 hover:bg-red-50 hover:text-red-600"
                 >
                   <Trash2 size={16} className="mr-1.5" />
                   Elimina tappa

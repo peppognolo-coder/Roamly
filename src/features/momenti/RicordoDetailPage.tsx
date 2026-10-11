@@ -154,7 +154,7 @@ export function RicordoDetailPage() {
             "
             aria-label="Condividi ricordo"
           >
-            <Share2 size={16} className="text-roamly-text/60" />
+            <Share2 size={16} className="text-roamly-ink-soft" />
           </button>
           <button
             onClick={() => togglePreferito(ricordo.id, ricordo.preferito)}
@@ -168,7 +168,7 @@ export function RicordoDetailPage() {
           >
             <Heart
               size={17}
-              className={ricordo.preferito ? 'fill-roamly-coral-dark text-roamly-coral-dark' : 'text-roamly-text/40'}
+              className={ricordo.preferito ? 'fill-roamly-coral-dark text-roamly-coral-dark' : 'text-roamly-muted'}
             />
           </button>
           <button
@@ -240,10 +240,10 @@ export function RicordoDetailPage() {
                   {moodOption && <MoodIcon mood={ricordo.mood} size={32} />}
                 </div>
                 <div>
-                  <p className="font-dm-sans text-xs text-roamly-text/40 uppercase tracking-wider">
+                  <p className="font-dm-sans text-xs text-roamly-muted uppercase tracking-wider">
                     {moodOption?.label}
                   </p>
-                  <p className="font-dm-mono text-xs text-roamly-text/35 mt-0.5 capitalize">
+                  <p className="font-dm-mono text-xs text-roamly-muted mt-0.5 capitalize">
                     {dataFormattata}
                   </p>
                 </div>
@@ -276,7 +276,7 @@ export function RicordoDetailPage() {
 
               {/* Luogo */}
               {ricordo.luogo && (
-                <div className="flex items-center gap-1.5 text-roamly-text/40">
+                <div className="flex items-center gap-1.5 text-roamly-muted">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
@@ -318,7 +318,7 @@ export function RicordoDetailPage() {
           {/* ── Form modifica ── */}
           {isEditing && (
             <div className="bg-white rounded-2xl border border-roamly-g5 p-5">
-              <h2 className="font-dm-sans font-semibold text-sm text-roamly-text/60
+              <h2 className="font-dm-sans font-semibold text-sm text-roamly-ink-soft
                 uppercase tracking-wider mb-4">
                 Modifica ricordo
               </h2>
@@ -344,21 +344,21 @@ export function RicordoDetailPage() {
           {/* ── Eliminazione ── */}
           {!isEditing && (
             <div className="border border-red-100 rounded-2xl p-5">
-              <h2 className="font-dm-sans font-semibold text-sm text-red-400
+              <h2 className="font-dm-sans font-semibold text-sm text-red-600
                 uppercase tracking-wider mb-2">
                 Zona pericolosa
               </h2>
-              <p className="font-dm-sans text-sm text-roamly-text/50 mb-4">
+              <p className="font-dm-sans text-sm text-roamly-ink-soft mb-4">
                 Questo ricordo verrà eliminato definitivamente.
               </p>
               {deleteError && (
-                <p className="font-dm-sans text-sm text-red-500 mb-3">{deleteError}</p>
+                <p className="font-dm-sans text-sm text-red-600 mb-3">{deleteError}</p>
               )}
               {!showConfirm ? (
                 <Button
                   variant="ghost"
                   onClick={() => setShowConfirm(true)}
-                  className="text-red-500 hover:bg-red-50"
+                  className="text-red-600 hover:bg-red-50"
                 >
                   Elimina ricordo
                 </Button>
