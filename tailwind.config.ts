@@ -19,6 +19,12 @@ export default {
         'roamly-bg':   '#F9FBFC',
         'roamly-text': '#16232E',
 
+        // Inchiostri pieni per il testo (al posto di text-roamly-text/NN):
+        // contrasto AA garantito su bianco e su roamly-bg.
+        'roamly-ink':      '#2B3C49',  // etichette, corpo
+        'roamly-ink-soft': '#3D5262',  // descrizioni
+        'roamly-muted':    '#5A7183',  // secondario, placeholder, meta
+
         // Accento firma — usato con parsimonia sui punti che
         // devono restare impressi: CTA principali, bottone "+",
         // momenti speciali. Non sostituisce il blu, lo completa.
@@ -47,6 +53,7 @@ export default {
       boxShadow: {
         'roamly':    '0 2px 12px -2px rgba(12, 42, 61, 0.08), 0 1px 3px -1px rgba(12, 42, 61, 0.06)',
         'roamly-lg': '0 8px 30px -4px rgba(12, 42, 61, 0.14), 0 2px 8px -2px rgba(12, 42, 61, 0.08)',
+        'roamly-coral': '0 8px 24px -6px rgba(229, 86, 58, 0.5)',
       },
     },
   },
