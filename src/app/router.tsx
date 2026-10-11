@@ -21,6 +21,7 @@ import { HomePage } from '@/features/home/HomePage'
 // Pages — lazy
 const ResetPasswordPage      = lazy(() => import('@/features/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })))
 const DiarioPage             = lazy(() => import('@/features/diario/DiarioPage').then((m) => ({ default: m.DiarioPage })))
+const DiarioViaggioPage      = lazy(() => import('@/features/diario/DiarioViaggioPage').then((m) => ({ default: m.DiarioViaggioPage })))
 const NuovoRicordoPage       = lazy(() => import('@/features/momenti/NuovoRicordoPage').then((m) => ({ default: m.NuovoRicordoPage })))
 const RicordoDetailPage      = lazy(() => import('@/features/momenti/RicordoDetailPage').then((m) => ({ default: m.RicordoDetailPage })))
 const PianificaPage          = lazy(() => import('@/features/pianifica/PianificaPage').then((m) => ({ default: m.PianificaPage })))
@@ -125,6 +126,10 @@ export const router = createBrowserRouter([
   {
     path: '/diario',
     element: <Protected><DiarioPage /></Protected>,
+  },
+  {
+    path: '/diario/:id',
+    element: <Protected><DiarioViaggioPage /></Protected>,
   },
   {
     path: '/nuovo-ricordo',

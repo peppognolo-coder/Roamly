@@ -403,7 +403,15 @@ export async function getFotoConUrlByRicordo(ricordoId: string): Promise<{
 // e passa coverUrl come prop a RicordoCard — zero query per card.
 // ------------------------------------------------------------
 
-export async function getCoversByViaggio(viaggioId: string): Promise<{
+export type FormatoCover = 'thumb' | 'card'
+
+// 'thumb' = 200×200 (miniature), 'card' = 700×440 (card grandi del Diario)
+const TRASFORMAZIONE_COVER: Record<FormatoCover, { width: number; height: number }> = {
+  thumb: { width: THUMBNAIL_WIDTH, height: THUMBNAIL_HEIGHT },
+  card:  { width: 700, height: 440 },
+}
+
+export async function getCoversByViaggio(viaggioId: string, formato: FormatoCover = 'thumb'): Promise<{
   data: Map<string, string>   // ricordoId → thumbnailSignedUrl
   error: string | null
 }> {
@@ -431,6 +439,14 @@ export async function getCoversByViaggio(viaggioId: string): Promise<{
   // Passo 3: signed URL thumbnail in parallelo
   const risultati = await Promise.all(
     covers.map(async (c: { ricordo_id: string; path: string; bucket: string }) => {
+      if (formato === 'card') {
+        const { data, error } = await supabase.storage
+          .from(c.bucket)
+          .createSignedUrl(c.path, SIGNED_URL_TTL_SECONDS, {
+            transform: { ...TRASFORMAZIONE_COVER.card, resize: THUMBNAIL_RESIZE },
+          })
+        return { ricordoId: c.ricordo_id, url: data?.signedUrl ?? null, error: error?.message ?? null }
+      }
       const { thumbnailSignedUrl, error } = await generaSignedUrlConThumbnail(
         c.path, c.bucket
       )

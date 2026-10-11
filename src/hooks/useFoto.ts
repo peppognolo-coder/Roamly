@@ -7,6 +7,7 @@ import { useVerificaTraguardi }    from '@/hooks/useBadges'
 import {
   getFotoConUrlByRicordo,
   getCoversByViaggio,
+  type FormatoCover,
   getCoverViaggio,
   getFotoCountByViaggio,
   uploadFoto,
@@ -57,13 +58,15 @@ export function useFotoRicordo(ricordoId: string | undefined) {
 // Usata da ViaggioDetailPage in parallelo con useRicordi(viaggioId).
 // ------------------------------------------------------------
 
-export function useCoversByViaggio(viaggioId: string | undefined) {
+export function useCoversByViaggio(viaggioId: string | undefined, formato: FormatoCover = 'thumb') {
   const { user } = useAuth()
 
   return useQuery({
-    queryKey: queryKeys.foto.coversByViaggio(viaggioId ?? ''),
+    queryKey: formato === 'card'
+      ? queryKeys.foto.coversCardByViaggio(viaggioId ?? '')
+      : queryKeys.foto.coversByViaggio(viaggioId ?? ''),
     queryFn: async () => {
-      const { data, error } = await getCoversByViaggio(viaggioId!)
+      const { data, error } = await getCoversByViaggio(viaggioId!, formato)
       if (error) throw new Error(error)
       return data  // Map<ricordoId, thumbnailSignedUrl>
     },

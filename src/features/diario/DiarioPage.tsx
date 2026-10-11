@@ -1,28 +1,27 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Search, X } from 'lucide-react'
 import { PageLayout }            from '@/components/layout/PageLayout'
 import { BottomNav }             from '@/components/layout/BottomNav'
-import { HeroCardDiario }        from './HeroCardDiario'
-import { RicordoDelGiornoCard, RicordoDelGiornoCardSkeleton } from '@/components/ricordi/RicordoDelGiornoCard'
-import { useRicordoDelGiorno }    from '@/hooks/useRicordoDelGiorno'
 import { FiltriBar }             from './FiltriBar'
-import { SezioneViaggio }        from './SezioneViaggio'
+import { VolumeViaggioCard }     from './VolumeViaggioCard'
+import { RicordoCardDiario }     from './RicordoCardDiario'
 import { DiarioVuoto, DiarioVuotoConFiltri } from './TimelineVuota'
 import { useDiario }             from '@/hooks/useDiario'
 import { useFiltriDiario }       from '@/hooks/useFiltriDiario'
-import { useCollapseViaggi }     from '@/hooks/useCollapseViaggi'
+import { useRicordoDelGiorno }   from '@/hooks/useRicordoDelGiorno'
+import { haFiltriAttivi }        from '@/lib/diario-utils'
+import type { Ricordo }          from '@/types'
 
 // ============================================================
 // DiarioPage — /diario
-// "Il Diario non è una lista. È il luogo dove l'utente torna
-//  non per fare qualcosa, ma per sentire qualcosa."
-//
-// Struttura:
-//   Header sticky
-//   FiltriBar
-//   HeroCardDiario (Ricordo in evidenza)
-//   RicordoDelGiornoCard (placeholder B45 — visibile se ≥ 3 ricordi)
-//   Timeline: SezioneViaggio[] collassabili
+// Due livelli, per non perdersi quando i viaggi crescono:
+//   1. questa pagina: i viaggi come "volumi" (copertina, ricordi,
+//      miniature), raggruppati per anno, più una card "Da riscoprire";
+//      la lente apre ricerca e filtri.
+//   2. /diario/:id: il diario del singolo viaggio (DiarioViaggioPage).
+// Con ricerca/filtri attivi si vede un elenco unico di ricordi, ognuno
+// con l'etichetta del suo viaggio.
 // ============================================================
 
 export function DiarioPage() {
@@ -40,24 +39,45 @@ export function DiarioPage() {
     autoriDisponibili,
   } = useDiario(filtri)
 
-  // IDs per il collapse — stabile, memoizzato
-  const viaggioIds = useMemo(
-    () => sezioni.map((s) => s.viaggio.id),
-    [sezioni]
-  )
-  const { isExpanded, toggle } = useCollapseViaggi(viaggioIds)
+  const [cercaAperta, setCercaAperta] = useState(false)
+  const filtriAttivi = haFiltriAttivi(filtri)
+  const inRicerca = cercaAperta || filtriAttivi
 
-  // Viaggio del ricordo in evidenza — cercato direttamente nelle sezioni già in memoria.
-  // Evita un fetch/hook aggiuntivo: il viaggio è già presente in sezioni
-  // grazie a useDiario che carica tutti i viaggi con useViaggi().
-  const viaggioHero = ricordoInEvidenza
-    ? sezioni.find((s) => s.viaggio.id === ricordoInEvidenza.viaggio_id)?.viaggio
-    : undefined
+  const { data: ricordoDelGiorno } = useRicordoDelGiorno()
 
-  // B45 — Ricordo del Giorno reale
-  const { data: ricordoDelGiorno, isLoading: isLoadingB45 } = useRicordoDelGiorno()
-  // Mostra solo se l'utente ha almeno 3 ricordi
-  const mostraRicordoDelGiorno = totaleRicordi >= 3
+  const nomeViaggio = (viaggioId: string) => sezioni.find((s) => s.viaggio.id === viaggioId)?.viaggio.nome
+
+  // "Da riscoprire": il ricordo del giorno se ci sono almeno 3 ricordi, altrimenti quello in evidenza
+  const daRiscoprire: { ricordo: Ricordo; eyebrow: string } | null = useMemo(() => {
+    if (totaleRicordi >= 3 && ricordoDelGiorno?.ricordo) {
+      return { ricordo: ricordoDelGiorno.ricordo, eyebrow: ricordoDelGiorno.labelTempo ?? 'Da riscoprire' }
+    }
+    return ricordoInEvidenza ? { ricordo: ricordoInEvidenza, eyebrow: 'In evidenza' } : null
+  }, [totaleRicordi, ricordoDelGiorno, ricordoInEvidenza])
+
+  // Elenco unico (ricerca/filtri): tutti i ricordi filtrati, più recenti prima
+  const risultati = useMemo(() => {
+    if (!inRicerca) return []
+    return sezioni
+      .flatMap((s) => s.giorni.flatMap((g) => g.ricordi))
+      .sort((a, b) => b.data.localeCompare(a.data) || b.created_at.localeCompare(a.created_at))
+  }, [sezioni, inRicerca])
+
+  // Viaggi raggruppati per anno (già ordinati dal più recente)
+  const perAnno = useMemo(() => {
+    const mappa = new Map<string, typeof sezioni>()
+    for (const s of sezioni) {
+      const anno = s.viaggio.data_inizio?.slice(0, 4) ?? 'Senza data'
+      mappa.set(anno, [...(mappa.get(anno) ?? []), s])
+    }
+    return Array.from(mappa.entries())
+  }, [sezioni])
+
+  function chiudiRicerca() {
+    resetFiltri()
+    setRicercaInput('')
+    setCercaAperta(false)
+  }
 
   return (
     <PageLayout>
@@ -65,137 +85,111 @@ export function DiarioPage() {
 
         {/* ── Header ── */}
         <header className="sticky top-0 z-30 bg-roamly-bg/95 backdrop-blur-sm px-5 pt-14 pb-3">
-          <h1 className="font-lora text-h1 text-roamly-g0 mb-3">
-            Il tuo diario
-          </h1>
-          <FiltriBar
-            filtri={filtri}
-            ricercaInput={ricercaInput}
-            onRicercaChange={setRicercaInput}
-            onToggleMood={toggleMood}
-            onTogglePreferiti={togglePreferiti}
-            onToggleAutore={toggleAutore}
-            onReset={resetFiltri}
-            totaleFiltrati={totaleFiltrati}
-            totaleRicordi={totaleRicordi}
-            autoriDisponibili={autoriDisponibili}
-          />
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="font-lora text-h1 text-roamly-g0">Il tuo diario</h1>
+            {!isLoading && !isEmpty && (
+              <button
+                type="button"
+                onClick={() => (inRicerca ? chiudiRicerca() : setCercaAperta(true))}
+                aria-label={inRicerca ? 'Chiudi la ricerca' : 'Cerca nei ricordi'}
+                className="w-10 h-10 rounded-full bg-roamly-g7 text-roamly-g1 flex items-center justify-center
+                  active:scale-95 transition-transform
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3"
+              >
+                {inRicerca ? <X size={18} /> : <Search size={18} />}
+              </button>
+            )}
+          </div>
+
+          {inRicerca && (
+            <div className="mt-3">
+              <FiltriBar
+                filtri={filtri}
+                ricercaInput={ricercaInput}
+                onRicercaChange={setRicercaInput}
+                onToggleMood={toggleMood}
+                onTogglePreferiti={togglePreferiti}
+                onToggleAutore={toggleAutore}
+                onReset={resetFiltri}
+                totaleFiltrati={totaleFiltrati}
+                totaleRicordi={totaleRicordi}
+                autoriDisponibili={autoriDisponibili}
+              />
+            </div>
+          )}
         </header>
 
-        {/* ── Loading globale ── */}
+        {/* ── Caricamento ── */}
         {isLoading && (
-          <div className="flex-1 px-5 pt-4 flex flex-col gap-4">
-            <SkeletonHero />
-            <SkeletonTimeline />
+          <div className="flex-1 px-5 pt-2 flex flex-col gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-3xl overflow-hidden bg-white shadow-roamly">
+                <div className="h-[150px] bg-roamly-g6 animate-pulse" />
+                <div className="h-16 p-4"><div className="h-4 w-1/3 bg-roamly-g6 rounded animate-pulse" /></div>
+              </div>
+            ))}
           </div>
         )}
 
-        {/* ── Empty state: nessun ricordo ── */}
         {!isLoading && isEmpty && <DiarioVuoto haViaggi={haViaggi} />}
 
-        {/* ── Empty state: filtri azzerano tutto ── */}
-        {!isLoading && isEmptyConFiltri && (
-          <DiarioVuotoConFiltri onReset={resetFiltri} />
+        {/* ── Ricerca / filtri: elenco unico con etichetta del viaggio ── */}
+        {!isLoading && !isEmpty && inRicerca && (
+          isEmptyConFiltri || (filtriAttivi && risultati.length === 0) ? (
+            <DiarioVuotoConFiltri onReset={chiudiRicerca} />
+          ) : (
+            <div className="flex-1 px-5 pt-2 pb-8 flex flex-col gap-3">
+              {risultati.map((r) => (
+                <RicordoCardDiario key={r.id} ricordo={r} viaggioNome={nomeViaggio(r.viaggio_id)} />
+              ))}
+            </div>
+          )
         )}
 
-        {/* ── Contenuto principale ── */}
-        {!isLoading && !isEmpty && !isEmptyConFiltri && (
-          <div className="flex-1 px-5 pt-4 pb-8 flex flex-col gap-5">
+        {/* ── Vista normale: da riscoprire + viaggi per anno ── */}
+        {!isLoading && !isEmpty && !inRicerca && (
+          <div className="flex-1 px-5 pt-2 pb-8 flex flex-col gap-7">
 
-            {/* Hero Card */}
-            {ricordoInEvidenza && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-              >
-                <HeroCardDiario
-                  ricordo={ricordoInEvidenza}
-                  viaggio={viaggioHero}
-                />
-              </motion.div>
-            )}
-
-            {/* B45 — Ricordo del Giorno reale */}
-            {mostraRicordoDelGiorno && (
-              <motion.div
+            {daRiscoprire && (
+              <motion.section
+                className="flex flex-col gap-3"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut', delay: 0.1 }}
+                transition={{ duration: 0.3 }}
               >
-                {isLoadingB45 ? (
-                  <RicordoDelGiornoCardSkeleton />
-                ) : ricordoDelGiorno ? (
-                  <RicordoDelGiornoCard
-                    ricordo={ricordoDelGiorno.ricordo}
-                    viaggio={ricordoDelGiorno.viaggio}
-                    labelTempo={ricordoDelGiorno.labelTempo}
-                  />
-                ) : null}
-              </motion.div>
+                <h2 className="font-lora text-lg font-semibold text-roamly-g0">Da riscoprire</h2>
+                <RicordoCardDiario
+                  ricordo={daRiscoprire.ricordo}
+                  eyebrow={daRiscoprire.eyebrow}
+                  viaggioNome={nomeViaggio(daRiscoprire.ricordo.viaggio_id)}
+                />
+              </motion.section>
             )}
 
-            {/* Timeline */}
-            <motion.div
-              className="flex flex-col gap-1"
+            <motion.section
+              className="flex flex-col gap-6"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: 'easeOut', delay: 0.15 }}
+              transition={{ duration: 0.3, delay: 0.08 }}
             >
-              {sezioni.map((sezione) => (
-                <SezioneViaggio
-                  key={sezione.viaggio.id}
-                  sezione={sezione}
-                  isExpanded={isExpanded(sezione.viaggio.id)}
-                  onToggle={() => toggle(sezione.viaggio.id)}
-                />
+              <h2 className="font-lora text-lg font-semibold text-roamly-g0 -mb-3">I tuoi viaggi</h2>
+              {perAnno.map(([anno, lista]) => (
+                <div key={anno} className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="font-dm-mono text-xs font-medium tracking-widest text-roamly-g2">{anno}</span>
+                    <div className="flex-1 h-px bg-roamly-g6" />
+                  </div>
+                  {lista.map((s) => (
+                    <VolumeViaggioCard key={s.viaggio.id} sezione={s} />
+                  ))}
+                </div>
               ))}
-            </motion.div>
+            </motion.section>
 
           </div>
         )}
-
       </div>
       <BottomNav />
     </PageLayout>
-  )
-}
-
-// ------------------------------------------------------------
-// Skeletons
-// ------------------------------------------------------------
-
-function SkeletonHero() {
-  return (
-    <div className="rounded-3xl overflow-hidden bg-white shadow-roamly">
-      <div className="h-36 bg-roamly-g6 animate-pulse" />
-      <div className="p-4 flex flex-col gap-2">
-        <div className="h-3 bg-roamly-g6 rounded animate-pulse w-1/3" />
-        <div className="h-6 bg-roamly-g6 rounded animate-pulse w-4/5" />
-        <div className="h-3 bg-roamly-g6 rounded animate-pulse w-1/2" />
-      </div>
-    </div>
-  )
-}
-
-function SkeletonTimeline() {
-  return (
-    <div className="flex flex-col gap-4">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded bg-roamly-g6 animate-pulse" />
-            <div className="h-4 bg-roamly-g6 rounded animate-pulse w-1/3" />
-          </div>
-          <div className="flex gap-0 h-20 bg-white rounded-2xl shadow-roamly overflow-hidden">
-            <div className="w-20 bg-roamly-g6 animate-pulse" />
-            <div className="flex-1 p-3 flex flex-col gap-2">
-              <div className="h-3 bg-roamly-g6 rounded animate-pulse w-3/4" />
-              <div className="h-2.5 bg-roamly-g6 rounded animate-pulse w-1/2" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
   )
 }

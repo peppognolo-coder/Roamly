@@ -234,6 +234,10 @@ export const queryKeys = {
     /** ['foto', 'covers', viaggioId] — mappa ricordoId→thumbnailUrl per un viaggio intero
      *  Usata da ViaggioDetailPage per evitare query N+1 nelle RicordoCard */
     coversByViaggio: (viaggioId: string) => ['foto', 'covers', viaggioId] as const,
+
+    /** ['foto', 'covers', viaggioId, 'card'] — stesse cover in formato grande (Diario).
+     *  Condivide il prefisso di coversByViaggio: ogni invalidazione di quella la rinfresca. */
+    coversCardByViaggio: (viaggioId: string) => ['foto', 'covers', viaggioId, 'card'] as const,
   },
 
   // ----------------------------------------------------------
