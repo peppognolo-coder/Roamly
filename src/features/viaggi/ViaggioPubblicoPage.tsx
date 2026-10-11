@@ -22,7 +22,8 @@ const MappaPercorso = lazy(() => import('./MappaPercorso'))
 
 function BarraSuperiore() {
   return (
-    <header className="sticky top-0 z-20 bg-roamly-g0/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-20 bg-roamly-g0/95 backdrop-blur-sm"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-[430px] mx-auto h-14 px-5 flex items-center justify-between">
         <Link to="/login" className="flex items-center gap-2" aria-label="Roamly">
           <RoamlyMark size={22} />
@@ -120,7 +121,11 @@ export function ViaggioPubblicoPage() {
   const durata = calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine)
   const nFoto = ricordi.reduce((n, r) => n + r.foto.length, 0)
   const km = lunghezzaPercorso(punti)
-  const copertina = ricordi.flatMap((r) => r.foto).map((p) => urlFoto.get(p)).find(Boolean)
+  // Copertina: la foto di un ricordo preferito se c'è, altrimenti la prima del viaggio
+  const ricordoCopertina = ricordi.find((r) => r.preferito && r.foto.some((p) => urlFoto.get(p))) ??
+    ricordi.find((r) => r.foto.some((p) => urlFoto.get(p)))
+  const pathCopertina = ricordoCopertina?.foto.find((p) => urlFoto.get(p))
+  const copertina = pathCopertina ? urlFoto.get(pathCopertina) : undefined
 
   const numeri: { val: string; label: string }[] = [
     ...(durata ? [{ val: String(durata), label: durata === 1 ? 'giorno' : 'giorni' }] : []),
@@ -138,26 +143,27 @@ export function ViaggioPubblicoPage() {
           {copertina ? (
             <>
               <img src={copertina} alt="" className="absolute inset-0 w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/80" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-[72%] bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
             </>
           ) : (
             <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg,#0C2A3D 0%,#154B63 60%,#0F7EA8 130%)' }} />
           )}
           <div className="relative px-6 pb-8 flex flex-col gap-3">
             {luogo && (
-              <p className="font-dm-sans text-sm text-white/75 inline-flex items-center gap-1.5 font-medium">
+              <p className="font-dm-sans text-sm text-white/90 inline-flex items-center gap-1.5 font-medium [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
                 <MapPin size={13} /> {luogo}
               </p>
             )}
             <h1 className="font-lora text-[40px] leading-[1.05] font-semibold text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.35)]">
               {viaggio.nome}
             </h1>
-            <p className="font-dm-sans text-sm text-white/60">{formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)}</p>
-            <div className="flex gap-6 pt-4 mt-1 border-t border-white/15">
+            <p className="font-dm-sans text-sm text-white/85 [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">{formatDataViaggio(viaggio.data_inizio, viaggio.data_fine)}</p>
+            <div className="flex gap-6 pt-4 mt-1 border-t border-white/25 [text-shadow:0_1px_8px_rgba(0,0,0,0.6)]">
               {numeri.map((n) => (
                 <div key={n.label} className="flex flex-col gap-0.5">
                   <span className="font-dm-mono text-xl font-bold text-white leading-none">{n.val}</span>
-                  <span className="font-dm-sans text-[11px] text-white/55">{n.label}</span>
+                  <span className="font-dm-sans text-[11px] text-white/80">{n.label}</span>
                 </div>
               ))}
             </div>
@@ -194,7 +200,12 @@ export function ViaggioPubblicoPage() {
 
                 <div className="flex flex-col gap-8">
                   {lista.map((r) => {
-                    const foto = r.foto.map((p) => urlFoto.get(p)).filter((u): u is string => !!u)
+                    let foto = r.foto.map((p) => urlFoto.get(p)).filter((u): u is string => !!u)
+                    // la foto già usata come copertina non si ripete subito sotto: se il
+                    // ricordo ha altre foto, passa in fondo alla sequenza
+                    if (r.id === ricordoCopertina?.id && copertina && foto.length > 1 && foto[0] === copertina) {
+                      foto = [...foto.slice(1), copertina]
+                    }
                     const MeteoIcona = r.meteo ? METEO_ICONE[r.meteo] : null
                     const moodLabel = MOOD_OPTIONS.find((m) => m.value === r.mood)?.label
                     return (
