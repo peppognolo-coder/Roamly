@@ -431,7 +431,7 @@ export function ViaggioDetailPage() {
               non è più un tab qui sotto. */}
           {viaggio.stato_effettivo === 'concluso' && (
             <button
-              onClick={() => navigate(`/viaggi/${id}/recap`)}
+              onClick={() => navigate(`/viaggi/${id}/wrapped`)}
               className="
                 flex items-center gap-3 p-4
                 bg-gradient-to-r from-roamly-g0 to-roamly-g1
@@ -444,10 +444,10 @@ export function ViaggioDetailPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-dm-sans text-sm font-semibold text-white">
-                  Il tuo recap è pronto
+                  Il tuo viaggio, raccontato
                 </p>
                 <p className="font-dm-sans text-xs text-white/60">
-                  Scopri il tuo viaggio in numeri, e rileggi il racconto
+                  Guarda il riepilogo animato, poi rileggi il racconto
                 </p>
               </div>
               <ChevronRight size={18} className="text-white/60 shrink-0" />

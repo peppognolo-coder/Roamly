@@ -41,6 +41,7 @@ const ViaggioDetailPage      = lazy(() => import('@/features/viaggi/ViaggioDetai
 const RecapViaggioPage       = lazy(() => import('@/features/viaggi/RecapViaggioPage').then((m) => ({ default: m.RecapViaggioPage })))
 const RaccontoPage           = lazy(() => import('@/features/viaggi/RaccontoPage').then((m) => ({ default: m.RaccontoPage })))
 const GiornoPage             = lazy(() => import('@/features/viaggi/GiornoPage').then((m) => ({ default: m.GiornoPage })))
+const WrappedPage            = lazy(() => import('@/features/wrapped/WrappedPage').then((m) => ({ default: m.WrappedPage })))
 const NuovoViaggioPage       = lazy(() => import('@/features/viaggi/NuovoViaggioPage').then((m) => ({ default: m.NuovoViaggioPage })))
 const ValigiaPage            = lazy(() => import('@/features/pianifica/ValigiaPage').then((m) => ({ default: m.ValigiaPage })))
 const PrenotazioniPage       = lazy(() => import('@/features/pianifica/PrenotazioniPage').then((m) => ({ default: m.PrenotazioniPage })))
@@ -197,6 +198,10 @@ export const router = createBrowserRouter([
   {
     path: '/viaggi/:id/giorno/:data',
     element: <Protected><GiornoPage /></Protected>,
+  },
+  {
+    path: '/viaggi/:id/wrapped',
+    element: <Protected><WrappedPage /></Protected>,
   },
   {
     path: '/viaggi/:id/racconto',
