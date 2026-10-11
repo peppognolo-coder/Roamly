@@ -42,6 +42,7 @@ const RecapViaggioPage       = lazy(() => import('@/features/viaggi/RecapViaggio
 const RaccontoPage           = lazy(() => import('@/features/viaggi/RaccontoPage').then((m) => ({ default: m.RaccontoPage })))
 const GiornoPage             = lazy(() => import('@/features/viaggi/GiornoPage').then((m) => ({ default: m.GiornoPage })))
 const WrappedPage            = lazy(() => import('@/features/wrapped/WrappedPage').then((m) => ({ default: m.WrappedPage })))
+const ViaggioPubblicoPage    = lazy(() => import('@/features/viaggi/ViaggioPubblicoPage').then((m) => ({ default: m.ViaggioPubblicoPage })))
 const NuovoViaggioPage       = lazy(() => import('@/features/viaggi/NuovoViaggioPage').then((m) => ({ default: m.NuovoViaggioPage })))
 const ValigiaPage            = lazy(() => import('@/features/pianifica/ValigiaPage').then((m) => ({ default: m.ValigiaPage })))
 const PrenotazioniPage       = lazy(() => import('@/features/pianifica/PrenotazioniPage').then((m) => ({ default: m.PrenotazioniPage })))
@@ -88,6 +89,15 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<PageLoadingFallback />}>
         <InvitoPage />
+      </Suspense>
+    ),
+  },
+
+  {
+    path: '/v/:token',
+    element: (
+      <Suspense fallback={<PageLoadingFallback />}>
+        <ViaggioPubblicoPage />
       </Suspense>
     ),
   },

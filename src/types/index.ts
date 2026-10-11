@@ -172,6 +172,37 @@ export interface Ricordo {
   meteo: Meteo | null
   temperatura: number | null   // °C, intero
   con_chi: string[]            // nomi di chi c'era (membri del viaggio o testo libero)
+  // Pagina pubblica del viaggio: true = questo ricordo non compare mai nel link pubblico.
+  nascosto_pubblico: boolean
+}
+
+// Link pubblico di un viaggio (/v/:token) — una riga per viaggio.
+export interface ViaggioCondivisione {
+  viaggio_id: string
+  token: string
+  attivo: boolean
+  created_at: string
+}
+
+// Payload restituito dalla funzione pubblica viaggio_pubblico(token)
+export interface RicordoPubblico {
+  id: string
+  titolo: string
+  testo: string | null
+  luogo: string | null
+  lat: number | null
+  lng: number | null
+  mood: Mood
+  data: string
+  meteo: Meteo | null
+  temperatura: number | null
+  preferito: boolean
+  foto: string[]               // path nel bucket, già ordinati (cover per prima)
+}
+
+export interface ViaggioPubblico {
+  viaggio: Pick<Viaggio, 'nome' | 'destinazione' | 'paese' | 'data_inizio' | 'data_fine' | 'cover_emoji'>
+  ricordi: RicordoPubblico[]
 }
 
 export type Meteo = 'sole' | 'nuvoloso' | 'nebbia' | 'pioggia' | 'temporale' | 'neve' | 'vento'

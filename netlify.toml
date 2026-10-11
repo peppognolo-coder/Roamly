@@ -6,6 +6,10 @@
   path = "/invito/*"
   function = "invito-preview"
 
+[[edge_functions]]
+  path = "/v/*"
+  function = "viaggio-preview"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

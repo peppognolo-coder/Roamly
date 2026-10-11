@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { X, Share2, Loader2, ChevronRight } from 'lucide-react'
+import { X, Share2, Loader2, Globe } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import { useReducedMotion } from 'framer-motion'
 import { StoriaView, TELA } from './StorieViews'
+import { LinkPubblicoSheet } from '@/features/viaggi/LinkPubblicoSheet'
+import { useMioRuolo } from '@/hooks/useMembri'
 import { useViaggio } from '@/hooks/useViaggi'
 import { useRicordi } from '@/hooks/useRicordi'
 import { useCoversByViaggio, useCoverViaggio, useFotoCountByViaggio } from '@/hooks/useFoto'
@@ -35,6 +37,8 @@ export function WrappedPage() {
   const { data: coversMap } = useCoversByViaggio(viaggioId)
   const { data: coverViaggio } = useCoverViaggio(viaggioId)
   const { data: fotoCount } = useFotoCountByViaggio(viaggioId)
+  const { data: mioRuolo } = useMioRuolo(viaggioId)
+  const [mostraLink, setMostraLink] = useState(false)
 
   const storie = useMemo(
     () =>
@@ -70,7 +74,7 @@ export function WrappedPage() {
 
   // ── Timer (requestAnimationFrame, in pausa si ferma) ─────────
   useEffect(() => {
-    if (!storia || inPausa || condivisione || ultima) return
+    if (!storia || inPausa || condivisione || mostraLink || ultima) return
     const durata = DURATA_MS[storia.tipo] * (ridotto ? 1.4 : 1)
     let raf = 0
     let ultimo = performance.now()
@@ -86,7 +90,7 @@ export function WrappedPage() {
     return () => cancelAnimationFrame(raf)
     // `progresso` è volutamente fuori: lo riprendiamo solo alla ripartenza
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [indice, inPausa, condivisione, storia, ultima, ridotto, avanti])
+  }, [indice, inPausa, condivisione, mostraLink, storia, ultima, ridotto, avanti])
 
   // Tastiera (desktop)
   useEffect(() => {
@@ -238,16 +242,28 @@ export function WrappedPage() {
                 inline-flex items-center justify-center gap-2 disabled:opacity-70">
               <Share2 size={16} /> Condividi
             </button>
-            <button onClick={() => navigate(`/viaggi/${viaggioId}/recap`, { replace: true })}
-              className="h-12 rounded-2xl bg-white/12 border border-white/20 text-white font-dm-sans font-medium text-sm
-                inline-flex items-center justify-center gap-1">
-              Vedi il riepilogo completo <ChevronRight size={16} />
-            </button>
+            <div className={`grid gap-2.5 ${mioRuolo === 'proprietario' ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              {mioRuolo === 'proprietario' && (
+                <button onClick={() => setMostraLink(true)}
+                  className="h-12 rounded-2xl bg-white/12 border border-white/20 text-white font-dm-sans font-medium text-sm
+                    inline-flex items-center justify-center gap-1.5">
+                  <Globe size={15} /> Link pubblico
+                </button>
+              )}
+              <button onClick={() => navigate(`/viaggi/${viaggioId}/recap`, { replace: true })}
+                className="h-12 rounded-2xl bg-white/12 border border-white/20 text-white font-dm-sans font-medium text-sm">
+                Riepilogo completo
+              </button>
+            </div>
             <button onClick={() => { setProgresso(0); setIndice(0) }}
               className="h-9 text-white/60 font-dm-sans text-xs">Rivedi dall'inizio</button>
           </div>
         )}
       </div>
+
+      {mostraLink && viaggioId && (
+        <LinkPubblicoSheet viaggioId={viaggioId} nomeViaggio={viaggio.nome} onClose={() => setMostraLink(false)} />
+      )}
 
       {/* Nodo nascosto per l'export a 1080×1920 */}
       {daEsportare && (

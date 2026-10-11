@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
-import { Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move } from 'lucide-react'
+import { Globe, Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
   DndContext,
@@ -39,6 +39,7 @@ import { coloreIniziale }   from '@/lib/avatar-utils'
 import { RicordoCard }           from '@/features/momenti/RicordoCard'
 import { PianificaHub }          from '@/features/pianifica/PianificaHub'
 import { ShareCardViaggio }      from './ShareCardViaggio'
+import { LinkPubblicoSheet }    from './LinkPubblicoSheet'
 import { useRicordi }       from '@/hooks/useRicordi'
 import { useReorderRicordi } from '@/hooks/useCrudRicordo'
 import type { Ricordo } from '@/types'
@@ -163,6 +164,7 @@ export function ViaggioDetailPage() {
   useRealtimeSync('ricordi', 'viaggio_id', id, [queryKeys.ricordi.byViaggio(id ?? '')])
 
   const [isEditing, setIsEditing]     = useState(false)
+  const [showLinkPubblico, setShowLinkPubblico] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   // Tab iniziale: legge ?tab= dall'URL (es. link dal prompt viaggio imminente
   // in Home) per aprire direttamente su Pianifica; altrimenti default Ricordi
@@ -334,6 +336,21 @@ export function ViaggioDetailPage() {
                   <Users size={16} className="text-roamly-g1" />
                 </button>
               )
+            )}
+            {mioRuolo === 'proprietario' && (
+              <button
+                onClick={() => setShowLinkPubblico(true)}
+                className="
+                  w-9 h-9 rounded-xl flex items-center justify-center
+                  bg-roamly-g6
+                  hover:bg-roamly-g5 active:scale-[0.98]
+                  transition-all duration-150
+                "
+                aria-label="Pagina pubblica del viaggio"
+                title="Pagina pubblica"
+              >
+                <Globe size={16} className="text-roamly-g1" />
+              </button>
             )}
             <button
               onClick={() => setShowShare(true)}
@@ -774,6 +791,13 @@ export function ViaggioDetailPage() {
       </div>
       </AnimatedPage>
       <BottomNav />
+      {showLinkPubblico && id && (
+        <LinkPubblicoSheet
+          viaggioId={id}
+          nomeViaggio={viaggio.nome}
+          onClose={() => setShowLinkPubblico(false)}
+        />
+      )}
       {/* Share Card modal */}
       {showShare && (
         <ShareCardViaggio

@@ -191,6 +191,14 @@ export const queryKeys = {
     anteprima: (token: string) => ['inviti', 'anteprima', token] as const,
   },
 
+  condivisione: {
+    /** ['condivisione', viaggioId] — link pubblico del viaggio (lato proprietario) */
+    byViaggio: (viaggioId: string) => ['condivisione', viaggioId] as const,
+
+    /** ['condivisione', 'pubblico', token] — contenuto della pagina pubblica */
+    pubblico: (token: string) => ['condivisione', 'pubblico', token] as const,
+  },
+
   membri: {
     /** ['membri', 'list', viaggioId] — membri di un viaggio */
     byViaggio: (viaggioId: string) => ['membri', 'list', viaggioId] as const,
