@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Search, Compass, ChevronRight, Bell } from 'lucide-react'
+import { BookOpen, Search, Compass, ChevronRight, Bell, Plus, Plane } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -7,10 +7,11 @@ import { Button }            from '@/components/ui/Button'
 import { ViaggioAttivoCard } from './ViaggioAttivoCard'
 import { PromptViaggioImminenteCard } from './PromptViaggioImminenteCard'
 import { UltimiRicordiSection } from './UltimiRicordiSection'
+import { ViaggioConclusoCard } from './ViaggioConclusoCard'
 import { QuickStatsSection }  from './QuickStatsSection'
 import { OggiCard }          from './OggiCard'
 import { RicordoDelGiornoCard, RicordoDelGiornoCardSkeleton } from '@/components/ricordi/RicordoDelGiornoCard'
-import { useViaggioAttivo }  from '@/hooks/useViaggi'
+import { useViaggioAttivo, useViaggi } from '@/hooks/useViaggi'
 import { useRicordiRecenti, useStatisticheUtente } from '@/hooks/useRicordi'
 import { useRicordoDelGiorno } from '@/hooks/useRicordoDelGiorno'
 import { useProfilo }        from '@/hooks/useProfilo'
@@ -73,6 +74,13 @@ export function HomePage() {
   const prossimaTappaOggi = tappeOggiOrdinate[0]
     ? { ora: tappeOggiOrdinate[0].ora, nome: tappeOggiOrdinate[0].nome }
     : null
+
+  // Ultimo viaggio concluso — protagonista della Home quando non c'è
+  // un viaggio in corso o in arrivo
+  const { data: tuttiViaggi } = useViaggi()
+  const ultimoConcluso = (tuttiViaggi ?? [])
+    .filter((v) => v.stato_effettivo === 'concluso')
+    .sort((a, b) => (b.data_fine ?? b.data_inizio ?? '').localeCompare(a.data_fine ?? a.data_inizio ?? ''))[0] ?? null
 
   const nomeUtente = profilo?.display_name?.split(' ')[0] ?? null
   const isLoadingGlobale = isLoadingViaggio && isLoadingRicordi
@@ -169,22 +177,61 @@ export function HomePage() {
 
         {/* ── Contenuto principale ── */}
         {!isFirstVisit && (
-          <div className="flex-1 px-5 pb-8 flex flex-col gap-5">
+          <div className="flex-1 px-5 pb-8 flex flex-col gap-6">
 
             {/* Q4 — Prompt viaggio imminente (contestuale, dismissibile) */}
             <PromptViaggioImminenteCard viaggio={viaggioAttivo} />
 
-            {/* Viaggio attivo */}
+            {/* Protagonista: viaggio in corso / in arrivo, altrimenti l'ultimo
+                concluso, altrimenti l'invito a pianificare */}
             <motion.div
+              className="flex flex-col gap-3"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <ViaggioAttivoCard
-                viaggio={viaggioAttivo}
-                isLoading={isLoadingViaggio}
-                prossimaTappa={vaCercataOggi ? prossimaTappaOggi : null}
-              />
+              {viaggioAttivo || isLoadingViaggio || !ultimoConcluso ? (
+                <ViaggioAttivoCard
+                  viaggio={viaggioAttivo}
+                  isLoading={isLoadingViaggio}
+                  prossimaTappa={vaCercataOggi ? prossimaTappaOggi : null}
+                />
+              ) : (
+                <>
+                  <ViaggioConclusoCard viaggio={ultimoConcluso} />
+                  <button
+                    type="button"
+                    onClick={() => navigate('/viaggi/nuovo')}
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white shadow-roamly text-left
+                      active:scale-[0.99] transition-transform
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3"
+                  >
+                    <span className="w-9 h-9 rounded-xl bg-roamly-g6 flex items-center justify-center text-roamly-g1 shrink-0">
+                      <Plane size={17} />
+                    </span>
+                    <span className="flex-1 font-dm-sans text-sm font-medium text-roamly-g1">
+                      Pianifica il prossimo viaggio
+                    </span>
+                    <ChevronRight size={16} className="text-roamly-text/25" />
+                  </button>
+                </>
+              )}
+
+              {/* Azione principale durante il viaggio */}
+              {vaCercataOggi && viaggioAttivo && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/nuovo-ricordo?viaggioId=${viaggioAttivo.id}`)}
+                  className="h-12 rounded-2xl bg-roamly-coral text-white
+                    inline-flex items-center justify-center gap-2
+                    font-dm-sans text-sm font-semibold shadow-roamly
+                    active:scale-[0.98] transition-transform
+                    focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-coral/50"
+                >
+                  <Plus size={18} />
+                  Aggiungi un ricordo di oggi
+                </button>
+              )}
             </motion.div>
 
             {/* Tappe di oggi — solo viaggio in corso, e solo se ce ne sono */}
@@ -197,6 +244,18 @@ export function HomePage() {
                 <OggiCard viaggioId={viaggioAttivo.id} tappe={tappeViaggioAttivo} />
               </motion.div>
             )}
+
+            {/* Ultimi ricordi */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+            >
+              <UltimiRicordiSection
+                ricordi={ricordiRecenti ?? []}
+                isLoading={isLoadingRicordi}
+              />
+            </motion.div>
 
             {/* B45 — Ricordo del Giorno */}
             {mostraB45 && (
@@ -216,18 +275,6 @@ export function HomePage() {
                 ) : null}
               </motion.div>
             )}
-
-            {/* Ultimi ricordi */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-            >
-              <UltimiRicordiSection
-                ricordi={ricordiRecenti ?? []}
-                isLoading={isLoadingRicordi}
-              />
-            </motion.div>
 
             {/* Quick Stats */}
             <motion.div

@@ -1,8 +1,8 @@
+import { useNavigate } from 'react-router-dom'
+
 // ============================================================
-// QuickStatsSection — tre statistiche rapide in Home
-// Viaggi · Ricordi · Paesi
-// Tile semplici (numero + etichetta, nessuna icona) — come nel
-// mockup, e coerenti con le NumeroTile di RecapViaggioPage.
+// QuickStatsSection — il tuo diario in numeri, in una sola striscia
+// Viaggi · Ricordi · Paesi. Tocca per andare al profilo.
 // ============================================================
 
 interface QuickStatsSectionProps {
@@ -12,42 +12,33 @@ interface QuickStatsSectionProps {
   isLoading: boolean
 }
 
-export function QuickStatsSection({
-  viaggi,
-  ricordi,
-  paesi,
-  isLoading,
-}: QuickStatsSectionProps) {
-  return (
-    <div className="grid grid-cols-3 gap-2.5">
-      <StatCard label="Viaggi" value={viaggi} isLoading={isLoading} />
-      <StatCard label="Ricordi" value={ricordi} isLoading={isLoading} />
-      <StatCard label="Paesi" value={paesi} isLoading={isLoading} />
-    </div>
-  )
-}
+export function QuickStatsSection({ viaggi, ricordi, paesi, isLoading }: QuickStatsSectionProps) {
+  const navigate = useNavigate()
+  const voci = [
+    { label: viaggi === 1 ? 'viaggio' : 'viaggi', value: viaggi },
+    { label: ricordi === 1 ? 'ricordo' : 'ricordi', value: ricordi },
+    { label: paesi === 1 ? 'paese' : 'paesi', value: paesi },
+  ]
 
-function StatCard({
-  label,
-  value,
-  isLoading,
-}: {
-  label: string
-  value: number
-  isLoading: boolean
-}) {
   return (
-    <div className="p-[15px] rounded-2xl bg-white shadow-roamly">
-      {isLoading ? (
-        <div className="h-[22px] w-8 bg-roamly-g6 rounded animate-pulse" />
-      ) : (
-        <p className="font-dm-mono text-[22px] font-semibold text-roamly-g0 leading-none">
-          {value}
-        </p>
-      )}
-      <p className="font-dm-sans text-[11.5px] leading-snug text-roamly-text/45 mt-1.5">
-        {label}
-      </p>
-    </div>
+    <button
+      type="button"
+      onClick={() => navigate('/profilo')}
+      aria-label="Il tuo diario in numeri, apri il profilo"
+      className="w-full flex items-center bg-white rounded-2xl shadow-roamly py-3.5
+        active:scale-[0.99] transition-transform text-left"
+    >
+      {voci.map((v, i) => (
+        <div key={v.label}
+          className={`flex-1 flex flex-col items-center gap-0.5 ${i > 0 ? 'border-l border-roamly-g6' : ''}`}>
+          {isLoading ? (
+            <div className="h-6 w-8 bg-roamly-g6 rounded animate-pulse" />
+          ) : (
+            <span className="font-lora text-2xl font-semibold text-roamly-g0 leading-none">{v.value}</span>
+          )}
+          <span className="font-dm-sans text-[11px] text-roamly-muted">{v.label}</span>
+        </div>
+      ))}
+    </button>
   )
 }
