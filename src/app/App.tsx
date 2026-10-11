@@ -29,24 +29,60 @@ const queryClient = new QueryClient({
 // ------------------------------------------------------------
 function useScrollToTopOnNavigate() {
   const pathnameRef = useRef(window.location.pathname)
+  const keyRef = useRef(router.state.location.key)
 
-  // Disattiva il ripristino automatico dello scroll del browser: di
-  // default, tornando "indietro" il browser ripristina la posizione
-  // di scroll esatta in cui si trovava quella pagina — in conflitto
-  // con lo scrollTo(0,0) qui sotto. Con 'manual' siamo gli unici a
-  // decidere, sia per navigazione avanti che indietro.
+  // Disattiva il ripristino automatico dello scroll del browser: lo
+  // gestiamo noi, sia per navigazione avanti (sempre dall'inizio) sia per
+  // "indietro" (si torna esattamente dove si era).
   useEffect(() => {
     if ('scrollRestoration' in window.history) {
       window.history.scrollRestoration = 'manual'
     }
   }, [])
 
+  // Memorizza la posizione di scroll per ogni voce della cronologia
+  useEffect(() => {
+    const salva = () => {
+      try {
+        sessionStorage.setItem(`roamly:scroll:${keyRef.current}`, String(Math.round(window.scrollY)))
+      } catch { /* storage non disponibile: si riparte dall'alto */ }
+    }
+    window.addEventListener('scroll', salva, { passive: true })
+    return () => window.removeEventListener('scroll', salva)
+  }, [])
+
   useEffect(() => {
     return router.subscribe((state) => {
-      if (state.location.pathname !== pathnameRef.current) {
-        pathnameRef.current = state.location.pathname
-        window.scrollTo(0, 0)
+      const cambiataVoce = state.location.key !== keyRef.current
+      keyRef.current = state.location.key
+      const cambiataPagina = state.location.pathname !== pathnameRef.current
+      pathnameRef.current = state.location.pathname
+
+      if (!cambiataVoce) return
+
+      // "Indietro": torna alla posizione salvata di quella voce. La pagina
+      // può caricare i contenuti con un attimo di ritardo (skeleton → dati),
+      // quindi si riprova per ~1,5 s, fermandosi se l'utente scorre.
+      if (state.historyAction === 'POP') {
+        let y = 0
+        try { y = Number(sessionStorage.getItem(`roamly:scroll:${state.location.key}`)) || 0 } catch { /* noop */ }
+        if (y > 0) {
+          let tentativi = 0
+          let interrotto = false
+          const ferma = () => { interrotto = true }
+          window.addEventListener('touchstart', ferma, { once: true, passive: true })
+          window.addEventListener('wheel', ferma, { once: true, passive: true })
+          const tick = () => {
+            window.scrollTo(0, y)
+            tentativi++
+            if (!interrotto && tentativi < 90 && Math.abs(window.scrollY - y) > 2) requestAnimationFrame(tick)
+          }
+          requestAnimationFrame(tick)
+          return
+        }
       }
+
+      if (cambiataPagina) window.scrollTo(0, 0)
     })
   }, [])
 }
