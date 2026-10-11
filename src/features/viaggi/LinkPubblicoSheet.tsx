@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Globe, Copy, Check, Share2, Eye, EyeOff, RefreshCw, X, ExternalLink } from 'lucide-react'
 import { MoodIcon } from '@/components/ui/MoodIcon'
 import { useCondivisione, useCondivisioneAzioni } from '@/hooks/useCondivisione'
 import { useRicordi } from '@/hooks/useRicordi'
+import { useViaggio } from '@/hooks/useViaggi'
+import { useFotoCountByViaggio } from '@/hooks/useFoto'
+import { useMembriViaggio } from '@/hooks/useMembri'
+import { calcolaDurataViaggio } from '@/lib/viaggi-utils'
+import { costruisciTesto, variantiDisponibili, ETICHETTE_TESTO } from '@/lib/testi-condivisione'
+import type { VarianteTesto } from '@/lib/testi-condivisione'
 import { useToast } from '@/hooks/useToast'
 import { urlPubblico } from '@/services/condivisioneService'
 
@@ -24,7 +30,10 @@ export function LinkPubblicoSheet({ viaggioId, nomeViaggio, onClose }: Props) {
   const { showSuccess } = useToast()
   const { data: cond, isLoading } = useCondivisione(viaggioId)
   const { data: ricordi = [] } = useRicordi(viaggioId)
+  const { data: viaggio } = useViaggio(viaggioId)
+  const { data: fotoCount } = useFotoCountByViaggio(viaggioId)
   const { attiva, disattiva, rigenera, nascondi } = useCondivisioneAzioni(viaggioId)
+  const { data: membri = [] } = useMembriViaggio(viaggioId)
   const [copiato, setCopiato] = useState(false)
   const [confermaRigenera, setConfermaRigenera] = useState(false)
 
@@ -32,6 +41,38 @@ export function LinkPubblicoSheet({ viaggioId, nomeViaggio, onClose }: Props) {
   const link = cond ? urlPubblico(cond.token) : ''
   const nascosti = ricordi.filter((r) => r.nascosto_pubblico).length
   const lavora = attiva.isPending || disattiva.isPending || rigenera.isPending
+
+  // Dati del messaggio: contano solo i ricordi visibili e le loro foto
+  const datiTesto = useMemo(() => {
+    const visibili = ricordi.filter((r) => !r.nascosto_pubblico)
+    return {
+      nome: nomeViaggio,
+      luogo: viaggio?.destinazione?.split(',')[0]?.trim() || null,
+      giorni: viaggio ? calcolaDurataViaggio(viaggio.data_inizio, viaggio.data_fine) : null,
+      ricordi: visibili.length,
+      foto: visibili.reduce((n, r) => n + (fotoCount?.get(r.id) ?? 0), 0),
+      conAltri: membri.length > 1,
+    }
+  }, [ricordi, viaggio, fotoCount, membri.length, nomeViaggio])
+  const varianti = useMemo(() => variantiDisponibili(datiTesto), [datiTesto])
+
+  const [variante, setVariante] = useState<VarianteTesto>(() => {
+    try {
+      const salvata = localStorage.getItem('roamly:testo-condivisione') as VarianteTesto | null
+      return salvata ?? 'numeri'
+    } catch { return 'numeri' }
+  })
+  const varianteAttiva: VarianteTesto = varianti.includes(variante) ? variante : 'numeri'
+  const [testoModificato, setTestoModificato] = useState<string | null>(null)
+  const testo = testoModificato ?? costruisciTesto(varianteAttiva, datiTesto)
+
+  // Cambiando variante si riparte dal testo suggerito
+  useEffect(() => { setTestoModificato(null) }, [varianteAttiva])
+
+  function scegli(v: VarianteTesto) {
+    setVariante(v)
+    try { localStorage.setItem('roamly:testo-condivisione', v) } catch { /* facoltativo */ }
+  }
 
   async function copia() {
     try {
@@ -42,10 +83,17 @@ export function LinkPubblicoSheet({ viaggioId, nomeViaggio, onClose }: Props) {
   }
 
   async function condividi() {
-    const testo = `Guarda il mio viaggio "${nomeViaggio}" su Roamly`
+    const messaggio = testo.trim()
     try {
-      if (navigator.share) await navigator.share({ title: nomeViaggio, text: testo, url: link })
-      else await copia()
+      // Il link va nel campo `url`, NON nel testo: il sistema lo accoda al messaggio
+      // (così non compare due volte) e WhatsApp/iMessage ne ricavano l'anteprima.
+      if (navigator.share) await navigator.share({ title: nomeViaggio, text: messaggio, url: link })
+      else {
+        // Browser senza foglio di condivisione: qui sì, testo e link insieme
+        await navigator.clipboard.writeText(`${messaggio}\n${link}`)
+        setCopiato(true)
+        window.setTimeout(() => setCopiato(false), 2000)
+      }
     } catch { /* annullato dall'utente */ }
   }
 
@@ -94,6 +142,33 @@ export function LinkPubblicoSheet({ viaggioId, nomeViaggio, onClose }: Props) {
                   <div className="h-12 px-4 rounded-2xl bg-white border border-roamly-g5 flex items-center">
                     <span className="font-dm-mono text-xs text-roamly-ink-soft truncate">{link.replace(/^https?:\/\//, '')}</span>
                   </div>
+                  {/* Messaggio */}
+                  <div className="flex flex-col gap-2 pt-1">
+                    <h3 className="font-dm-sans text-xs font-semibold uppercase tracking-wider text-roamly-ink-soft">Messaggio</h3>
+                    <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-1 scrollbar-hide" role="radiogroup" aria-label="Tono del messaggio">
+                      {varianti.map((v) => (
+                        <button
+                          key={v} type="button" role="radio" aria-checked={v === varianteAttiva}
+                          onClick={() => scegli(v)}
+                          className={`flex-none h-9 px-3.5 rounded-full border font-dm-sans text-sm whitespace-nowrap transition-colors
+                            focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3
+                            ${v === varianteAttiva ? 'bg-roamly-g6 border-roamly-g3 text-roamly-g1 font-medium' : 'bg-white border-roamly-g5 text-roamly-ink-soft'}`}
+                        >
+                          {ETICHETTE_TESTO[v]}
+                        </button>
+                      ))}
+                    </div>
+                    <textarea
+                      value={testo}
+                      onChange={(e) => setTestoModificato(e.target.value.slice(0, 280))}
+                      rows={3}
+                      aria-label="Testo del messaggio"
+                      className="w-full px-4 py-3 bg-white border border-roamly-g5 rounded-2xl font-dm-sans text-sm leading-relaxed
+                        text-roamly-text resize-none outline-none focus:border-roamly-g3 focus:ring-1 focus:ring-roamly-g3"
+                    />
+                    <p className="font-dm-sans text-[11px] text-roamly-muted">Puoi modificarlo. Il link viene aggiunto in fondo.</p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={condividi}
                       className="h-12 rounded-2xl bg-roamly-coral text-white font-dm-sans font-semibold text-sm shadow-roamly-coral
