@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { MapPin } from 'lucide-react'
 import { RoamlyMark } from '@/components/ui/RoamlyMark'
 import { MoodIcon } from '@/components/ui/MoodIcon'
-import { METEO_ICONE } from '@/features/momenti/ContestoRicordo'
+import { METEO_ICONE, RisposteRicordo } from '@/features/momenti/ContestoRicordo'
 import { useViaggioPubblico } from '@/hooks/useCondivisione'
 import { METEO_OPTIONS, MOOD_OPTIONS } from '@/types'
 import { formatDataViaggio, calcolaDurataViaggio } from '@/lib/viaggi-utils'
@@ -232,6 +232,7 @@ export function ViaggioPubblicoPage() {
                             )}
                           </div>
                           {r.testo && <p className="font-dm-sans text-base text-roamly-text/80 leading-[1.75] whitespace-pre-wrap">{r.testo}</p>}
+                          <RisposteRicordo risposte={r.risposte} />
                         </div>
                       </article>
                     )

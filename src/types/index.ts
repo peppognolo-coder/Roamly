@@ -172,8 +172,16 @@ export interface Ricordo {
   meteo: Meteo | null
   temperatura: number | null   // °C, intero
   con_chi: string[]            // nomi di chi c'era (membri del viaggio o testo libero)
+  // Blocchi domanda/risposta facoltativi (vedi DomandeRicordo)
+  risposte: RispostaRicordo[]
   // Pagina pubblica del viaggio: true = questo ricordo non compare mai nel link pubblico.
   nascosto_pubblico: boolean
+}
+
+// Un blocco "domanda → risposta" dentro un ricordo
+export interface RispostaRicordo {
+  domanda: string
+  risposta: string
 }
 
 // Link pubblico di un viaggio (/v/:token) — una riga per viaggio.
@@ -197,6 +205,7 @@ export interface RicordoPubblico {
   meteo: Meteo | null
   temperatura: number | null
   preferito: boolean
+  risposte?: RispostaRicordo[]
   foto: string[]               // path nel bucket, già ordinati (cover per prima)
 }
 
@@ -246,6 +255,7 @@ export type NuovoRicordo = Pick<
   | 'meteo'
   | 'temperatura'
   | 'con_chi'
+  | 'risposte'
 > & {
   tipo?: TipoRicordo
 }
@@ -272,6 +282,7 @@ export type ModificaRicordo = Partial<
     | 'meteo'
     | 'temperatura'
     | 'con_chi'
+    | 'risposte'
   >
 >
 

@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { pulisciRisposte } from '@/lib/risposte-ricordo'
 import { useState, useEffect } from 'react'
 import { Heart, Share2 } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
@@ -17,7 +18,7 @@ import { AutoreBadge }    from '@/components/ricordi/AutoreBadge'
 import { ShareCardRicordo } from './ShareCardRicordo'
 import { ReazioniRicordo } from '@/components/ricordi/ReazioniRicordo'
 import { MOOD_OPTIONS, METEO_OPTIONS } from '@/types'
-import { METEO_ICONE } from './ContestoRicordo'
+import { METEO_ICONE, RisposteRicordo } from './ContestoRicordo'
 import type { RicordoFormData } from './RicordoForm'
 import { FotoGalleria }    from './FotoGalleria'
 import { MoodIcon } from '@/components/ui/MoodIcon'
@@ -119,6 +120,7 @@ export function RicordoDetailPage() {
       meteo:       data.meteo ?? null,
       temperatura: data.temperatura ?? null,
       con_chi:     data.conChi,
+      risposte:    pulisciRisposte(data.risposte),
     })
   }
 
@@ -318,6 +320,13 @@ export function RicordoDetailPage() {
                   <p className="font-dm-sans text-base text-roamly-text leading-relaxed whitespace-pre-wrap">
                     {ricordo.testo}
                   </p>
+                </div>
+              )}
+
+              {/* Domande e risposte */}
+              {(ricordo.risposte?.length ?? 0) > 0 && (
+                <div className="bg-white rounded-2xl shadow-roamly p-4">
+                  <RisposteRicordo risposte={ricordo.risposte} />
                 </div>
               )}
 

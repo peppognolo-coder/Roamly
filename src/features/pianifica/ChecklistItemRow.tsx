@@ -46,7 +46,9 @@ export function ChecklistItemRow({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.6 : 1,
+    position: 'relative' as const,
+    zIndex: isDragging ? 20 : undefined,
   }
 
   return (
@@ -56,7 +58,7 @@ export function ChecklistItemRow({
       className={`
       flex items-center gap-2 px-2 py-2.5
       rounded-xl border
-      transition-all duration-150
+      transition-colors duration-150
       ${item.completato
         ? 'bg-roamly-g7 border-roamly-g6'
         : 'bg-white border-roamly-g6'

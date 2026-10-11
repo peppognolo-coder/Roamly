@@ -131,24 +131,37 @@ export async function deleteChecklistItem(itemId: string): Promise<{
 }
 
 // ------------------------------------------------------------
-// reorderChecklistItems — aggiornamento batch degli ordini
-// Sprint 6: presente nel service, non esposto in UI.
-// UI drag-and-drop rimandato a Sprint 8.
-// N update in Promise.all — non atomico ma accettabile nel MVP.
+// reorderChecklistItems — riordino e/o cambio categoria in batch.
+// Una sola chiamata RPC (riordina_checklist, atomica). Se la
+// migrazione non è ancora stata eseguita, ripiega su un update
+// per riga (più lento, non atomico) così l'app non si rompe.
+// `categoria` assente = invariata; `null` = Varie.
 // ------------------------------------------------------------
 
-export async function reorderChecklistItems(
-  items: { id: string; ordine: number }[]
-): Promise<{ error: string | null }> {
-  const results = await Promise.all(
-    items.map((item) =>
-      supabase
-        .from('checklist_items')
-        .update({ ordine: item.ordine })
-        .eq('id', item.id)
-    )
-  )
+export interface RiordinoChecklist {
+  id: string
+  ordine: number
+  categoria?: string | null
+}
 
+export async function reorderChecklistItems(
+  items: RiordinoChecklist[]
+): Promise<{ error: string | null }> {
+  if (items.length === 0) return { error: null }
+
+  const { error } = await supabase.rpc('riordina_checklist', { p_items: items })
+  if (!error) return { error: null }
+
+  const funzioneMancante = error.code === 'PGRST202' || /could not find the function/i.test(error.message)
+  if (!funzioneMancante) return { error: error.message }
+
+  const results = await Promise.all(
+    items.map((item) => {
+      const payload: { ordine: number; categoria?: string | null } = { ordine: item.ordine }
+      if ('categoria' in item) payload.categoria = item.categoria
+      return supabase.from('checklist_items').update(payload).eq('id', item.id)
+    })
+  )
   const errore = results.find((r) => r.error)?.error
   return { error: errore?.message ?? null }
 }

@@ -9,7 +9,7 @@ import { MOOD_OPTIONS }      from '@/types'
 import type { ViaggioConStato, Ricordo } from '@/types'
 import type { RicordoRacconto, CapitoloRacconto } from '@/lib/racconto-utils'
 import { MoodIcon } from '@/components/ui/MoodIcon'
-import { ContestoInline, METEO_ICONE } from '@/features/momenti/ContestoRicordo'
+import { ContestoInline, METEO_ICONE, RisposteRicordo } from '@/features/momenti/ContestoRicordo'
 import { RaccontoFinale } from './RaccontoFinale'
 
 // ============================================================
@@ -349,6 +349,9 @@ function BloccoFoto({
         </div>
       )}
 
+      {/* ── Domande e risposte ── */}
+      <RisposteRicordo risposte={rr.ricordo.risposte} className="px-6 pt-5 pb-2" />
+
       {/* ── Mood badge ── */}
       {moodOpt && (
         <div className="px-6 pt-3 pb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -457,6 +460,8 @@ function BloccoTesto({
             {rr.ricordo.testo}
           </p>
         )}
+
+        <RisposteRicordo risposte={rr.ricordo.risposte} />
 
         {moodOpt && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">

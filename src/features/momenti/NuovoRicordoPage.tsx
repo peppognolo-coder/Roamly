@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { pulisciRisposte } from '@/lib/risposte-ricordo'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { MapPin, Plus, X } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
@@ -121,6 +122,7 @@ export function NuovoRicordoPage() {
       meteo:       data.meteo ?? null,
       temperatura: data.temperatura ?? null,
       con_chi:     data.conChi,
+      risposte:    pulisciRisposte(data.risposte),
     })
   }
 

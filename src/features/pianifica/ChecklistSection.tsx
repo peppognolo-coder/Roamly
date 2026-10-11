@@ -1,19 +1,21 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { CheckCircle2, Sparkles, Briefcase } from 'lucide-react'
 import {
   DndContext,
   closestCenter,
+  pointerWithin,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
+  useDroppable,
+  type CollisionDetection,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core'
 import {
   SortableContext,
   verticalListSortingStrategy,
-  arrayMove,
 } from '@dnd-kit/sortable'
 import { ChecklistItemRow } from './ChecklistItemRow'
 import { ChecklistInput }   from './ChecklistInput'
@@ -45,6 +47,26 @@ const SEZIONI: { id: CategoriaChecklist | 'varie'; titolo: string }[] = [
 
 function categoriaEffettiva(item: ChecklistItem): CategoriaChecklist | 'varie' {
   return (item.categoria as CategoriaChecklist | null) ?? 'varie'
+}
+
+const PREFISSO_SEZIONE = 'sez-'
+
+// Contenitore di sezione: area su cui si può rilasciare una voce,
+// anche quando la sezione è vuota.
+function SezioneDroppable({ id, children, evidenzia }: { id: string; children: ReactNode; evidenzia: boolean }) {
+  const { setNodeRef, isOver } = useDroppable({ id: `${PREFISSO_SEZIONE}${id}` })
+  return (
+    <div
+      ref={setNodeRef}
+      // Geometria identica dentro e fuori dal drag (niente salti di layout
+      // mentre si trascina): cambiano solo i colori.
+      className={`flex flex-col gap-1.5 rounded-2xl p-2 -m-2 border transition-colors duration-150
+        ${evidenzia && isOver ? 'bg-roamly-g6 border-roamly-g3 border-dashed'
+          : evidenzia ? 'border-roamly-g5 border-dashed' : 'border-transparent'}`}
+    >
+      {children}
+    </div>
+  )
 }
 
 // ============================================================
@@ -89,36 +111,79 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
   const { deleteItem }                             = useDeleteChecklistItem(viaggio.id)
   const { reorder }                                = useReorderChecklist(viaggio.id)
 
-  // Sensori drag: PointerSensor per mouse/trackpad, TouchSensor per
-  // mobile — un piccolo delay+tolleranza sul touch evita che uno
-  // scroll verticale della pagina venga scambiato per un drag.
+  // Sensore unico: il drag parte solo dalla maniglia (touch-none), quindi
+  // non serve il ritardo del TouchSensor — il trascinamento è immediato
+  // e lo scroll della pagina non viene mai scambiato per un drag.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, {
-      activationConstraint: { delay: 150, tolerance: 5 },
-    })
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   )
 
-  // Il riordino resta confinato alla sezione dell'item trascinato —
-  // ogni sezione è un elenco a sé (vedi rendering). Riassegna
-  // esattamente gli stessi valori di `ordine` che la sezione occupava
-  // già, solo in sequenza diversa: non tocca l'ordine globale degli
-  // item delle altre sezioni, che restano intatti e interfogliati.
+  const [trascinandoId, setTrascinandoId] = useState<string | null>(null)
+
+  // Prima l'item sotto il dito, altrimenti la sezione (anche vuota)
+  const collisione: CollisionDetection = (args) => {
+    const sotto = pointerWithin(args)
+    const sulleVoci = sotto.filter((c) => !String(c.id).startsWith(PREFISSO_SEZIONE))
+    if (sulleVoci.length > 0) return sulleVoci
+    if (sotto.length > 0) return sotto
+    return closestCenter(args)
+  }
+
+  function handleDragStart(event: DragStartEvent) {
+    setTrascinandoId(String(event.active.id))
+  }
+
+  // Riordino dentro la sezione E spostamento in un'altra sezione.
+  // Riassegna sempre valori di `ordine` già esistenti (più quello
+  // dell'item spostato), quindi l'ordine globale resta coerente.
   function handleDragEnd(event: DragEndEvent) {
+    setTrascinandoId(null)
     const { active, over } = event
     if (!over || active.id === over.id) return
 
     const trascinato = items.find((i) => i.id === active.id)
     if (!trascinato) return
-    const sezione = items.filter((i) => categoriaEffettiva(i) === categoriaEffettiva(trascinato))
+    const sezioneOrigine = categoriaEffettiva(trascinato)
 
-    const oldIndex = sezione.findIndex((i) => i.id === active.id)
-    const newIndex = sezione.findIndex((i) => i.id === over.id)
-    if (oldIndex === -1 || newIndex === -1) return
+    const overId = String(over.id)
+    const overSezione = overId.startsWith(PREFISSO_SEZIONE)
+    const overItem = overSezione ? undefined : items.find((i) => i.id === overId)
+    const sezioneDest = overSezione
+      ? (overId.slice(PREFISSO_SEZIONE.length) as CategoriaChecklist | 'varie')
+      : overItem ? categoriaEffettiva(overItem) : null
+    if (!sezioneDest) return
 
-    const riordinati = arrayMove(sezione, oldIndex, newIndex)
-    const ordiniOriginali = sezione.map((i) => i.ordine).sort((a, b) => a - b)
-    reorder(riordinati.map((item, i) => ({ id: item.id, ordine: ordiniOriginali[i] })))
+    const destinazione = items.filter((i) => categoriaEffettiva(i) === sezioneDest && i.id !== trascinato.id)
+
+    // Posizione di inserimento nella sezione di destinazione
+    let indice = destinazione.length
+    if (overItem) {
+      const idx = destinazione.findIndex((i) => i.id === overItem.id)
+      const rect = active.rect.current.translated
+      const sotto = rect ? rect.top + rect.height / 2 > over.rect.top + over.rect.height / 2 : false
+      indice = idx === -1 ? destinazione.length : idx + (sotto ? 1 : 0)
+    }
+
+    const nuova = [...destinazione.slice(0, indice), trascinato, ...destinazione.slice(indice)]
+    const stessaSezione = sezioneDest === sezioneOrigine
+
+    // Stesso ordine di prima? niente da salvare
+    if (stessaSezione && nuova.every((it, k) => it.id === items.filter((i) => categoriaEffettiva(i) === sezioneDest)[k]?.id)) return
+
+    const valori = [...destinazione.map((i) => i.ordine), trascinato.ordine].sort((a, b) => a - b)
+    const aggiornamenti = nuova.map((item, k) => ({
+      id: item.id,
+      ordine: valori[k],
+      ...(item.id === trascinato.id && !stessaSezione
+        ? { categoria: sezioneDest === 'varie' ? null : sezioneDest }
+        : {}),
+    }))
+    // Solo ciò che è davvero cambiato
+    const cambiati = aggiornamenti.filter((u) => {
+      const orig = items.find((i) => i.id === u.id)!
+      return orig.ordine !== u.ordine || 'categoria' in u
+    })
+    if (cambiati.length > 0) reorder(cambiati)
   }
 
   const stats = calcolaStatisticheChecklist(items)
@@ -352,15 +417,18 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                       la stessa sezione (vedi handleDragEnd). */}
                   <DndContext
                     sensors={sensors}
-                    collisionDetection={closestCenter}
+                    collisionDetection={collisione}
+                    onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
+                    onDragCancel={() => setTrascinandoId(null)}
                   >
                     <div className="flex flex-col gap-4">
                       {SEZIONI.map((sez) => {
                         const itemsSezione = items.filter((i) => categoriaEffettiva(i) === sez.id)
-                        if (itemsSezione.length === 0) return null
+                        // Tutte le sezioni sempre visibili (anche vuote): sono
+                        // le destinazioni dello spostamento e il layout resta stabile.
                         return (
-                          <div key={sez.id} className="flex flex-col gap-1.5">
+                          <SezioneDroppable key={sez.id} id={sez.id} evidenzia={!!trascinandoId}>
                             <div className="flex items-baseline justify-between px-0.5">
                               <span className="font-dm-mono text-[11px] font-medium tracking-wide uppercase text-roamly-g2">
                                 {sez.titolo}
@@ -383,7 +451,12 @@ export function ChecklistSection({ viaggio, variante = 'accordion' }: ChecklistS
                                 />
                               ))}
                             </SortableContext>
-                          </div>
+                            {itemsSezione.length === 0 && (
+                              <p className="font-dm-sans text-xs text-roamly-muted text-center h-10 flex items-center justify-center">
+                                Vuota · trascina qui una voce
+                              </p>
+                            )}
+                          </SezioneDroppable>
                         )
                       })}
                     </div>

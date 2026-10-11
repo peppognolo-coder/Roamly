@@ -116,7 +116,7 @@ function RicordoCardSortable({ ricordo, coverUrl, riordinabile }: RicordoCardSor
 export function ViaggioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const { data: viaggio, isLoading } = useViaggio(id)
   const { data: stats } = useStatisticheViaggio(id)
@@ -166,13 +166,18 @@ export function ViaggioDetailPage() {
   const [isEditing, setIsEditing]     = useState(false)
   const [showLinkPubblico, setShowLinkPubblico] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
-  // Tab iniziale: legge ?tab= dall'URL (es. link dal prompt viaggio imminente
-  // in Home) per aprire direttamente su Pianifica; altrimenti default Ricordi
-  // — il Racconto non è più un tab (vedi RecapViaggioPage → RaccontoPage).
-  const tabIniziale = searchParams.get('tab')
-  const [tab, setTab] = useState<'ricordi' | 'pianifica' | 'persone'>(
-    tabIniziale === 'pianifica' || tabIniziale === 'persone' ? tabIniziale : 'ricordi'
-  )
+  // La tab attiva vive nell'URL (?tab=): così, entrando in una sezione di
+  // Pianifica e tornando indietro, si riapre la stessa tab e non Ricordi.
+  // replace: cambiare tab non riempie la cronologia di passi inutili.
+  const tabParam = searchParams.get('tab')
+  const tab: 'ricordi' | 'pianifica' | 'persone' =
+    tabParam === 'pianifica' || tabParam === 'persone' ? tabParam : 'ricordi'
+  const setTab = (t: 'ricordi' | 'pianifica' | 'persone') =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('tab', t)
+      return next
+    }, { replace: true })
   const [showShare, setShowShare]     = useState(false)
 
   // Chiude il form solo dopo che la mutation è completata con successo.
@@ -542,7 +547,9 @@ export function ViaggioDetailPage() {
                     }
                   `}
                 >
-                  {t === 'pianifica' ? 'Pianifica' : t === 'ricordi' ? 'Ricordi' : 'Persone'}
+                  {t === 'pianifica'
+                    ? (viaggio.stato_effettivo === 'concluso' ? 'Pianificato' : 'Pianifica')
+                    : t === 'ricordi' ? 'Ricordi' : 'Persone'}
                 </button>
               ))}
             </div>

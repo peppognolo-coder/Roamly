@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { MoodPicker } from './MoodPicker'
 import { SpotifyTrackPicker } from '@/components/ui/SpotifyTrackPicker'
-import { MeteoPicker, ConChiPicker, SpuntiRicordo, PosizioneButton } from './ContestoRicordo'
+import { MeteoPicker, ConChiPicker, DomandeRicordo, PosizioneButton } from './ContestoRicordo'
 import { useMembriViaggio } from '@/hooks/useMembri'
 import { useAuth } from '@/hooks/useAuth'
 import { getMeteoGiorno } from '@/lib/meteo'
@@ -81,6 +81,9 @@ const ricordoSchema = z.object({
     .nullable(),
   temperatura: z.number().int().min(-60).max(60).nullable(),
   conChi: z.array(z.string().min(1).max(40)).max(12),
+  risposte: z
+    .array(z.object({ domanda: z.string().max(80), risposta: z.string().max(600) }))
+    .max(8),
 })
 
 export type RicordoFormData = z.infer<typeof ricordoSchema>
@@ -162,6 +165,7 @@ export function RicordoForm({
     meteo:       ricordo?.meteo ?? null,
     temperatura: ricordo?.temperatura ?? null,
     conChi:      ricordo?.con_chi ?? [],
+    risposte:    ricordo?.risposte ?? [],
   } as RicordoFormData
 
   const {
@@ -170,7 +174,6 @@ export function RicordoForm({
     control,
     watch,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm<RicordoFormData>({
     resolver: zodResolver(ricordoSchema),
@@ -187,6 +190,7 @@ export function RicordoForm({
   const meteoValue = watch('meteo')
   const temperaturaValue = watch('temperatura')
   const conChiValue = watch('conChi') ?? []
+  const risposteValue = watch('risposte') ?? []
 
   // Se l'utente ha scelto il meteo a mano (o il ricordo già ce l'ha)
   // non lo sovrascriviamo più col suggerimento automatico.
@@ -250,17 +254,6 @@ export function RicordoForm({
       },
       { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 }
     )
-  }
-
-  function aggiungiSpunto(spunto: string) {
-    const attuale = getValues('testo') ?? ''
-    const prefisso = attuale && !attuale.endsWith('\n') ? '\n\n' : ''
-    setValue('testo', `${attuale}${prefisso}${spunto} `.slice(0, 1000), { shouldDirty: true })
-    requestAnimationFrame(() => {
-      const el = document.getElementById(`${formId}-testo`) as HTMLTextAreaElement | null
-      el?.focus()
-      el?.setSelectionRange(el.value.length, el.value.length)
-    })
   }
 
   return (
@@ -367,8 +360,12 @@ export function RicordoForm({
         {errors.testo && (
           <p className="text-xs font-dm-sans text-red-500">{errors.testo.message}</p>
         )}
-        <SpuntiRicordo onScegli={aggiungiSpunto} />
       </div>
+
+      <DomandeRicordo
+        value={risposteValue}
+        onChange={(v) => setValue('risposte', v, { shouldDirty: true })}
+      />
 
       {/* 4. Luogo */}
       <Controller

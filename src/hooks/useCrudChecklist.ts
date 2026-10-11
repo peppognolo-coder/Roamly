@@ -7,6 +7,7 @@ import {
   updateChecklistItem,
   deleteChecklistItem,
   reorderChecklistItems,
+  type RiordinoChecklist,
 } from '@/services/checklistService'
 import { useAuth } from '@/hooks/useAuth'
 import type { ChecklistItem } from '@/types'
@@ -216,7 +217,7 @@ export function useReorderChecklist(viaggioId: string) {
   const [error, setError] = useState<string | null>(null)
 
   const mutation = useMutation({
-    mutationFn: (items: { id: string; ordine: number }[]) =>
+    mutationFn: (items: RiordinoChecklist[]) =>
       reorderChecklistItems(items),
 
     onMutate: async (items) => {
@@ -228,15 +229,20 @@ export function useReorderChecklist(viaggioId: string) {
         queryKeys.checklist.byViaggio(viaggioId)
       )
 
-      const nuovoOrdine = new Map(items.map((i) => [i.id, i.ordine]))
+      const nuovoOrdine = new Map(items.map((i) => [i.id, i]))
       queryClient.setQueryData<ChecklistItem[]>(
         queryKeys.checklist.byViaggio(viaggioId),
         (old) =>
           old
-            ?.map((item) => ({
-              ...item,
-              ordine: nuovoOrdine.get(item.id) ?? item.ordine,
-            }))
+            ?.map((item) => {
+              const n = nuovoOrdine.get(item.id)
+              if (!n) return item
+              return {
+                ...item,
+                ordine: n.ordine,
+                categoria: 'categoria' in n ? (n.categoria ?? null) : item.categoria,
+              }
+            })
             .sort((a, b) => a.ordine - b.ordine)
       )
 
@@ -266,7 +272,7 @@ export function useReorderChecklist(viaggioId: string) {
   })
 
   return {
-    reorder: (items: { id: string; ordine: number }[]) => mutation.mutate(items),
+    reorder: (items: RiordinoChecklist[]) => mutation.mutate(items),
     error,
   }
 }
