@@ -1,7 +1,7 @@
 import { useMemo }           from 'react'
 import { useNavigate }       from 'react-router-dom'
 import { motion }            from 'framer-motion'
-import { Sparkles, Image, ChevronRight, BookOpen } from 'lucide-react'
+import { Sparkles, Image, ChevronRight, BookOpen, ArrowLeft } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { buildRacconto }     from '@/lib/racconto-utils'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
@@ -51,6 +51,39 @@ interface RaccontoViaggioProps {
   coverViaggio?: string | null
   numRicordi:   number
   isLoading:    boolean
+}
+
+// ============================================================
+// BottoneIndietro — resta in alto mentre si scorre il Racconto
+// Sticky con altezza 0: non occupa spazio e non sposta il layout.
+// Torna alla pagina precedente; se non c'è cronologia, al viaggio.
+// ============================================================
+
+function BottoneIndietro({ viaggioId }: { viaggioId: string }) {
+  const navigate = useNavigate()
+
+  const esci = () => {
+    if (window.history.length > 1) navigate(-1)
+    else navigate(`/viaggi/${viaggioId}`, { replace: true })
+  }
+
+  return (
+    <div className="sticky top-0 z-30 h-0">
+      <button
+        type="button"
+        onClick={esci}
+        aria-label="Esci dal racconto"
+        className="absolute left-4 w-10 h-10 rounded-full
+          flex items-center justify-center
+          bg-black/40 backdrop-blur-md text-white
+          active:scale-95 transition-transform duration-150
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+      >
+        <ArrowLeft size={20} strokeWidth={2.2} />
+      </button>
+    </div>
+  )
 }
 
 // ============================================================
@@ -104,7 +137,7 @@ function Copertina({
       <div className="relative z-10 flex flex-col h-full px-6">
 
         {/* Emoji in alto — ancorata al top */}
-        <div className="pt-16 pb-0 text-white">
+        <div className="pb-0 text-white" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)' }}>
           <ViaggioCoverIcon value={coverValue} size={36} />
         </div>
 
@@ -508,7 +541,7 @@ export function RaccontoViaggio({
     return (
       <div className="flex flex-col gap-0">
         <div className="bg-roamly-g6 animate-pulse" style={{ height: '100dvh' }} />
-        <div className="p-6 flex flex-col gap-4">
+        <div className="px-4 py-6 flex flex-col gap-4">
           {[1, 2].map((i) => (
             <div key={i} className="h-48 bg-roamly-g6 rounded-3xl animate-pulse" />
           ))}
@@ -520,12 +553,15 @@ export function RaccontoViaggio({
   // ── Empty state ──
   if (!dati.haContenuto) {
     return (
+      <>
+      <BottoneIndietro viaggioId={viaggioId} />
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
         className="flex flex-col items-center gap-5 py-12 text-center
-          bg-white rounded-3xl shadow-roamly mx-0"
+          bg-white rounded-3xl shadow-roamly mx-4"
+        style={{ marginTop: 'calc(env(safe-area-inset-top, 0px) + 72px)' }}
       >
         <div className="w-16 h-16 rounded-2xl bg-roamly-g7 shadow-roamly
           flex items-center justify-center">
@@ -548,15 +584,18 @@ export function RaccontoViaggio({
           Aggiungi il primo ricordo
         </button>
       </motion.div>
+      </>
     )
   }
 
   // ── Racconto completo ──
-  // Il Racconto è fuori dal PageLayout padding per permettere
-  // il full-bleed. Il componente usa margini negativi interni
-  // tramite classi -mx-5 (corrispondente al px-5 di PageLayout).
+  // PageLayout non applica padding laterale: le foto sono full-bleed
+  // per natura e ogni blocco di testo ha il proprio padding (px-6 / p-5).
+  // NON usare margini negativi qui: spostano tutto fuori schermo.
   return (
-    <div className="flex flex-col gap-0 -mx-5">
+    <div className="flex flex-col gap-0 w-full overflow-x-clip">
+
+      <BottoneIndietro viaggioId={viaggioId} />
 
       {/* Copertina 100dvh */}
       <Copertina
