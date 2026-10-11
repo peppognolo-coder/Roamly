@@ -168,7 +168,23 @@ export interface Ricordo {
   spotify_track_nome: string | null
   spotify_track_artista: string | null
   spotify_track_immagine_url: string | null
+  // "Ricordo ricco" — contesto della giornata. Tutti opzionali.
+  meteo: Meteo | null
+  temperatura: number | null   // °C, intero
+  con_chi: string[]            // nomi di chi c'era (membri del viaggio o testo libero)
 }
+
+export type Meteo = 'sole' | 'nuvoloso' | 'nebbia' | 'pioggia' | 'temporale' | 'neve' | 'vento'
+
+export const METEO_OPTIONS: { value: Meteo; label: string }[] = [
+  { value: 'sole',      label: 'Sole' },
+  { value: 'nuvoloso',  label: 'Nuvoloso' },
+  { value: 'nebbia',    label: 'Nebbia' },
+  { value: 'pioggia',   label: 'Pioggia' },
+  { value: 'temporale', label: 'Temporale' },
+  { value: 'neve',      label: 'Neve' },
+  { value: 'vento',     label: 'Vento' },
+]
 
 // Brano Spotify selezionato nel form — forma "comoda" per l'UI,
 // mappata sui 4 campi flat di Ricordo al submit (vedi RicordoForm).
@@ -196,6 +212,9 @@ export type NuovoRicordo = Pick<
   | 'spotify_track_nome'
   | 'spotify_track_artista'
   | 'spotify_track_immagine_url'
+  | 'meteo'
+  | 'temperatura'
+  | 'con_chi'
 > & {
   tipo?: TipoRicordo
 }
@@ -219,6 +238,9 @@ export type ModificaRicordo = Partial<
     | 'spotify_track_nome'
     | 'spotify_track_artista'
     | 'spotify_track_immagine_url'
+    | 'meteo'
+    | 'temperatura'
+    | 'con_chi'
   >
 >
 

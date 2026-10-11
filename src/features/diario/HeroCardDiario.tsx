@@ -6,6 +6,7 @@ import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import { MOOD_OPTIONS } from '@/types'
 import type { Ricordo, ViaggioConStato } from '@/types'
 import { MoodIcon } from '@/components/ui/MoodIcon'
+import { ContestoInline } from '@/features/momenti/ContestoRicordo'
 
 // ============================================================
 // HeroCardDiario — carta editoriale del Ricordo in evidenza
@@ -128,6 +129,8 @@ export function HeroCardDiario({ ricordo, viaggio }: HeroCardDiarioProps) {
             <span className="font-dm-sans text-xs">{ricordo.luogo}</span>
           </div>
         )}
+
+        <ContestoInline ricordo={ricordo} className="max-w-full" />
 
         {/* Link viaggio */}
         {viaggio && (

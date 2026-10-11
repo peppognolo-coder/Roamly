@@ -16,7 +16,8 @@ import { useFotoRicordo } from '@/hooks/useFoto'
 import { AutoreBadge }    from '@/components/ricordi/AutoreBadge'
 import { ShareCardRicordo } from './ShareCardRicordo'
 import { ReazioniRicordo } from '@/components/ricordi/ReazioniRicordo'
-import { MOOD_OPTIONS }   from '@/types'
+import { MOOD_OPTIONS, METEO_OPTIONS } from '@/types'
+import { METEO_ICONE } from './ContestoRicordo'
 import type { RicordoFormData } from './RicordoForm'
 import { FotoGalleria }    from './FotoGalleria'
 import { MoodIcon } from '@/components/ui/MoodIcon'
@@ -89,6 +90,8 @@ export function RicordoDetailPage() {
   }
 
   const moodOption = MOOD_OPTIONS.find((m) => m.value === ricordo.mood)
+  const meteoOption = METEO_OPTIONS.find((m) => m.value === ricordo.meteo)
+  const MeteoIcona = ricordo.meteo ? METEO_ICONE[ricordo.meteo] : null
   // Parsing locale: evita lo shift UTC su stringhe 'YYYY-MM-DD'
   const [ry, rm, rd] = ricordo.data.split('-').map(Number)
   const dataFormattata = new Date(ry, rm - 1, rd).toLocaleDateString('it-IT', {
@@ -113,6 +116,9 @@ export function RicordoDetailPage() {
       spotify_track_nome:         data.spotifyTrack?.nome         ?? null,
       spotify_track_artista:      data.spotifyTrack?.artista      ?? null,
       spotify_track_immagine_url: data.spotifyTrack?.immagineUrl  ?? null,
+      meteo:       data.meteo ?? null,
+      temperatura: data.temperatura ?? null,
+      con_chi:     data.conChi,
     })
   }
 
@@ -283,6 +289,26 @@ export function RicordoDetailPage() {
                     <circle cx="12" cy="10" r="3"/>
                   </svg>
                   <span className="font-dm-sans text-sm">{ricordo.luogo}</span>
+                </div>
+              )}
+
+              {/* Contesto: meteo + compagni */}
+              {(MeteoIcona || (ricordo.con_chi?.length ?? 0) > 0) && (
+                <div className="flex flex-wrap gap-2">
+                  {MeteoIcona && meteoOption && (
+                    <span className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-roamly-g6 border border-roamly-g5
+                      font-dm-sans text-xs text-roamly-ink-soft">
+                      <MeteoIcona size={15} strokeWidth={1.8} />
+                      {meteoOption.label}
+                      {ricordo.temperatura != null && <span className="font-dm-mono">{ricordo.temperatura}°</span>}
+                    </span>
+                  )}
+                  {ricordo.con_chi?.length > 0 && (
+                    <span className="inline-flex items-center gap-1.5 min-h-8 py-1 px-3 rounded-full bg-roamly-g6 border border-roamly-g5
+                      font-dm-sans text-xs text-roamly-ink-soft">
+                      Con {ricordo.con_chi.join(', ')}
+                    </span>
+                  )}
                 </div>
               )}
 

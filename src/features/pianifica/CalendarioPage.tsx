@@ -207,6 +207,14 @@ export function CalendarioPage() {
               </span>
               {giornoSelezionato && (
                 <button
+                  onClick={() => navigate(`/viaggi/${viaggioId}/giorno/${giornoSelezionato}`)}
+                  className="font-dm-sans text-xs font-medium text-roamly-coral-dark mr-3"
+                >
+                  Apri il giorno
+                </button>
+              )}
+              {giornoSelezionato && (
+                <button
                   onClick={() => setGiornoSelezionato(null)}
                   className="font-dm-sans text-xs text-roamly-g2 hover:text-roamly-g1"
                 >

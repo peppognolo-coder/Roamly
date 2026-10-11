@@ -1,3 +1,4 @@
+import { testoContesto } from './ContestoRicordo'
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toPng } from 'html-to-image'
@@ -145,6 +146,11 @@ function CardContent({ ricordo, viaggio, coverData, formato, sfondo, width, heig
           <span style={{ fontSize: Math.round(23 * scale), color: '#154B63' }}>
             {[ricordo.luogo, moodOption?.label].filter(Boolean).join(' · ')} · {dataStr}
           </span>
+          {testoContesto(ricordo) && (
+            <span style={{ fontSize: Math.round(21 * scale), color: '#3D5262' }}>
+              {testoContesto(ricordo)}
+            </span>
+          )}
         </div>
       </div>
     )
@@ -273,6 +279,11 @@ function CardContent({ ricordo, viaggio, coverData, formato, sfondo, width, heig
           <span style={{ fontSize: fs.meta, color: 'rgba(255,255,255,0.55)' }}>
             {moodOption?.label} · {dataStr}
           </span>
+          {testoContesto(ricordo) && (
+            <span style={{ fontSize: fs.meta, color: 'rgba(255,255,255,0.7)' }}>
+              {testoContesto(ricordo)}
+            </span>
+          )}
         </div>
 
         {/* Footer brand */}

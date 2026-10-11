@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -7,8 +8,13 @@ import { Button } from '@/components/ui/Button'
 import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { MoodPicker } from './MoodPicker'
 import { SpotifyTrackPicker } from '@/components/ui/SpotifyTrackPicker'
-import { MOOD_OPTIONS } from '@/types'
-import type { Mood, Ricordo, SpotifyTrackSelezionato } from '@/types'
+import { MeteoPicker, ConChiPicker, SpuntiRicordo, PosizioneButton } from './ContestoRicordo'
+import { useMembriViaggio } from '@/hooks/useMembri'
+import { useAuth } from '@/hooks/useAuth'
+import { getMeteoGiorno } from '@/lib/meteo'
+import { nomeDaCoordinate } from '@/lib/geocoding'
+import { MOOD_OPTIONS, METEO_OPTIONS } from '@/types'
+import type { Mood, Meteo, Ricordo, SpotifyTrackSelezionato } from '@/types'
 import type { BiasGeocoding } from '@/lib/geocoding'
 
 // ============================================================
@@ -70,6 +76,11 @@ const ricordoSchema = z.object({
       immagineUrl: z.string().nullable(),
     })
     .nullable(),
+  meteo: z
+    .enum(METEO_OPTIONS.map((m) => m.value) as [Meteo, ...Meteo[]])
+    .nullable(),
+  temperatura: z.number().int().min(-60).max(60).nullable(),
+  conChi: z.array(z.string().min(1).max(40)).max(12),
 })
 
 export type RicordoFormData = z.infer<typeof ricordoSchema>
@@ -100,6 +111,10 @@ interface RicordoFormProps {
    *  destinazione del viaggio, invece di una ricerca puramente
    *  globale — vedi LuogoSearchInput. */
   bias?: BiasGeocoding
+  /** Viaggio del ricordo — serve per proporre i compagni in "Con chi eri". */
+  viaggioId?: string
+  /** Data pre-compilata in creazione (es. dalla Pagina del giorno). */
+  dataIniziale?: string
 }
 
 // ------------------------------------------------------------
@@ -116,6 +131,8 @@ export function RicordoForm({
   hideSubmitButton = false,
   formId = 'ricordo-form',
   bias,
+  viaggioId,
+  dataIniziale,
 }: RicordoFormProps) {
   const isEdit = !!ricordo
   const label = submitLabel ?? (isEdit ? 'Salva modifiche' : 'Salva ricordo')
@@ -132,7 +149,7 @@ export function RicordoForm({
     luogo:     ricordo?.luogo     ?? '',
     lat:       ricordo?.lat       ?? null,
     lng:       ricordo?.lng       ?? null,
-    data:      ricordo?.data      ?? oggi(),
+    data:      ricordo?.data      ?? dataIniziale ?? oggi(),
     preferito: ricordo?.preferito ?? false,
     spotifyTrack: ricordo?.spotify_track_id
       ? {
@@ -142,6 +159,9 @@ export function RicordoForm({
           immagineUrl: ricordo.spotify_track_immagine_url,
         } satisfies SpotifyTrackSelezionato
       : null,
+    meteo:       ricordo?.meteo ?? null,
+    temperatura: ricordo?.temperatura ?? null,
+    conChi:      ricordo?.con_chi ?? [],
   } as RicordoFormData
 
   const {
@@ -150,6 +170,7 @@ export function RicordoForm({
     control,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<RicordoFormData>({
     resolver: zodResolver(ricordoSchema),
@@ -158,6 +179,89 @@ export function RicordoForm({
   })
 
   const preferitoValue = watch('preferito')
+
+  // ── Contesto: meteo, posizione, compagni ────────────────────
+  const dataValue = watch('data')
+  const latValue  = watch('lat')
+  const lngValue  = watch('lng')
+  const meteoValue = watch('meteo')
+  const temperaturaValue = watch('temperatura')
+  const conChiValue = watch('conChi') ?? []
+
+  // Se l'utente ha scelto il meteo a mano (o il ricordo già ce l'ha)
+  // non lo sovrascriviamo più col suggerimento automatico.
+  const meteoManuale = useRef(!!ricordo?.meteo)
+  const [meteoCaricamento, setMeteoCaricamento] = useState(false)
+  const [meteoSuggerito, setMeteoSuggerito] = useState(false)
+
+  // Punto per il meteo: il luogo del ricordo, altrimenti la destinazione del viaggio
+  const meteoLat = latValue ?? bias?.lat ?? null
+  const meteoLng = lngValue ?? bias?.lng ?? null
+
+  useEffect(() => {
+    if (meteoManuale.current || !dataValue || meteoLat == null || meteoLng == null) return
+    const ctrl = new AbortController()
+    setMeteoCaricamento(true)
+    getMeteoGiorno(dataValue, meteoLat, meteoLng, ctrl.signal)
+      .then((m) => {
+        if (!m || meteoManuale.current) return
+        setValue('meteo', m.meteo)
+        setValue('temperatura', m.temperatura)
+        setMeteoSuggerito(true)
+      })
+      .catch(() => { /* offline o servizio giù: il campo resta vuoto */ })
+      .finally(() => { if (!ctrl.signal.aborted) setMeteoCaricamento(false) })
+    return () => ctrl.abort()
+  }, [dataValue, meteoLat, meteoLng, setValue])
+
+  const { user } = useAuth()
+  const { data: membri } = useMembriViaggio(viaggioId ?? ricordo?.viaggio_id)
+  const compagni = (membri ?? [])
+    .filter((m) => m.user_id !== user?.id)
+    .map((m) => m.display_name?.trim())
+    .filter((n): n is string => !!n)
+
+  const [posCaricamento, setPosCaricamento] = useState(false)
+  const [posErrore, setPosErrore] = useState<string | null>(null)
+
+  function usaPosizione() {
+    if (!('geolocation' in navigator)) {
+      setPosErrore('Il dispositivo non supporta la posizione.')
+      return
+    }
+    setPosErrore(null)
+    setPosCaricamento(true)
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords
+        setValue('lat', latitude)
+        setValue('lng', longitude)
+        try {
+          const nome = await nomeDaCoordinate(latitude, longitude)
+          setValue('luogo', (nome ?? 'Posizione attuale').slice(0, 80), { shouldDirty: true })
+        } catch {
+          setValue('luogo', 'Posizione attuale', { shouldDirty: true })
+        }
+        setPosCaricamento(false)
+      },
+      () => {
+        setPosCaricamento(false)
+        setPosErrore('Non riesco a leggere la posizione. Controlla i permessi o cercala a mano.')
+      },
+      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 }
+    )
+  }
+
+  function aggiungiSpunto(spunto: string) {
+    const attuale = getValues('testo') ?? ''
+    const prefisso = attuale && !attuale.endsWith('\n') ? '\n\n' : ''
+    setValue('testo', `${attuale}${prefisso}${spunto} `.slice(0, 1000), { shouldDirty: true })
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`${formId}-testo`) as HTMLTextAreaElement | null
+      el?.focus()
+      el?.setSelectionRange(el.value.length, el.value.length)
+    })
+  }
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-6">
@@ -245,7 +349,8 @@ export function RicordoForm({
         </label>
         <textarea
           placeholder="Siamo saliti in tre, ce n'erano venti…"
-          rows={4}
+          rows={5}
+          id={`${formId}-testo`}
           className="
             w-full px-4 py-3.5
             bg-roamly-g7 border border-roamly-g5
@@ -262,6 +367,7 @@ export function RicordoForm({
         {errors.testo && (
           <p className="text-xs font-dm-sans text-red-500">{errors.testo.message}</p>
         )}
+        <SpuntiRicordo onScegli={aggiungiSpunto} />
       </div>
 
       {/* 4. Luogo */}
@@ -284,6 +390,7 @@ export function RicordoForm({
           />
         )}
       />
+      <PosizioneButton onClick={usaPosizione} caricamento={posCaricamento} errore={posErrore} />
 
       {/* 5. Data */}
       <Input
@@ -291,6 +398,26 @@ export function RicordoForm({
         type="date"
         error={errors.data?.message}
         {...register('data')}
+      />
+
+      {/* Contesto della giornata */}
+      <MeteoPicker
+        meteo={meteoValue}
+        temperatura={temperaturaValue}
+        caricamento={meteoCaricamento}
+        suggerito={meteoSuggerito}
+        onMeteo={(m) => {
+          meteoManuale.current = true
+          setMeteoSuggerito(false)
+          setValue('meteo', m)
+          if (!m) setValue('temperatura', null)
+        }}
+        onTemperatura={(t) => { meteoManuale.current = true; setValue('temperatura', t) }}
+      />
+      <ConChiPicker
+        value={conChiValue}
+        suggeriti={compagni}
+        onChange={(v) => setValue('conChi', v, { shouldDirty: true })}
       />
 
       {/* 6. Preferito */}

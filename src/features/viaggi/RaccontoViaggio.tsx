@@ -9,6 +9,8 @@ import { MOOD_OPTIONS }      from '@/types'
 import type { ViaggioConStato, Ricordo } from '@/types'
 import type { RicordoRacconto, CapitoloRacconto } from '@/lib/racconto-utils'
 import { MoodIcon } from '@/components/ui/MoodIcon'
+import { ContestoInline, METEO_ICONE } from '@/features/momenti/ContestoRicordo'
+import { RaccontoFinale } from './RaccontoFinale'
 
 // ============================================================
 // RaccontoViaggio — esperienza editoriale immersiva
@@ -175,11 +177,23 @@ function Copertina({
 
 function SeparatoreGiorno({
   capitolo,
+  onApri,
 }: {
   capitolo: CapitoloRacconto
+  onApri: () => void
 }) {
+  // Riepilogo del giorno: mood diversi (max 3) e meteo prevalente
+  const mood = capitolo.ricordi.map((r) => r.ricordo.mood).filter((m, i, a) => a.indexOf(m) === i).slice(0, 3)
+  const meteo = capitolo.ricordi.find((r) => r.ricordo.meteo)?.ricordo
+  const MeteoIcona = meteo?.meteo ? METEO_ICONE[meteo.meteo] : null
+
   return (
-    <div className="relative flex items-center justify-center py-10 overflow-hidden select-none">
+    <button
+      type="button"
+      onClick={onApri}
+      aria-label={`Apri il giorno ${capitolo.numeroCapitolo}`}
+      className="relative flex flex-col items-center justify-center gap-2 py-10 overflow-hidden w-full
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3">
       {/* Numero capitolo watermark */}
       <span
         className="absolute font-dm-mono font-bold text-roamly-g0 pointer-events-none"
@@ -203,7 +217,21 @@ function SeparatoreGiorno({
         </div>
         <div className="flex-1 h-px bg-roamly-g6" />
       </div>
-    </div>
+
+      {/* Riepilogo del giorno — tocca per aprirlo */}
+      <div className="relative z-10 flex items-center gap-2 text-roamly-muted">
+        {mood.map((m) => <MoodIcon key={m} mood={m} size={22} />)}
+        {MeteoIcona && meteo && (
+          <span className="inline-flex items-center gap-1 font-dm-sans text-xs">
+            <MeteoIcona size={14} strokeWidth={1.8} />
+            {meteo.temperatura != null && <span className="font-dm-mono">{meteo.temperatura}°</span>}
+          </span>
+        )}
+        <span className="font-dm-sans text-xs text-roamly-g2 font-medium inline-flex items-center">
+          Apri il giorno <ChevronRight size={12} />
+        </span>
+      </div>
+    </button>
   )
 }
 
@@ -290,12 +318,13 @@ function BloccoFoto({
 
       {/* ── Mood badge ── */}
       {moodOpt && (
-        <div className="px-6 pt-3 pb-2">
+        <div className="px-6 pt-3 pb-2 flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="inline-flex items-center gap-1.5
             font-dm-sans text-xs text-roamly-text/45 font-medium">
             <MoodIcon mood={rr.ricordo.mood} size={16} />
             {moodOpt.label}
           </span>
+          <ContestoInline ricordo={rr.ricordo} />
         </div>
       )}
 
@@ -397,11 +426,14 @@ function BloccoTesto({
         )}
 
         {moodOpt && (
-          <span className="inline-flex items-center gap-1.5
-            font-dm-sans text-xs text-roamly-text/45 font-medium mt-1">
-            <MoodIcon mood={rr.ricordo.mood} size={16} />
-            {moodOpt.label}
-          </span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+            <span className="inline-flex items-center gap-1.5
+              font-dm-sans text-xs text-roamly-text/45 font-medium">
+              <MoodIcon mood={rr.ricordo.mood} size={16} />
+              {moodOpt.label}
+            </span>
+            <ContestoInline ricordo={rr.ricordo} />
+          </div>
         )}
       </div>
     </button>
@@ -416,10 +448,12 @@ function Capitolo({
   capitolo,
   navigate,
   delay,
+  viaggioId,
 }: {
   capitolo: CapitoloRacconto
   navigate: ReturnType<typeof useNavigate>
   delay:    number
+  viaggioId: string
 }) {
   return (
     <motion.div
@@ -428,7 +462,10 @@ function Capitolo({
       transition={{ duration: 0.4, delay, ease: 'easeOut' }}
       className="flex flex-col gap-8"
     >
-      <SeparatoreGiorno capitolo={capitolo} />
+      <SeparatoreGiorno
+        capitolo={capitolo}
+        onApri={() => navigate(`/viaggi/${viaggioId}/giorno/${capitolo.data}`)}
+      />
 
       <div className="flex flex-col gap-10">
         {capitolo.ricordi.map((rr) => (
@@ -538,9 +575,13 @@ export function RaccontoViaggio({
             capitolo={capitolo}
             navigate={navigate}
             delay={i * 0.05}
+            viaggioId={viaggioId}
           />
         ))}
       </div>
+
+      {/* Chiusura: numeri, percorso, curva dell'umore */}
+      <RaccontoFinale ricordi={ricordi} giorni={dati.durataGiorni} totaleFoto={dati.totaleFoto} />
 
       {/* Colophon */}
       <div className="flex items-center justify-center pb-12 px-6">

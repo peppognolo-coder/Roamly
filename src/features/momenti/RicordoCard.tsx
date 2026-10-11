@@ -5,6 +5,7 @@ import { useAutoreRicordo } from '@/hooks/useAutoreRicordo'
 import { AutoreBadge } from '@/components/ricordi/AutoreBadge'
 import type { Ricordo } from '@/types'
 import { MoodIcon } from '@/components/ui/MoodIcon'
+import { ContestoInline } from './ContestoRicordo'
 
 // ============================================================
 // RicordoCard — card per la lista ricordi in ViaggioDetailPage
@@ -134,6 +135,8 @@ export function RicordoCard({ ricordo, coverUrl, onClick }: RicordoCardProps) {
             {ricordo.testo}
           </p>
         )}
+
+        <ContestoInline ricordo={ricordo} className="mt-1.5 max-w-full" />
 
         {/* Riga inferiore: luogo + autore (se collaborativo) + data */}
         <div className="flex items-center gap-2 mt-2 flex-wrap">

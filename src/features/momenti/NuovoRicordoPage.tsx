@@ -31,6 +31,8 @@ export function NuovoRicordoPage() {
   const [searchParams]    = useSearchParams()
   const navigate          = useNavigate()
   const viaggioIdParam    = searchParams.get('viaggioId')
+  const dataParam         = searchParams.get('data')
+  const dataIniziale      = dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam) ? dataParam : undefined
 
   const { data: viaggi, isLoading: isLoadingViaggi } = useViaggi()
 
@@ -116,6 +118,9 @@ export function NuovoRicordoPage() {
       spotify_track_nome:         data.spotifyTrack?.nome         ?? null,
       spotify_track_artista:      data.spotifyTrack?.artista      ?? null,
       spotify_track_immagine_url: data.spotifyTrack?.immagineUrl  ?? null,
+      meteo:       data.meteo ?? null,
+      temperatura: data.temperatura ?? null,
+      con_chi:     data.conChi,
     })
   }
 
@@ -253,6 +258,8 @@ export function NuovoRicordoPage() {
         <div className="flex-1 overflow-y-auto px-5 pb-6">
           <RicordoForm
             formId="ricordo-form"
+            viaggioId={viaggioId}
+            dataIniziale={dataIniziale}
             onSubmit={handleSubmit}
             isLoading={isSubmitting}
             error={error}

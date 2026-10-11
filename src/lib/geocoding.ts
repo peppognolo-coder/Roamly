@@ -95,3 +95,32 @@ export async function cercaLuoghi(
     codicePaese: d.address?.country_code?.toUpperCase(),
   }))
 }
+
+// ------------------------------------------------------------
+// Geocoding inverso — da coordinate (GPS del telefono) a un nome
+// leggibile, per il pulsante "Usa la mia posizione" del ricordo.
+// Una sola chiamata, su azione esplicita dell'utente.
+// ------------------------------------------------------------
+
+export async function nomeDaCoordinate(
+  lat: number,
+  lng: number,
+  signal?: AbortSignal
+): Promise<string | null> {
+  const url =
+    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}` +
+    `&zoom=16&addressdetails=1&accept-language=it`
+  const res = await fetch(url, { signal })
+  if (!res.ok) return null
+
+  const d = (await res.json()) as {
+    display_name?: string
+    name?: string
+    address?: Record<string, string | undefined>
+  }
+  const a = d.address ?? {}
+  const luogo = d.name || a.tourism || a.amenity || a.leisure || a.road
+  const citta = a.city || a.town || a.village || a.municipality
+  const parti = [luogo, citta].filter((x, i, arr): x is string => !!x && arr.indexOf(x) === i)
+  return parti.length > 0 ? parti.join(', ') : (d.display_name ?? null)
+}

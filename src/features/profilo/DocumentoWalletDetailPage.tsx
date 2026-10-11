@@ -173,12 +173,12 @@ export function DocumentoWalletDetailPage() {
                   {isCartaImbarco && (da || a) && (
                     <div className="flex items-center justify-between px-4 py-4 border-b border-roamly-g6">
                       <div className="flex flex-col gap-0.5 min-w-0">
-                        <span className="font-dm-sans text-[10px] uppercase tracking-wider text-roamly-text/40">Da</span>
+                        <span className="font-dm-sans text-[10px] uppercase tracking-wider text-roamly-muted">Da</span>
                         <span className="font-lora text-xl font-semibold text-roamly-g0 truncate">{da || '—'}</span>
                       </div>
-                      <Plane size={18} className="text-roamly-text/30 rotate-90 shrink-0 mx-3" />
+                      <Plane size={18} className="text-roamly-muted rotate-90 shrink-0 mx-3" />
                       <div className="flex flex-col gap-0.5 min-w-0 items-end">
-                        <span className="font-dm-sans text-[10px] uppercase tracking-wider text-roamly-text/40">A</span>
+                        <span className="font-dm-sans text-[10px] uppercase tracking-wider text-roamly-muted">A</span>
                         <span className="font-lora text-xl font-semibold text-roamly-g0 truncate">{a || '—'}</span>
                       </div>
                     </div>
@@ -188,7 +188,7 @@ export function DocumentoWalletDetailPage() {
                     <div className="grid grid-cols-2 gap-x-3 gap-y-3 px-4 py-4">
                       {altriCampi.map((campo) => (
                         <div key={campo.key} className="flex flex-col gap-0.5 min-w-0">
-                          <span className="font-dm-sans text-[10px] uppercase tracking-wider text-roamly-text/40">
+                          <span className="font-dm-sans text-[10px] uppercase tracking-wider text-roamly-muted">
                             {campo.label}
                           </span>
                           <span className="font-dm-sans text-sm font-medium text-roamly-g0 truncate">
