@@ -66,25 +66,25 @@ export function ViaggioConclusoCard({ viaggio }: { viaggio: ViaggioConStato }) {
             <button
               type="button"
               onClick={() => navigate(`/viaggi/${viaggio.id}/racconto`)}
-              className="flex-1 h-11 rounded-2xl bg-white text-roamly-g0
+              className="flex-1 h-12 rounded-2xl bg-white text-roamly-g0
                 inline-flex items-center justify-center gap-1.5 px-2
-                font-dm-sans text-[13px] font-semibold
+                font-dm-sans text-sm font-semibold whitespace-nowrap
                 active:scale-[0.98] transition-transform
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
-              <BookOpen size={16} />
-              Rileggi il racconto
+              <BookOpen size={18} />
+              Il racconto
             </button>
             <button
               type="button"
               onClick={() => navigate(`/viaggi/${viaggio.id}/wrapped`)}
-              className="flex-1 h-11 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/25 text-white
+              className="flex-1 h-12 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/25 text-white
                 inline-flex items-center justify-center gap-1.5 px-2
-                font-dm-sans text-[13px] font-semibold
+                font-dm-sans text-sm font-semibold whitespace-nowrap
                 active:scale-[0.98] transition-transform
                 focus:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
-              <Sparkles size={16} />
+              <Sparkles size={18} />
               Riepilogo
             </button>
           </div>

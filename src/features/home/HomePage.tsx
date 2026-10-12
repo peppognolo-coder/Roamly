@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Search, Compass, ChevronRight, Bell, Plus, Plane, Bookmark } from 'lucide-react'
+import { BookOpen, Search, Compass, ChevronRight, Bell, Plus, Plane, Bookmark, Map } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -232,22 +232,30 @@ export function HomePage() {
 
               {/* Lista completa dei viaggi — prima era raggiungibile solo da Profilo */}
               {!isLoadingViaggio && (tuttiViaggi?.length ?? 0) > 0 && (
-                <div className="flex items-center justify-between">
+                <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => navigate('/profilo/salvati')}
-                    className="flex items-center gap-1 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
+                    className="h-14 rounded-2xl bg-white shadow-roamly
+                      flex items-center justify-center gap-2.5
+                      font-dm-sans text-[15px] font-semibold text-roamly-g1
+                      active:scale-[0.98] transition-transform
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3"
                   >
-                    <Bookmark size={13} />
+                    <Bookmark size={20} className="text-roamly-coral" />
                     Voglio andarci
                   </button>
                   <button
                     type="button"
                     onClick={() => navigate('/viaggi')}
-                    className="flex items-center gap-0.5 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
+                    className="h-14 rounded-2xl bg-white shadow-roamly
+                      flex items-center justify-center gap-2.5
+                      font-dm-sans text-[15px] font-semibold text-roamly-g1
+                      active:scale-[0.98] transition-transform
+                      focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3"
                   >
+                    <Map size={20} className="text-roamly-g2" />
                     Tutti i viaggi
-                    <ChevronRight size={14} />
                   </button>
                 </div>
               )}
