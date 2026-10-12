@@ -13,6 +13,8 @@ import { useLuoghiSalvati, useAggiornaLuogo, useArricchisciLuogo } from '@/hooks
 import { useViaggi } from '@/hooks/useViaggi'
 import { useToast } from '@/hooks/useToast'
 import { formatDataViaggio } from '@/lib/viaggi-utils'
+import { SelettoreRaccolte } from './SelettoreRaccolte'
+import { elencoRaccolte, raccolteDi, inRaccolta, aggiungiARaccolte, togliDaRaccolte } from '@/lib/raccolte'
 import type { LuogoSalvato } from '@/types'
 
 // ============================================================
@@ -102,6 +104,19 @@ export function LuogoSalvatoPage() {
     const errore = await aggiorna(luogo.id, { viaggio_id: viaggioId })
     if (errore) showError(`Non sono riuscito ad aggiornare il luogo (${errore})`, 8000)
     else showSuccess(viaggioId ? `Aggiunto a ${nomeViaggio}` : 'Tolto dal viaggio')
+  }
+
+  // Raccolte: tutte quelle esistenti, più quelle di questo posto
+  const tutteRaccolte = (() => {
+    const nomi = elencoRaccolte(luoghi).map((r) => r.nome)
+    for (const r of luogo ? raccolteDi(luogo) : []) if (!nomi.some((n) => n.toLowerCase() === r.toLowerCase())) nomi.push(r)
+    return nomi
+  })()
+
+  async function cambiaRaccolte(nuove: string[]) {
+    if (!luogo) return
+    const errore = await aggiorna(luogo.id, { raccolte: nuove })
+    if (errore) showError(`Non sono riuscito ad aggiornare le raccolte (${errore})`, 8000)
   }
 
   function rimuovi() {
@@ -226,6 +241,21 @@ export function LuogoSalvatoPage() {
                 {luogo.viaggio_id ? 'Cambia viaggio' : 'Aggiungi a un viaggio'}
               </button>
             </div>
+
+            {/* ── Raccolte ── */}
+            <section className="flex flex-col gap-2">
+              <p className="font-dm-mono text-[10px] font-medium uppercase tracking-[0.14em] text-roamly-text/40">Raccolte</p>
+              <SelettoreRaccolte
+                tutte={tutteRaccolte}
+                selezionate={raccolteDi(luogo)}
+                onToggle={(nome) =>
+                  void cambiaRaccolte(
+                    inRaccolta(luogo, nome) ? togliDaRaccolte(raccolteDi(luogo), nome) : aggiungiARaccolte(raccolteDi(luogo), nome)
+                  )
+                }
+                onNuova={(nome) => void cambiaRaccolte(aggiungiARaccolte(raccolteDi(luogo), nome))}
+              />
+            </section>
 
             {/* ── Descrizione ── */}
             {luogo.descrizione ? (

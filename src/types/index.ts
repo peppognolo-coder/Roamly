@@ -510,15 +510,17 @@ export interface LuogoSalvato {
   orari?: string | null
   telefono?: string | null
   info_aggiornate_at?: string | null
+  /** Raccolte (cartelle libere) a cui appartiene — vuoto = nessuna */
+  raccolte?: string[]
 }
 
 export type NuovoLuogoSalvato = Pick<LuogoSalvato, 'nome' | 'lat' | 'lng'> & Partial<
-  Pick<LuogoSalvato, 'viaggio_id' | 'categoria' | 'indirizzo' | 'nota'>
+  Pick<LuogoSalvato, 'viaggio_id' | 'categoria' | 'indirizzo' | 'nota' | 'raccolte'>
 >
 
 export type ModificaLuogoSalvato = Partial<Pick<LuogoSalvato,
   'viaggio_id' | 'categoria' | 'descrizione' | 'foto_url' | 'foto_credito' |
-  'wikipedia_url' | 'sito_web' | 'orari' | 'telefono' | 'info_aggiornate_at'
+  'wikipedia_url' | 'sito_web' | 'orari' | 'telefono' | 'info_aggiornate_at' | 'raccolte'
 >>
 
 // ------------------------------------------------------------

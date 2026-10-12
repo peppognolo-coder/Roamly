@@ -13,10 +13,12 @@ import type { ViaggioFormData } from './ViaggioForm'
 // a partire da luoghi salvati vicini tra loro.
 interface StatoDaLuoghi {
   daLuoghi?: {
+    /** Nome da dare al viaggio (es. quello della raccolta); altrimenti "Viaggio a <zona>" */
+    nomeViaggio?: string
     nomeZona: string | null
     paese: string | null
-    lat: number
-    lng: number
+    lat: number | null
+    lng: number | null
     ids: string[]
   }
 }
@@ -39,7 +41,7 @@ export function NuovoViaggioPage() {
   const iniziale = useMemo<Partial<ViaggioFormData> | undefined>(() => {
     if (!daLuoghi) return undefined
     return {
-      nome: daLuoghi.nomeZona ? `Viaggio a ${daLuoghi.nomeZona}`.slice(0, 60) : '',
+      nome: (daLuoghi.nomeViaggio ?? (daLuoghi.nomeZona ? `Viaggio a ${daLuoghi.nomeZona}` : '')).slice(0, 60),
       destinazione: daLuoghi.nomeZona ?? '',
       paese: daLuoghi.paese ?? '',
       destinazione_lat: daLuoghi.lat,

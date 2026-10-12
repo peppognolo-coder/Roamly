@@ -3,6 +3,7 @@ import { queryKeys } from '@/lib/queryKeys'
 import { getLuoghiSalvati, salvaLuogo, rimuoviLuogoSalvato, assegnaLuoghiAViaggio, aggiornaLuogoSalvato } from '@/services/luoghiSalvatiService'
 import { useAuth } from '@/hooks/useAuth'
 import { recuperaInfoLuogo } from '@/lib/luogo-info'
+import { raccolteDi, inRaccolta, aggiungiARaccolte, togliDaRaccolte } from '@/lib/raccolte'
 import type { RisultatoGeocoding } from '@/lib/geocoding'
 import type { LuogoSalvato, NuovoLuogoSalvato, ModificaLuogoSalvato } from '@/types'
 
@@ -114,5 +115,26 @@ export function useArricchisciLuogo() {
       risultato,
     })
     await aggiorna(luogo.id, patch)
+  }
+}
+
+// Gestione delle raccolte (cartelle libere): rinomina ed elimina agiscono su
+// tutti i posti che le contengono. Eliminare una raccolta toglie solo
+// l'etichetta: i posti restano salvati. Restituiscono un messaggio d'errore
+// oppure null se è andato tutto bene.
+export function useGestioneRaccolte() {
+  const aggiorna = useAggiornaLuogo()
+
+  async function perOgniPosto(luoghi: LuogoSalvato[], nome: string, nuovo: (attuali: string[]) => string[]) {
+    const coinvolti = luoghi.filter((l) => inRaccolta(l, nome))
+    const esiti = await Promise.all(coinvolti.map((l) => aggiorna(l.id, { raccolte: nuovo(raccolteDi(l)) })))
+    return esiti.find((e) => e) ?? null
+  }
+
+  return {
+    rinomina: (luoghi: LuogoSalvato[], vecchio: string, nuovo: string) =>
+      perOgniPosto(luoghi, vecchio, (a) => aggiungiARaccolte(togliDaRaccolte(a, vecchio), nuovo)),
+    elimina: (luoghi: LuogoSalvato[], nome: string) =>
+      perOgniPosto(luoghi, nome, (a) => togliDaRaccolte(a, nome)),
   }
 }
