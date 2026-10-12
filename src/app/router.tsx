@@ -31,6 +31,7 @@ const NotificheSettingsPage  = lazy(() => import('@/features/profilo/NotificheSe
 const CreditiPage            = lazy(() => import('@/features/profilo/CreditiPage').then((m) => ({ default: m.CreditiPage })))
 const TraguardiPage          = lazy(() => import('@/features/profilo/TraguardiPage').then((m) => ({ default: m.TraguardiPage })))
 const StatistichePage        = lazy(() => import('@/features/profilo/StatistichePage').then((m) => ({ default: m.StatistichePage })))
+const LuogoSalvatoPage       = lazy(() => import('@/features/profilo/LuogoSalvatoPage').then((m) => ({ default: m.LuogoSalvatoPage })))
 const LuoghiSalvatiPage      = lazy(() => import('@/features/profilo/LuoghiSalvatiPage').then((m) => ({ default: m.LuoghiSalvatiPage })))
 const NotifichePage          = lazy(() => import('@/features/profilo/NotifichePage').then((m) => ({ default: m.NotifichePage })))
 const WalletPage              = lazy(() => import('@/features/profilo/WalletPage').then((m) => ({ default: m.WalletPage })))
@@ -175,6 +176,10 @@ export const router = createBrowserRouter([
   {
     path: '/profilo/salvati',
     element: <Protected><LuoghiSalvatiPage /></Protected>,
+  },
+  {
+    path: '/profilo/salvati/:id',
+    element: <Protected><LuogoSalvatoPage /></Protected>,
   },
   {
     path: '/profilo/feed',

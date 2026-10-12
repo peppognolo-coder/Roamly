@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { LuogoSalvato, NuovoLuogoSalvato } from '@/types'
+import type { LuogoSalvato, NuovoLuogoSalvato, ModificaLuogoSalvato } from '@/types'
 
 // ============================================================
 // ROAMLY — Luoghi Salvati Service
@@ -60,6 +60,21 @@ export async function assegnaLuoghiAViaggio(
     .from('luoghi_salvati')
     .update({ viaggio_id: viaggioId })
     .in('id', ids)
+    .eq('user_id', userId)
+
+  if (error) return { error: error.message }
+  return { error: null }
+}
+
+export async function aggiornaLuogoSalvato(
+  id: string,
+  userId: string,
+  patch: ModificaLuogoSalvato
+): Promise<{ error: string | null }> {
+  const { error } = await supabase
+    .from('luoghi_salvati')
+    .update(patch)
+    .eq('id', id)
     .eq('user_id', userId)
 
   if (error) return { error: error.message }

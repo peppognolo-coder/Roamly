@@ -19,6 +19,13 @@ export interface RisultatoGeocoding {
   paese?: string
   /** Codice ISO 3166-1 alpha-2 in maiuscolo (es. "GR") — solo se disponibile */
   codicePaese?: string
+  /** Tag Wikipedia di OpenStreetMap ("it:Colosseo") — solo se presente */
+  wikipedia?: string
+  sitoWeb?: string
+  orari?: string
+  telefono?: string
+  /** Tipo di luogo in italiano ("Museo", "Città"…) — solo se riconosciuto */
+  tipo?: string
 }
 
 /** Priorità di ricerca verso la destinazione di un viaggio specifico —
@@ -37,10 +44,27 @@ interface NominatimResult {
   display_name: string
   lat: string
   lon: string
+  type?: string
+  addresstype?: string
   address?: {
     country?: string
     country_code?: string   // minuscolo per convenzione Nominatim, es. "gr"
   }
+  extratags?: Record<string, string | undefined>
+}
+
+const TIPI_LUOGO: Record<string, string> = {
+  city: 'Città', town: 'Città', village: 'Località', hamlet: 'Località',
+  municipality: 'Comune', suburb: 'Quartiere', neighbourhood: 'Quartiere',
+  island: 'Isola', country: 'Paese', state: 'Regione', region: 'Regione',
+  museum: 'Museo', gallery: 'Galleria', attraction: 'Attrazione', monument: 'Monumento',
+  memorial: 'Monumento', castle: 'Castello', ruins: 'Rovine', archaeological_site: 'Sito archeologico',
+  viewpoint: 'Punto panoramico', park: 'Parco', nature_reserve: 'Riserva naturale',
+  beach: 'Spiaggia', peak: 'Vetta', volcano: 'Vulcano', zoo: 'Zoo', theme_park: 'Parco divertimenti',
+  place_of_worship: 'Luogo di culto', cathedral: 'Cattedrale', church: 'Chiesa',
+  restaurant: 'Ristorante', cafe: 'Caffè', bar: 'Bar', pub: 'Pub', fast_food: 'Fast food',
+  hotel: 'Hotel', hostel: 'Ostello', theatre: 'Teatro', stadium: 'Stadio', station: 'Stazione',
+  aerodrome: 'Aeroporto', bridge: 'Ponte', tower: 'Torre', fountain: 'Fontana',
 }
 
 // Ampiezza approssimativa del riquadro di priorità attorno alla
@@ -65,7 +89,7 @@ export async function cercaLuoghi(
   // emisfero, per i suggerimenti stagionali della Valigia) invece di farlo
   // scrivere a mano. accept-language=it → nomi paese in italiano quando
   // disponibili, coerente con la lingua dell'app.
-  let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1&accept-language=it`
+  let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5&addressdetails=1&extratags=1&accept-language=it`
 
   // Priorità alla destinazione del viaggio, se nota — non un filtro
   // rigido (niente bounded=1): un risultato ottimo altrove resta
@@ -93,6 +117,11 @@ export async function cercaLuoghi(
     lng: parseFloat(d.lon),
     paese: d.address?.country,
     codicePaese: d.address?.country_code?.toUpperCase(),
+    wikipedia: d.extratags?.wikipedia,
+    sitoWeb: d.extratags?.website ?? d.extratags?.['contact:website'],
+    orari: d.extratags?.opening_hours,
+    telefono: d.extratags?.phone ?? d.extratags?.['contact:phone'],
+    tipo: TIPI_LUOGO[d.type ?? ''] ?? TIPI_LUOGO[d.addresstype ?? ''],
   }))
 }
 

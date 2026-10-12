@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bookmark, MapPin, Sparkles, Plus } from 'lucide-react'
+import { Bookmark, MapPin, Sparkles, Plus, Trash2, Loader2 } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { BottomNav }    from '@/components/layout/BottomNav'
-import { useLuoghiSalvati } from '@/hooks/useLuoghiSalvati'
+import { useLuoghiSalvati, useArricchisciLuogo } from '@/hooks/useLuoghiSalvati'
 import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { useToast } from '@/hooks/useToast'
 import { trovaClusterVicini, descriviCluster, distanzaKm } from '@/lib/luoghi-clustering'
@@ -26,6 +26,7 @@ export function LuoghiSalvatiPage() {
   const navigate = useNavigate()
   const { luoghi, isLoading, rimuoviLuogoSalvato, salvaLuogo, isSalvando } = useLuoghiSalvati()
   const { showSuccess, showError } = useToast()
+  const arricchisci = useArricchisciLuogo()
   const [ricerca, setRicerca] = useState('')
 
   // Solo i posti non ancora assegnati a un viaggio alimentano il suggerimento
@@ -52,7 +53,11 @@ export function LuoghiSalvatiPage() {
         viaggio_id: null,
       },
       {
-        onSuccess: () => showSuccess('Aggiunto ai posti che vuoi visitare'),
+        onSuccess: (luogo) => {
+          showSuccess('Aggiunto ai posti che vuoi visitare')
+          // Foto e descrizione arrivano in un secondo momento, senza far attendere
+          if (luogo) void arricchisci(luogo, r)
+        },
         onError: (msg) => showError(`Non sono riuscito a salvare il posto (${msg})`, 8000),
       }
     )
@@ -148,7 +153,16 @@ export function LuoghiSalvatiPage() {
                   <LuogoCard
                     key={luogo.id}
                     luogo={luogo}
-                    onRimuovi={() => rimuoviLuogoSalvato(luogo.id)}
+                    onApri={() => navigate(`/profilo/salvati/${luogo.id}`)}
+                    onRimuovi={(fallito) =>
+                      rimuoviLuogoSalvato(luogo.id, {
+                        onSuccess: () => showSuccess('Rimosso dai tuoi posti'),
+                        onError: (msg) => {
+                          fallito()
+                          showError(`Non sono riuscito a rimuoverlo (${msg})`, 8000)
+                        },
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -168,55 +182,68 @@ export function LuoghiSalvatiPage() {
 
 function LuogoCard({
   luogo,
+  onApri,
   onRimuovi,
 }: {
   luogo: LuogoSalvato
-  onRimuovi: () => void
+  onApri: () => void
+  onRimuovi: (fallito: () => void) => void
 }) {
+  const [conferma, setConferma] = useState(false)
+  const [rimuovendo, setRimuovendo] = useState(false)
+  const [fotoRotta, setFotoRotta] = useState(false)
+  const haFoto = !!luogo.foto_url && !fotoRotta
+  const etichetta = luogo.categoria ?? (luogo.viaggio_id ? 'In un viaggio' : null)
+
   return (
-    <div className="rounded-[18px] overflow-hidden bg-white shadow-roamly">
-      {/* Placeholder visivo — nessuna foto in questo dato, solo
-          posizione e categoria libera inserita dall'utente */}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={onApri}
+      onKeyDown={(e) => e.key === 'Enter' && onApri()}
+      className="relative rounded-[18px] overflow-hidden bg-white shadow-roamly cursor-pointer active:scale-[0.98] transition-transform"
+    >
       <div
-        className="relative h-[104px] flex items-center justify-center"
-        style={{
+        className="relative h-[104px] flex items-center justify-center overflow-hidden"
+        style={haFoto ? undefined : {
           background: '#DFF3FA',
           backgroundImage: 'repeating-linear-gradient(135deg, rgba(11,111,153,.13) 0 3px, transparent 3px 9px)',
         }}
       >
-        {!luogo.categoria && luogo.viaggio_id && (
-          <span className="
-            absolute left-[9px] top-[9px] px-2 py-1 rounded-full
-            bg-white/85 font-dm-mono text-[8.5px] font-medium
-            uppercase tracking-wider text-roamly-g2
-          ">
-            In un viaggio
-          </span>
-        )}
-        {luogo.categoria && (
-          <span className="
-            absolute left-[9px] top-[9px] px-2 py-1 rounded-full
-            bg-white/85 font-dm-mono text-[8.5px] font-medium
-            uppercase tracking-wider text-roamly-g2 truncate max-w-[80%]
-          ">
-            {luogo.categoria}
-          </span>
+        {haFoto ? (
+          <img
+            src={luogo.foto_url ?? ''}
+            alt=""
+            loading="lazy"
+            onError={() => setFotoRotta(true)}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : (
+          <MapPin size={20} className="text-roamly-g3/50" />
         )}
 
-        <MapPin size={20} className="text-roamly-g3/50" />
+        {etichetta && (
+          <span className="
+            absolute left-[9px] top-[9px] px-2 py-1 rounded-full
+            bg-white/85 font-dm-mono text-[8.5px] font-medium
+            uppercase tracking-wider text-roamly-g2 truncate max-w-[70%]
+          ">
+            {etichetta}
+          </span>
+        )}
 
         <button
-          onClick={onRimuovi}
+          onClick={(e) => { e.stopPropagation(); setConferma(true) }}
           aria-label="Rimuovi dai salvati"
           className="
-            absolute right-[9px] top-[9px] w-7 h-7 rounded-full
-            bg-roamly-coral/90 backdrop-blur-sm
-            flex items-center justify-center text-white
-            hover:bg-roamly-coral-dark active:scale-95
+            absolute right-[7px] top-[7px] w-8 h-8 rounded-full
+            bg-white/90 backdrop-blur-sm shadow-roamly
+            flex items-center justify-center text-roamly-text/60
+            hover:text-red-500 active:scale-95
             transition-all duration-150
           "
         >
-          <Bookmark size={12} fill="currentColor" />
+          <Trash2 size={14} />
         </button>
       </div>
 
@@ -226,10 +253,36 @@ function LuogoCard({
         </p>
         {luogo.indirizzo && (
           <p className="font-dm-sans text-[11px] text-roamly-g2 truncate mt-1">
-            {luogo.indirizzo}
+            {luogo.indirizzo.split(',').slice(1, 3).join(',').trim() || luogo.indirizzo}
           </p>
         )}
       </div>
+
+      {conferma && (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center gap-2.5 p-3 text-center"
+        >
+          <p className="font-dm-sans text-[13px] font-medium text-roamly-g0">Rimuovere questo posto?</p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setConferma(false)}
+              disabled={rimuovendo}
+              className="h-9 px-4 rounded-full bg-roamly-g7 text-roamly-g1 font-dm-sans text-xs font-medium"
+            >
+              Annulla
+            </button>
+            <button
+              onClick={() => { setRimuovendo(true); onRimuovi(() => setRimuovendo(false)) }}
+              disabled={rimuovendo}
+              className="h-9 px-4 rounded-full bg-red-500 text-white font-dm-sans text-xs font-semibold inline-flex items-center gap-1.5 disabled:opacity-70"
+            >
+              {rimuovendo && <Loader2 size={12} className="animate-spin" />}
+              Rimuovi
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,8 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
-import { getLuoghiSalvati, salvaLuogo, rimuoviLuogoSalvato, assegnaLuoghiAViaggio } from '@/services/luoghiSalvatiService'
+import { getLuoghiSalvati, salvaLuogo, rimuoviLuogoSalvato, assegnaLuoghiAViaggio, aggiornaLuogoSalvato } from '@/services/luoghiSalvatiService'
 import { useAuth } from '@/hooks/useAuth'
-import type { NuovoLuogoSalvato } from '@/types'
+import { recuperaInfoLuogo } from '@/lib/luogo-info'
+import type { RisultatoGeocoding } from '@/lib/geocoding'
+import type { LuogoSalvato, NuovoLuogoSalvato, ModificaLuogoSalvato } from '@/types'
 
 // ============================================================
 // ROAMLY — useLuoghiSalvati
@@ -56,12 +58,18 @@ export function useLuoghiSalvati(viaggioId?: string) {
     isLoading: query.isLoading,
     salvaLuogo: (
       payload: NuovoLuogoSalvato,
-      esito?: { onSuccess?: () => void; onError?: (messaggio: string) => void }
+      esito?: { onSuccess?: (luogo: LuogoSalvato | null) => void; onError?: (messaggio: string) => void }
     ) => salva.mutate(payload, {
+      onSuccess: (luogo) => esito?.onSuccess?.(luogo),
+      onError: (e) => esito?.onError?.(e instanceof Error ? e.message : 'Errore sconosciuto'),
+    }),
+    rimuoviLuogoSalvato: (
+      id: string,
+      esito?: { onSuccess?: () => void; onError?: (messaggio: string) => void }
+    ) => rimuovi.mutate(id, {
       onSuccess: () => esito?.onSuccess?.(),
       onError: (e) => esito?.onError?.(e instanceof Error ? e.message : 'Errore sconosciuto'),
     }),
-    rimuoviLuogoSalvato: (id: string) => rimuovi.mutate(id),
     isSalvando: salva.isPending,
   }
 }
@@ -77,5 +85,34 @@ export function useAssegnaLuoghi() {
     if (!error) {
       queryClient.invalidateQueries({ queryKey: queryKeys.luoghiSalvati.mie })
     }
+  }
+}
+
+// Modifica un luogo salvato (es. assegnarlo a un viaggio) con esito.
+export function useAggiornaLuogo() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+
+  return async (id: string, patch: ModificaLuogoSalvato): Promise<string | null> => {
+    if (!user) return 'Utente non autenticato'
+    const { error } = await aggiornaLuogoSalvato(id, user.id, patch)
+    if (!error) queryClient.invalidateQueries({ queryKey: queryKeys.luoghiSalvati.mie })
+    return error
+  }
+}
+
+// Recupera descrizione, foto e info pratiche del luogo e le salva.
+export function useArricchisciLuogo() {
+  const aggiorna = useAggiornaLuogo()
+
+  return async (luogo: LuogoSalvato, risultato?: RisultatoGeocoding) => {
+    const patch = await recuperaInfoLuogo({
+      nome: luogo.nome,
+      lat: luogo.lat,
+      lng: luogo.lng,
+      categoria: luogo.categoria,
+      risultato,
+    })
+    await aggiorna(luogo.id, patch)
   }
 }

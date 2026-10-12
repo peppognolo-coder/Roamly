@@ -501,11 +501,25 @@ export interface LuogoSalvato {
   indirizzo: string | null
   nota: string | null
   created_at: string
+  // Scheda del luogo — recuperata una sola volta (Wikipedia / OpenStreetMap)
+  descrizione?: string | null
+  foto_url?: string | null
+  foto_credito?: string | null
+  wikipedia_url?: string | null
+  sito_web?: string | null
+  orari?: string | null
+  telefono?: string | null
+  info_aggiornate_at?: string | null
 }
 
 export type NuovoLuogoSalvato = Pick<LuogoSalvato, 'nome' | 'lat' | 'lng'> & Partial<
   Pick<LuogoSalvato, 'viaggio_id' | 'categoria' | 'indirizzo' | 'nota'>
 >
+
+export type ModificaLuogoSalvato = Partial<Pick<LuogoSalvato,
+  'viaggio_id' | 'categoria' | 'descrizione' | 'foto_url' | 'foto_credito' |
+  'wikipedia_url' | 'sito_web' | 'orari' | 'telefono' | 'info_aggiornate_at'
+>>
 
 // ------------------------------------------------------------
 // NOTE VIAGGIO
