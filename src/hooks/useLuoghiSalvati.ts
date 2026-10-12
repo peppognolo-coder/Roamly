@@ -54,7 +54,13 @@ export function useLuoghiSalvati(viaggioId?: string) {
   return {
     luoghi: query.data ?? [],
     isLoading: query.isLoading,
-    salvaLuogo: (payload: NuovoLuogoSalvato) => salva.mutate(payload),
+    salvaLuogo: (
+      payload: NuovoLuogoSalvato,
+      esito?: { onSuccess?: () => void; onError?: (messaggio: string) => void }
+    ) => salva.mutate(payload, {
+      onSuccess: () => esito?.onSuccess?.(),
+      onError: (e) => esito?.onError?.(e instanceof Error ? e.message : 'Errore sconosciuto'),
+    }),
     rimuoviLuogoSalvato: (id: string) => rimuovi.mutate(id),
     isSalvando: salva.isPending,
   }

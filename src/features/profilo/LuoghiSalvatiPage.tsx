@@ -25,7 +25,7 @@ import type { LuogoSalvato } from '@/types'
 export function LuoghiSalvatiPage() {
   const navigate = useNavigate()
   const { luoghi, isLoading, rimuoviLuogoSalvato, salvaLuogo, isSalvando } = useLuoghiSalvati()
-  const { showSuccess } = useToast()
+  const { showSuccess, showError } = useToast()
   const [ricerca, setRicerca] = useState('')
 
   // Solo i posti non ancora assegnati a un viaggio alimentano il suggerimento
@@ -42,14 +42,20 @@ export function LuoghiSalvatiPage() {
       showSuccess('Questo posto è già tra i tuoi salvati')
       return
     }
-    salvaLuogo({
-      nome: r.label.split(',')[0],
-      lat: r.lat,
-      lng: r.lng,
-      indirizzo: r.label,
-      viaggio_id: null,
-    })
-    showSuccess('Aggiunto ai posti che vuoi visitare')
+    // Il messaggio di conferma compare solo se il salvataggio è davvero riuscito
+    salvaLuogo(
+      {
+        nome: r.label.split(',')[0],
+        lat: r.lat,
+        lng: r.lng,
+        indirizzo: r.label,
+        viaggio_id: null,
+      },
+      {
+        onSuccess: () => showSuccess('Aggiunto ai posti che vuoi visitare'),
+        onError: (msg) => showError(`Non sono riuscito a salvare il posto (${msg})`, 8000),
+      }
+    )
   }
 
   function organizzaViaggio() {

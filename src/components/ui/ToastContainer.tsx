@@ -32,9 +32,9 @@ function ToastItem({ toast }: { toast: Toast }) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: -8, scale: 0.97 }}
+      initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0,  scale: 1    }}
-      exit={{    opacity: 0, y: -8, scale: 0.97  }}
+      exit={{    opacity: 0, y: 8, scale: 0.97  }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
       className={`
         flex items-center gap-3
@@ -69,11 +69,13 @@ export function ToastContainer() {
       aria-live="polite"
       aria-atomic="false"
       className="
-        fixed top-4 left-1/2 -translate-x-1/2 z-[100]
-        flex flex-col gap-2
+        fixed left-1/2 -translate-x-1/2 z-[100]
+        flex flex-col-reverse gap-2
         w-full max-w-[390px] px-4
         pointer-events-none
       "
+      // In basso, sopra la barra di navigazione (e la safe area di iPhone)
+      style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 96px)' }}
     >
       <AnimatePresence initial={false}>
         {toasts.map((toast) => (
