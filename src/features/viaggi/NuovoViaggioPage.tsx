@@ -1,10 +1,25 @@
+import { useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import { PageLayout }    from '@/components/layout/PageLayout'
 import { PageHeader }    from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { ViaggioForm }   from './ViaggioForm'
 import { DEFAULT_COVER_ICON_ID } from '@/lib/viaggio-cover-icons'
 import { useCreateViaggio } from '@/hooks/useCrudViaggio'
+import { useAssegnaLuoghi } from '@/hooks/useLuoghiSalvati'
 import type { ViaggioFormData } from './ViaggioForm'
+
+// Stato opzionale passato da "Voglio andarci" quando si organizza un viaggio
+// a partire da luoghi salvati vicini tra loro.
+interface StatoDaLuoghi {
+  daLuoghi?: {
+    nomeZona: string | null
+    paese: string | null
+    lat: number
+    lng: number
+    ids: string[]
+  }
+}
 
 // ============================================================
 // NuovoViaggioPage — /viaggi/nuovo
@@ -12,7 +27,25 @@ import type { ViaggioFormData } from './ViaggioForm'
 // ============================================================
 
 export function NuovoViaggioPage() {
-  const { createViaggio, isLoading, error } = useCreateViaggio()
+  const location = useLocation()
+  const daLuoghi = (location.state as StatoDaLuoghi | null)?.daLuoghi
+  const assegnaLuoghi = useAssegnaLuoghi()
+  const { createViaggio, isLoading, error } = useCreateViaggio({
+    onCreato: (viaggioId) => {
+      if (daLuoghi) void assegnaLuoghi(daLuoghi.ids, viaggioId)
+    },
+  })
+
+  const iniziale = useMemo<Partial<ViaggioFormData> | undefined>(() => {
+    if (!daLuoghi) return undefined
+    return {
+      nome: daLuoghi.nomeZona ? `Viaggio a ${daLuoghi.nomeZona}`.slice(0, 60) : '',
+      destinazione: daLuoghi.nomeZona ?? '',
+      paese: daLuoghi.paese ?? '',
+      destinazione_lat: daLuoghi.lat,
+      destinazione_lng: daLuoghi.lng,
+    }
+  }, [daLuoghi])
 
   function handleSubmit(data: ViaggioFormData) {
     createViaggio({
@@ -37,7 +70,7 @@ export function NuovoViaggioPage() {
         {/* Header con back */}
         <PageHeader
           title="Nuovo viaggio"
-          subtitle="Solo il nome è obbligatorio"
+          subtitle={daLuoghi ? `Con i ${daLuoghi.ids.length} posti che hai salvato` : 'Solo il nome è obbligatorio'}
           variant="withBack"
         />
 
@@ -48,6 +81,7 @@ export function NuovoViaggioPage() {
             isLoading={isLoading}
             error={error}
             submitLabel="Crea viaggio"
+            iniziale={iniziale}
           />
         </div>
 

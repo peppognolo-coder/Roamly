@@ -24,7 +24,7 @@ import type { NuovoViaggio, ModificaViaggio } from '@/types'
 // useCreateViaggio
 // ------------------------------------------------------------
 
-export function useCreateViaggio() {
+export function useCreateViaggio(opzioni?: { onCreato?: (viaggioId: string) => void }) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -55,6 +55,7 @@ export function useCreateViaggio() {
         showSuccess('Viaggio creato')
         registraCredito('primo_viaggio')
         verificaTraguardi()
+        opzioni?.onCreato?.(result.data.id)
         navigate(`/viaggi/${result.data.id}?nuovo=1`, { replace: true })
       }
     },

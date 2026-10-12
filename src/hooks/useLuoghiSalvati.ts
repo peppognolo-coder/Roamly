@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
-import { getLuoghiSalvati, salvaLuogo, rimuoviLuogoSalvato } from '@/services/luoghiSalvatiService'
+import { getLuoghiSalvati, salvaLuogo, rimuoviLuogoSalvato, assegnaLuoghiAViaggio } from '@/services/luoghiSalvatiService'
 import { useAuth } from '@/hooks/useAuth'
 import type { NuovoLuogoSalvato } from '@/types'
 
@@ -57,5 +57,19 @@ export function useLuoghiSalvati(viaggioId?: string) {
     salvaLuogo: (payload: NuovoLuogoSalvato) => salva.mutate(payload),
     rimuoviLuogoSalvato: (id: string) => rimuovi.mutate(id),
     isSalvando: salva.isPending,
+  }
+}
+
+// Assegna dei luoghi salvati a un viaggio appena creato.
+export function useAssegnaLuoghi() {
+  const { user } = useAuth()
+  const queryClient = useQueryClient()
+
+  return async (ids: string[], viaggioId: string) => {
+    if (!user || ids.length === 0) return
+    const { error } = await assegnaLuoghiAViaggio(ids, viaggioId, user.id)
+    if (!error) {
+      queryClient.invalidateQueries({ queryKey: queryKeys.luoghiSalvati.mie })
+    }
   }
 }

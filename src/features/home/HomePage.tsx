@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { BookOpen, Search, Compass, ChevronRight, Bell, Plus, Plane } from 'lucide-react'
+import { BookOpen, Search, Compass, ChevronRight, Bell, Plus, Plane, Bookmark } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -7,6 +7,7 @@ import { Button }            from '@/components/ui/Button'
 import { ViaggioAttivoCard } from './ViaggioAttivoCard'
 import { UltimiRicordiSection } from './UltimiRicordiSection'
 import { ViaggioConclusoCard } from './ViaggioConclusoCard'
+import { SuggerimentoViaggioCard } from './SuggerimentoViaggioCard'
 import { QuickStatsSection }  from './QuickStatsSection'
 import { OggiCard }          from './OggiCard'
 import { RicordoDelGiornoCard, RicordoDelGiornoCardSkeleton } from '@/components/ricordi/RicordoDelGiornoCard'
@@ -231,16 +232,29 @@ export function HomePage() {
 
               {/* Lista completa dei viaggi — prima era raggiungibile solo da Profilo */}
               {!isLoadingViaggio && (tuttiViaggi?.length ?? 0) > 0 && (
-                <button
-                  type="button"
-                  onClick={() => navigate('/viaggi')}
-                  className="self-end flex items-center gap-0.5 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
-                >
-                  Tutti i viaggi
-                  <ChevronRight size={14} />
-                </button>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/profilo/salvati')}
+                    className="flex items-center gap-1 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
+                  >
+                    <Bookmark size={13} />
+                    Voglio andarci
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/viaggi')}
+                    className="flex items-center gap-0.5 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
+                  >
+                    Tutti i viaggi
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
               )}
             </motion.div>
+
+            {/* Suggerimento: posti salvati vicini → organizza un viaggio */}
+            <SuggerimentoViaggioCard />
 
             {/* Tappe di oggi — solo viaggio in corso, e solo se ce ne sono */}
             {vaCercataOggi && viaggioAttivo && tappeViaggioAttivo && tappeViaggioAttivo.length > 0 && (

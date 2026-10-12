@@ -36,8 +36,8 @@ const VOCI: VoceHub[] = [
   },
   {
     id: 'salvati',
-    label: 'I tuoi luoghi salvati',
-    descrizione: 'Posti che vuoi visitare, da tutti i viaggi',
+    label: 'Voglio andarci',
+    descrizione: 'I posti che sogni di visitare, con o senza un viaggio',
     icon: Bookmark,
     path: '/profilo/salvati',
   },

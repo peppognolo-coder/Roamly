@@ -47,3 +47,21 @@ export async function rimuoviLuogoSalvato(id: string, userId: string): Promise<{
   if (error) return { error: error.message }
   return { error: null }
 }
+
+// Assegna a un viaggio i luoghi salvati "liberi" (es. dopo aver
+// organizzato un viaggio dal suggerimento di Voglio andarci).
+export async function assegnaLuoghiAViaggio(
+  ids: string[],
+  viaggioId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  if (ids.length === 0) return { error: null }
+  const { error } = await supabase
+    .from('luoghi_salvati')
+    .update({ viaggio_id: viaggioId })
+    .in('id', ids)
+    .eq('user_id', userId)
+
+  if (error) return { error: error.message }
+  return { error: null }
+}

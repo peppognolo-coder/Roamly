@@ -55,3 +55,57 @@ export function trovaClusterVicini(
 
   return clusters.sort((a, b) => b.length - a.length)
 }
+
+// ------------------------------------------------------------
+// Descrizione di un cluster: nome della zona, paese, centro e
+// chiave stabile (per ricordare un suggerimento già scartato).
+// Il nome della zona è il termine più ricorrente negli indirizzi
+// salvati (esclusi il primo — il nome del posto — e l'ultimo — il
+// paese); se non emerge nulla di affidabile resta null e la UI
+// dice solo "nella stessa zona".
+// ------------------------------------------------------------
+export interface DescrizioneCluster {
+  ids: string[]
+  nomeZona: string | null
+  paese: string | null
+  lat: number
+  lng: number
+  chiave: string
+}
+
+export function descriviCluster(cluster: LuogoSalvato[]): DescrizioneCluster {
+  const conteggio = new Map<string, number>()
+  const paesi = new Map<string, number>()
+
+  for (const l of cluster) {
+    const parti = (l.indirizzo ?? '').split(',').map((p) => p.trim()).filter(Boolean)
+    if (parti.length >= 3) {
+      const paese = parti[parti.length - 1]
+      paesi.set(paese, (paesi.get(paese) ?? 0) + 1)
+      for (const parte of new Set(parti.slice(1, -1))) {
+        if (/^\d+$/.test(parte)) continue
+        conteggio.set(parte, (conteggio.get(parte) ?? 0) + 1)
+      }
+    }
+  }
+
+  const migliore = (m: Map<string, number>, minimo: number) => {
+    let best: string | null = null
+    let n = 0
+    for (const [k, v] of m) if (v > n) { best = k; n = v }
+    return n >= minimo ? best : null
+  }
+
+  const lat = cluster.reduce((a, l) => a + l.lat, 0) / cluster.length
+  const lng = cluster.reduce((a, l) => a + l.lng, 0) / cluster.length
+  const ids = cluster.map((l) => l.id)
+
+  return {
+    ids,
+    nomeZona: migliore(conteggio, Math.max(2, Math.ceil(cluster.length / 2))),
+    paese: migliore(paesi, 1),
+    lat,
+    lng,
+    chiave: [...ids].sort().join('|'),
+  }
+}

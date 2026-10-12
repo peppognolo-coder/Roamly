@@ -67,6 +67,8 @@ interface ViaggioFormProps {
   isLoading: boolean
   error?: string | null
   submitLabel?: string
+  /** Valori di partenza in creazione (es. viaggio organizzato da luoghi salvati). Passare un oggetto stabile (useMemo). */
+  iniziale?: Partial<ViaggioFormData>
 }
 
 // ------------------------------------------------------------
@@ -79,6 +81,7 @@ export function ViaggioForm({
   isLoading,
   error,
   submitLabel,
+  iniziale,
 }: ViaggioFormProps) {
   const isEdit = !!viaggio
   const label = submitLabel ?? (isEdit ? 'Salva modifiche' : 'Crea viaggio')
@@ -95,12 +98,12 @@ export function ViaggioForm({
     // `values` (non `defaultValues`) aggiorna il form ogni volta che
     // il prop `viaggio` cambia — robusto con dati asincroni.
     values: {
-      nome:         viaggio?.nome         ?? '',
-      destinazione: viaggio?.destinazione ?? '',
-      paese:        viaggio?.paese        ?? '',
-      paese_codice: viaggio?.paese_codice ?? '',
-      destinazione_lat: viaggio?.destinazione_lat ?? null,
-      destinazione_lng: viaggio?.destinazione_lng ?? null,
+      nome:         viaggio?.nome         ?? iniziale?.nome         ?? '',
+      destinazione: viaggio?.destinazione ?? iniziale?.destinazione ?? '',
+      paese:        viaggio?.paese        ?? iniziale?.paese        ?? '',
+      paese_codice: viaggio?.paese_codice ?? iniziale?.paese_codice ?? '',
+      destinazione_lat: viaggio?.destinazione_lat ?? iniziale?.destinazione_lat ?? null,
+      destinazione_lng: viaggio?.destinazione_lng ?? iniziale?.destinazione_lng ?? null,
       data_inizio:  viaggio?.data_inizio  ?? '',
       data_fine:    viaggio?.data_fine    ?? '',
       cover_emoji:  viaggio?.cover_emoji  ?? DEFAULT_COVER_ICON_ID,
