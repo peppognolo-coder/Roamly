@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
 import { AuthGuard }  from '@/components/auth/AuthGuard'
 import { GuestGuard } from '@/components/auth/GuestGuard'
 
@@ -39,7 +39,12 @@ const DocumentoWalletDetailPage = lazy(() => import('@/features/profilo/Document
 const OfflinePage            = lazy(() => import('@/features/offline/OfflinePage').then((m) => ({ default: m.OfflinePage })))
 const ViaggiPage             = lazy(() => import('@/features/viaggi/ViaggiPage').then((m) => ({ default: m.ViaggiPage })))
 const ViaggioDetailPage      = lazy(() => import('@/features/viaggi/ViaggioDetailPage').then((m) => ({ default: m.ViaggioDetailPage })))
-const RecapViaggioPage       = lazy(() => import('@/features/viaggi/RecapViaggioPage').then((m) => ({ default: m.RecapViaggioPage })))
+// Il vecchio Riepilogo è stato assorbito dal Racconto: i link esistenti
+// (/viaggi/:id/recap) portano lì.
+function RecapRedirect() {
+  const { id } = useParams<{ id: string }>()
+  return <Navigate to={`/viaggi/${id}/racconto`} replace />
+}
 const RaccontoPage           = lazy(() => import('@/features/viaggi/RaccontoPage').then((m) => ({ default: m.RaccontoPage })))
 const GiornoPage             = lazy(() => import('@/features/viaggi/GiornoPage').then((m) => ({ default: m.GiornoPage })))
 const WrappedPage            = lazy(() => import('@/features/wrapped/WrappedPage').then((m) => ({ default: m.WrappedPage })))
@@ -208,7 +213,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/viaggi/:id/recap',
-    element: <Protected><RecapViaggioPage /></Protected>,
+    element: <Protected><RecapRedirect /></Protected>,
   },
   {
     path: '/viaggi/:id/giorno/:data',

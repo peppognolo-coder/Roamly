@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { pulisciRisposte } from '@/lib/risposte-ricordo'
-import { useSearchParams, useNavigate } from 'react-router-dom'
-import { MapPin, Plus, X } from 'lucide-react'
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom'
+import { ChevronDown, MapPin, Plus, X } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }              from '@/components/layout/PageLayout'
 import { PageHeader }              from '@/components/layout/PageHeader'
@@ -20,8 +20,12 @@ import type { ViaggioConStato }    from '@/types'
 //
 // Scenari:
 //   A. ?viaggioId=:id → viaggio pre-selezionato (da ViaggioDetailPage)
-//   B. Nessun query param → mostra ViaggioSelector
+//   B. Nessun query param → se c'è un solo viaggio, o un solo viaggio
+//      in corso, viene pre-selezionato (si può cambiare toccando il nome);
+//      altrimenti mostra ViaggioSelector
 //   C. Zero viaggi → schermata "Crea prima un viaggio"
+//
+// Dopo il salvataggio si torna alla schermata di provenienza.
 //
 // REGOLA HOOK: tutti gli hook sono dichiarati in cima al componente,
 // prima di qualsiasi return condizionale. Nessun hook dopo un if/return.
@@ -31,6 +35,7 @@ export function NuovoRicordoPage() {
   // ── Tutti gli hook prima di qualsiasi return ───────────────
   const [searchParams]    = useSearchParams()
   const navigate          = useNavigate()
+  const location          = useLocation()
   const viaggioIdParam    = searchParams.get('viaggioId')
   const dataParam         = searchParams.get('data')
   const dataIniziale      = dataParam && /^\d{4}-\d{2}-\d{2}$/.test(dataParam) ? dataParam : undefined
@@ -41,10 +46,28 @@ export function NuovoRicordoPage() {
   const [filesDaAllegare, setFilesDaAllegare] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Ricava il viaggio preselezionato dai dati (null finché viaggi non carica)
-  const viaggioPreselezionato = viaggioIdParam && viaggi
-    ? viaggi.find((v) => v.id === viaggioIdParam) ?? null
+  // Scelta manuale del viaggio (selettore) e apertura del selettore
+  const [viaggioScelto, setViaggioScelto] = useState<string | null>(null)
+  const [sceltaAperta, setSceltaAperta]   = useState(false)
+
+  // Pre-selezione automatica: un solo viaggio in assoluto, oppure un solo
+  // viaggio in corso. Negli altri casi serve chiedere.
+  const viaggioAuto: ViaggioConStato | null = (() => {
+    if (!viaggi || viaggi.length === 0) return null
+    if (viaggi.length === 1) return viaggi[0]
+    const inCorso = viaggi.filter((v) => v.stato_effettivo === 'in_corso')
+    return inCorso.length === 1 ? inCorso[0] : null
+  })()
+
+  const idRichiesto = viaggioScelto ?? viaggioIdParam
+  const viaggioRichiesto: ViaggioConStato | null = idRichiesto && viaggi
+    ? viaggi.find((v) => v.id === idRichiesto) ?? null
     : null
+  const viaggioCorrente = viaggioRichiesto ?? viaggioAuto
+
+  // Ricava il viaggio preselezionato (null finché viaggi non carica
+  // o mentre il selettore è aperto)
+  const viaggioPreselezionato = sceltaAperta ? null : viaggioCorrente
 
   const viaggioId = viaggioPreselezionato?.id ?? ''
 
@@ -55,14 +78,17 @@ export function NuovoRicordoPage() {
     isLoading: isUploading,
   } = useUploadFotoMultiplo('', 0, viaggioId)
 
-  // Hook create — onCreato è stabile: se non ci sono file non fa upload
+  // Hook create — la navigazione finale è gestita qui (una sola volta):
+  // si torna da dove si era arrivati; se la pagina è stata aperta
+  // direttamente (nessuna cronologia) si va al viaggio.
   const { createRicordo: createRicordoMutation, isLoading, error } = useCreateRicordo({
-    skipNavigate: filesDaAllegare.length > 0,
-    onCreato: async (ricordoId) => {
+    skipNavigate: true,
+    onCreato: async (ricordoId, viaggioIdCreato) => {
       if (filesDaAllegare.length > 0) {
         await uploadMultipliConId(filesDaAllegare, ricordoId)
       }
-      navigate(`/viaggi/${viaggioId}`)
+      if (location.key !== 'default') navigate(-1)
+      else navigate(`/viaggi/${viaggioIdCreato}`, { replace: true })
     },
   })
 
@@ -94,8 +120,8 @@ export function NuovoRicordoPage() {
       <PageLayout withBottomNav={false}>
         <ViaggioSelectorPage
           viaggi={viaggi}
-          onSeleziona={(id) => navigate(`/nuovo-ricordo?viaggioId=${id}`, { replace: true })}
-          onBack={() => navigate(-1)}
+          onSeleziona={(id) => { setViaggioScelto(id); setSceltaAperta(false) }}
+          onBack={() => (viaggioCorrente ? setSceltaAperta(false) : navigate(-1))}
         />
       </PageLayout>
     )
@@ -239,17 +265,26 @@ export function NuovoRicordoPage() {
             <X size={15} />
           </button>
           <div className="flex-1 min-w-0">
-            <button
-              type="button"
-              onClick={() => navigate('/nuovo-ricordo', { replace: true })}
-              className="
-                block font-dm-mono text-[9px] font-medium uppercase tracking-[0.16em]
-                text-roamly-text/30 hover:text-roamly-text/50
-                transition-colors duration-150 truncate text-left
-              "
-            >
-              {viaggioPreselezionato.nome}
-            </button>
+            {viaggi.length > 1 ? (
+              <button
+                type="button"
+                onClick={() => setSceltaAperta(true)}
+                aria-label="Cambia viaggio"
+                className="
+                  flex items-center gap-1 max-w-full
+                  font-dm-mono text-[9px] font-medium uppercase tracking-[0.16em]
+                  text-roamly-text/40 hover:text-roamly-text/60
+                  transition-colors duration-150 text-left
+                "
+              >
+                <span className="truncate">{viaggioPreselezionato.nome}</span>
+                <ChevronDown size={11} className="shrink-0" />
+              </button>
+            ) : (
+              <p className="font-dm-mono text-[9px] font-medium uppercase tracking-[0.16em] text-roamly-text/40 truncate">
+                {viaggioPreselezionato.nome}
+              </p>
+            )}
             <h1 className="font-lora text-[20px] leading-tight font-semibold text-roamly-g0 mt-1">
               Com'è andata?
             </h1>
@@ -353,6 +388,12 @@ function NessunViaggioState({ onCrea }: { onCrea: () => void }) {
 // ViaggioSelectorPage
 // ------------------------------------------------------------
 
+const ORDINE_STATO: Record<ViaggioConStato['stato_effettivo'], number> = {
+  in_corso: 0,
+  pianificato: 1,
+  concluso: 2,
+}
+
 function ViaggioSelectorPage({
   viaggi,
   onSeleziona,
@@ -372,7 +413,9 @@ function ViaggioSelectorPage({
       />
 
       <div className="flex-1 px-5 pb-8 flex flex-col gap-2">
-        {viaggi.map((v) => (
+        {[...viaggi]
+          .sort((a, b) => ORDINE_STATO[a.stato_effettivo] - ORDINE_STATO[b.stato_effettivo])
+          .map((v) => (
           <button
             key={v.id}
             onClick={() => onSeleziona(v.id)}
@@ -393,6 +436,11 @@ function ViaggioSelectorPage({
             <div className="flex-1 min-w-0">
               <p className="font-dm-sans font-semibold text-sm text-roamly-text truncate">
                 {v.nome}
+                {v.stato_effettivo === 'in_corso' && (
+                  <span className="ml-2 px-1.5 py-0.5 rounded-full bg-roamly-coral-light text-roamly-coral-dark font-dm-mono text-[9px] font-medium uppercase tracking-wide align-middle">
+                    In corso
+                  </span>
+                )}
               </p>
               {v.destinazione && (
                 <p className="font-dm-sans text-xs text-roamly-text/40 truncate mt-0.5">

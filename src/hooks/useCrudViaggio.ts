@@ -55,7 +55,7 @@ export function useCreateViaggio() {
         showSuccess('Viaggio creato')
         registraCredito('primo_viaggio')
         verificaTraguardi()
-        navigate(`/viaggi/${result.data.id}`)
+        navigate(`/viaggi/${result.data.id}?nuovo=1`, { replace: true })
       }
     },
     onError: () => {

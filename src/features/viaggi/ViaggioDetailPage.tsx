@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
-import { Globe, Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move } from 'lucide-react'
+import { Globe, Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import {
   DndContext,
@@ -179,6 +179,15 @@ export function ViaggioDetailPage() {
       return next
     }, { replace: true })
   const [showShare, setShowShare]     = useState(false)
+
+  // Guida dopo la creazione (?nuovo=1): tre primi passi, chiudibile
+  const mostraBenvenuto = searchParams.get('nuovo') === '1'
+  const chiudiBenvenuto = () =>
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('nuovo')
+      return next
+    }, { replace: true })
 
   // Chiude il form solo dopo che la mutation è completata con successo.
   // useEffect reagisce al cambio di updateSuccess senza timer o setState
@@ -447,6 +456,48 @@ export function ViaggioDetailPage() {
         </header>
 
         <div className="px-5 pt-5 pb-6 flex flex-col gap-5">
+
+          {/* Primi passi — compare una volta, subito dopo la creazione */}
+          {mostraBenvenuto && !isEditing && (
+            <div className="bg-white rounded-2xl shadow-roamly p-4 flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-lora text-base font-semibold text-roamly-g0">Viaggio creato</p>
+                  <p className="font-dm-sans text-xs text-roamly-text/50 mt-0.5">Da dove vuoi partire?</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={chiudiBenvenuto}
+                  aria-label="Chiudi"
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-roamly-text/40 hover:bg-roamly-g7"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {[
+                  viaggio.stato_effettivo === 'pianificato'
+                    ? { tag: 'ITI', label: 'Costruisci l\'itinerario', path: `/viaggi/${id}/itinerario` }
+                    : { tag: 'RIC', label: 'Scrivi il primo ricordo', path: `/nuovo-ricordo?viaggioId=${id}` },
+                  { tag: 'PRE', label: 'Aggiungi le prenotazioni', path: `/viaggi/${id}/prenotazioni` },
+                  { tag: 'VAL', label: 'Prepara la valigia', path: `/viaggi/${id}/valigia` },
+                ].map((p) => (
+                  <button
+                    key={p.tag}
+                    type="button"
+                    onClick={() => navigate(p.path)}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-roamly-g7 text-left active:scale-[0.98] transition-transform"
+                  >
+                    <span className="w-9 h-9 rounded-lg bg-white flex items-center justify-center font-dm-mono text-[10px] font-medium text-roamly-g1 shrink-0">
+                      {p.tag}
+                    </span>
+                    <span className="flex-1 font-dm-sans text-sm font-medium text-roamly-g0">{p.label}</span>
+                    <ChevronRight size={16} className="text-roamly-text/25" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recap di fine viaggio — solo per viaggi conclusi. Unico
               punto d'accesso al Racconto immersivo (RaccontoPage), che

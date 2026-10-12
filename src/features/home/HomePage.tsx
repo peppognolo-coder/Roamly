@@ -5,7 +5,6 @@ import { PageHeader }        from '@/components/layout/PageHeader'
 import { BottomNav }         from '@/components/layout/BottomNav'
 import { Button }            from '@/components/ui/Button'
 import { ViaggioAttivoCard } from './ViaggioAttivoCard'
-import { PromptViaggioImminenteCard } from './PromptViaggioImminenteCard'
 import { UltimiRicordiSection } from './UltimiRicordiSection'
 import { ViaggioConclusoCard } from './ViaggioConclusoCard'
 import { QuickStatsSection }  from './QuickStatsSection'
@@ -179,9 +178,6 @@ export function HomePage() {
         {!isFirstVisit && (
           <div className="flex-1 px-5 pb-8 flex flex-col gap-6">
 
-            {/* Q4 — Prompt viaggio imminente (contestuale, dismissibile) */}
-            <PromptViaggioImminenteCard viaggio={viaggioAttivo} />
-
             {/* Protagonista: viaggio in corso / in arrivo, altrimenti l'ultimo
                 concluso, altrimenti l'invito a pianificare */}
             <motion.div
@@ -230,6 +226,18 @@ export function HomePage() {
                 >
                   <Plus size={18} />
                   Aggiungi un ricordo di oggi
+                </button>
+              )}
+
+              {/* Lista completa dei viaggi — prima era raggiungibile solo da Profilo */}
+              {!isLoadingViaggio && (tuttiViaggi?.length ?? 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/viaggi')}
+                  className="self-end flex items-center gap-0.5 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
+                >
+                  Tutti i viaggi
+                  <ChevronRight size={14} />
                 </button>
               )}
             </motion.div>

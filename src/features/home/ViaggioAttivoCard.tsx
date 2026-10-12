@@ -68,7 +68,7 @@ export function ViaggioAttivoCard({ viaggio, isLoading, prossimaTappa }: Viaggio
 
   return (
     <button
-      onClick={() => navigate(`/viaggi/${viaggio.id}`)}
+      onClick={() => navigate(stato === 'pianificato' ? `/viaggi/${viaggio.id}?tab=pianifica` : `/viaggi/${viaggio.id}`)}
       className="
         relative w-full text-left overflow-hidden
         bg-roamly-g0 rounded-2xl p-4
@@ -158,6 +158,19 @@ export function ViaggioAttivoCard({ viaggio, isLoading, prossimaTappa }: Viaggio
           <span className="font-lora text-sm font-semibold text-white">
             {giorniAlPartenza} {giorniAlPartenza === 1 ? 'giorno' : 'giorni'}
           </span>
+        </div>
+      )}
+
+      {/* Viaggio in arrivo: un solo ingresso alla pianificazione
+          (sostituisce il banner "tutto pronto?" che duplicava questa card) */}
+      {stato === 'pianificato' && (
+        <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+          <span className="font-dm-sans text-xs font-medium text-white">
+            {giorniAlPartenza !== null && giorniAlPartenza > 0 && giorniAlPartenza <= 7
+              ? 'Tutto pronto? Apri la pianificazione'
+              : 'Apri la pianificazione'}
+          </span>
+          <span className="text-white/60" aria-hidden>→</span>
         </div>
       )}
 

@@ -250,9 +250,9 @@ export function WrappedPage() {
                   <Globe size={15} /> Link pubblico
                 </button>
               )}
-              <button onClick={() => navigate(`/viaggi/${viaggioId}/recap`, { replace: true })}
+              <button onClick={() => navigate(`/viaggi/${viaggioId}/racconto`, { replace: true })}
                 className="h-12 rounded-2xl bg-white/12 border border-white/20 text-white font-dm-sans font-medium text-sm">
-                Riepilogo completo
+                Leggi il racconto
               </button>
             </div>
             <button onClick={() => { setProgresso(0); setIndice(0) }}

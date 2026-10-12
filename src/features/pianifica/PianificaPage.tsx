@@ -11,8 +11,10 @@ import { usePianifica }      from '@/hooks/usePianifica'
 // PianificaPage — /pianifica
 // Struttura:
 //   Header
-//   CountdownSection  (prossimo viaggio o viaggio in corso)
-//   Viaggi futuri     (lista ViaggioCard con accordion checklist)
+//   CountdownSection  (prossimo viaggio o viaggio in corso) — è l'unica
+//                     card del prossimo viaggio; apre la sua pianificazione
+//   Valigia           (checklist del prossimo viaggio, subito sotto)
+//   Altri viaggi      (lista ViaggioCard con accordion checklist)
 // ============================================================
 
 export function PianificaPage() {
@@ -23,6 +25,12 @@ export function PianificaPage() {
     viaggioAttivo,
     isLoading,
   } = usePianifica()
+
+  // Il countdown mostra il prossimo viaggio solo se non c'è un viaggio in corso
+  const countdownMostraProssimo = viaggioAttivo?.stato_effettivo !== 'in_corso'
+  const altriPianificati = countdownMostraProssimo
+    ? viaggiPianificati.filter((v) => v.id !== prossimoViaggio?.id)
+    : viaggiPianificati
 
   return (
     <PageLayout>
@@ -47,27 +55,30 @@ export function PianificaPage() {
                 viaggioAttivo={viaggioAttivo}
               />
 
-              {/* Viaggi futuri + checklist */}
-              {viaggiPianificati.length > 0 && (
+              {/* Checklist del prossimo viaggio — la card del viaggio è già
+                  il countdown qui sopra, quindi non si ripete */}
+              {prossimoViaggio && countdownMostraProssimo && (
+                <div className="bg-white rounded-2xl shadow-roamly px-4 py-3">
+                  <ChecklistSection viaggio={prossimoViaggio} />
+                </div>
+              )}
+
+              {/* Altri viaggi futuri + checklist */}
+              {altriPianificati.length > 0 && (
                 <div className="flex flex-col gap-1">
                   <h2 className="font-dm-sans text-xs font-semibold uppercase tracking-wider
                     text-roamly-text/50 mb-2">
-                    Viaggi pianificati · {viaggiPianificati.length}
+                    {countdownMostraProssimo ? 'Altri viaggi in programma' : 'Viaggi in programma'} · {altriPianificati.length}
                   </h2>
 
-                  {viaggiPianificati.map((viaggio) => (
+                  {altriPianificati.map((viaggio) => (
                     <div key={viaggio.id} className="
                       bg-white rounded-2xl
                       shadow-roamly
-                      px-4 pt-1 pb-3
+                      px-4 pt-1 pb-3 mb-3
                     ">
-                      {/* Card viaggio (navigazione a dettaglio) */}
                       <ViaggioCard viaggio={viaggio} linkTab="pianifica" />
-
-                      {/* Divisore */}
                       <div className="h-px bg-roamly-g6 mx-0 my-1" />
-
-                      {/* Checklist lazy accordion */}
                       <ChecklistSection viaggio={viaggio} />
                     </div>
                   ))}

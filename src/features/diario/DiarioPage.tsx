@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Search, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { ChevronRight, Search, X } from 'lucide-react'
 import { PageLayout }            from '@/components/layout/PageLayout'
 import { BottomNav }             from '@/components/layout/BottomNav'
 import { FiltriBar }             from './FiltriBar'
@@ -9,16 +10,14 @@ import { RicordoCardDiario }     from './RicordoCardDiario'
 import { DiarioVuoto, DiarioVuotoConFiltri } from './TimelineVuota'
 import { useDiario }             from '@/hooks/useDiario'
 import { useFiltriDiario }       from '@/hooks/useFiltriDiario'
-import { useRicordoDelGiorno }   from '@/hooks/useRicordoDelGiorno'
 import { haFiltriAttivi }        from '@/lib/diario-utils'
-import type { Ricordo }          from '@/types'
 
 // ============================================================
 // DiarioPage — /diario
 // Due livelli, per non perdersi quando i viaggi crescono:
 //   1. questa pagina: i viaggi come "volumi" (copertina, ricordi,
-//      miniature), raggruppati per anno, più una card "Da riscoprire";
-//      la lente apre ricerca e filtri.
+//      miniature), raggruppati per anno; la lente apre ricerca e filtri.
+//      (Il "Ricordo del giorno" vive solo in Home.)
 //   2. /diario/:id: il diario del singolo viaggio (DiarioViaggioPage).
 // Con ricerca/filtri attivi si vede un elenco unico di ricordi, ognuno
 // con l'etichetta del suo viaggio.
@@ -29,7 +28,6 @@ export function DiarioPage() {
 
   const {
     sezioni,
-    ricordoInEvidenza,
     isLoading,
     isEmpty,
     isEmptyConFiltri,
@@ -39,21 +37,12 @@ export function DiarioPage() {
     autoriDisponibili,
   } = useDiario(filtri)
 
+  const navigate = useNavigate()
   const [cercaAperta, setCercaAperta] = useState(false)
   const filtriAttivi = haFiltriAttivi(filtri)
   const inRicerca = cercaAperta || filtriAttivi
 
-  const { data: ricordoDelGiorno } = useRicordoDelGiorno()
-
   const nomeViaggio = (viaggioId: string) => sezioni.find((s) => s.viaggio.id === viaggioId)?.viaggio.nome
-
-  // "Da riscoprire": il ricordo del giorno se ci sono almeno 3 ricordi, altrimenti quello in evidenza
-  const daRiscoprire: { ricordo: Ricordo; eyebrow: string } | null = useMemo(() => {
-    if (totaleRicordi >= 3 && ricordoDelGiorno?.ricordo) {
-      return { ricordo: ricordoDelGiorno.ricordo, eyebrow: ricordoDelGiorno.labelTempo ?? 'Da riscoprire' }
-    }
-    return ricordoInEvidenza ? { ricordo: ricordoInEvidenza, eyebrow: 'In evidenza' } : null
-  }, [totaleRicordi, ricordoDelGiorno, ricordoInEvidenza])
 
   // Elenco unico (ricerca/filtri): tutti i ricordi filtrati, più recenti prima
   const risultati = useMemo(() => {
@@ -150,29 +139,23 @@ export function DiarioPage() {
         {!isLoading && !isEmpty && !inRicerca && (
           <div className="flex-1 px-5 pt-2 pb-8 flex flex-col gap-7">
 
-            {daRiscoprire && (
-              <motion.section
-                className="flex flex-col gap-3"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <h2 className="font-lora text-lg font-semibold text-roamly-g0">Da riscoprire</h2>
-                <RicordoCardDiario
-                  ricordo={daRiscoprire.ricordo}
-                  eyebrow={daRiscoprire.eyebrow}
-                  viaggioNome={nomeViaggio(daRiscoprire.ricordo.viaggio_id)}
-                />
-              </motion.section>
-            )}
-
             <motion.section
               className="flex flex-col gap-6"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.08 }}
             >
-              <h2 className="font-lora text-lg font-semibold text-roamly-g0 -mb-3">I tuoi viaggi</h2>
+              <div className="flex items-center justify-between -mb-3">
+                <h2 className="font-lora text-lg font-semibold text-roamly-g0">I tuoi viaggi</h2>
+                <button
+                  type="button"
+                  onClick={() => navigate('/viaggi')}
+                  className="flex items-center gap-0.5 font-dm-sans text-xs font-medium text-roamly-g2 active:opacity-60"
+                >
+                  Tutti i viaggi
+                  <ChevronRight size={14} />
+                </button>
+              </div>
               {perAnno.map(([anno, lista]) => (
                 <div key={anno} className="flex flex-col gap-3">
                   <div className="flex items-center gap-3">

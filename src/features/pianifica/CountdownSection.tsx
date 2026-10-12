@@ -91,10 +91,10 @@ export function CountdownSection({
 
   return (
     <div
-      onClick={() => navigate(`/viaggi/${prossimoViaggio.id}`)}
+      onClick={() => navigate(`/viaggi/${prossimoViaggio.id}?tab=pianifica`)}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => e.key === 'Enter' && navigate(`/viaggi/${prossimoViaggio.id}`)}
+      onKeyDown={(e) => e.key === 'Enter' && navigate(`/viaggi/${prossimoViaggio.id}?tab=pianifica`)}
       className="
         flex flex-col gap-3 px-5 py-4
         bg-roamly-g0 rounded-2xl
@@ -140,6 +140,12 @@ export function CountdownSection({
             {formatDataViaggio(prossimoViaggio.data_inizio, prossimoViaggio.data_fine)}
           </p>
         )}
+      </div>
+
+      {/* Un solo ingresso alla pianificazione del viaggio */}
+      <div className="flex items-center justify-between pt-3 border-t border-white/10">
+        <span className="font-dm-sans text-xs font-medium text-white">Apri la pianificazione</span>
+        <span className="text-white/60" aria-hidden>→</span>
       </div>
     </div>
   )
