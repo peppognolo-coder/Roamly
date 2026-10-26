@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { RouterProvider }       from 'react-router-dom'
+import { MotionConfig }         from 'framer-motion'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { router }               from './router'
 import { useAuthListener }      from '@/hooks/useAuth'
@@ -139,7 +140,12 @@ function AppInner() {
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppInner />
+      {/* reducedMotion="user": con "Riduci movimento" attivo nel sistema,
+          framer-motion toglie gli spostamenti (y, x, scale) e lascia solo
+          le dissolvenze. */}
+      <MotionConfig reducedMotion="user">
+        <AppInner />
+      </MotionConfig>
     </QueryClientProvider>
   )
 }

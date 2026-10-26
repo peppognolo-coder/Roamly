@@ -2,6 +2,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
 import { Globe, Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { motion } from 'framer-motion'
 import {
   DndContext,
   closestCenter,
@@ -572,22 +573,39 @@ export function ViaggioDetailPage() {
                   key={t}
                   onClick={() => setTab(t)}
                   className={`
-                    flex-1 h-[38px] rounded-xl border
+                    relative flex-1 h-[38px] rounded-xl border
                     font-dm-sans text-[12.5px] font-medium
-                    transition-all duration-150
+                    transition-colors duration-150
                     ${tab === t
-                      ? 'bg-roamly-g0 border-roamly-g0 text-white'
+                      ? 'border-roamly-g0 text-white'
                       : 'bg-white border-roamly-g5 text-roamly-g1 hover:border-roamly-g4'
                     }
                   `}
                 >
-                  {t === 'pianifica'
-                    ? (viaggio.stato_effettivo === 'concluso' ? 'Pianificato' : 'Pianifica')
-                    : t === 'ricordi' ? 'Ricordi' : 'Persone'}
+                  {/* Pillola che scorre da una tab all'altra (layoutId) */}
+                  {tab === t && (
+                    <motion.span
+                      layoutId="viaggio-tab-pill"
+                      className="absolute -inset-px rounded-xl bg-roamly-g0"
+                      transition={{ type: 'spring', stiffness: 500, damping: 36 }}
+                    />
+                  )}
+                  <span className="relative">
+                    {t === 'pianifica'
+                      ? (viaggio.stato_effettivo === 'concluso' ? 'Pianificato' : 'Pianifica')
+                      : t === 'ricordi' ? 'Ricordi' : 'Persone'}
+                  </span>
                 </button>
               ))}
             </div>
 
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.18 }}
+              className="flex flex-col gap-4"
+            >
             {tab === 'ricordi' && (
               <button
                 onClick={() => navigate(`/nuovo-ricordo?viaggioId=${id}`)}
@@ -806,6 +824,7 @@ export function ViaggioDetailPage() {
                 )}
               </div>
             )}
+            </motion.div>
           </div>
 
           {/* Zona pericolosa — Elimina */}

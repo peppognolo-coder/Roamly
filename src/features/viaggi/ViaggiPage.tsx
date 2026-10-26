@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plane, Plus } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { staggerItem } from '@/lib/animations'
 import { PageLayout }  from '@/components/layout/PageLayout'
 import { PageHeader }  from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -76,8 +78,10 @@ export function ViaggiPage() {
               </div>
 
               <div className="flex flex-col gap-2">
-                {viaggiFiltrati.map((v) => (
-                  <ViaggioCard key={v.id} viaggio={v} />
+                {viaggiFiltrati.map((v, i) => (
+                  <motion.div key={v.id} {...staggerItem(i)}>
+                    <ViaggioCard viaggio={v} />
+                  </motion.div>
                 ))}
               </div>
 

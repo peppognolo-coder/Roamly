@@ -97,3 +97,18 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* ============================================================
+   RIDUCI MOVIMENTO — chi lo ha attivo nel sistema non vede più le
+   transizioni CSS (hover, cambi di colore, scale al tap). Le animazioni
+   a ciclo continuo (spinner, skeleton) restano: sono feedback di
+   caricamento, non decorazione. Framer Motion è gestito a parte
+   (MotionConfig in App.tsx).
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}

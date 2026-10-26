@@ -1,4 +1,6 @@
+import { motion }            from 'framer-motion'
 import { PageLayout }        from '@/components/layout/PageLayout'
+import { staggerItem }       from '@/lib/animations'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
 import { BottomNav }         from '@/components/layout/BottomNav'
@@ -71,8 +73,8 @@ export function PianificaPage() {
                     {countdownMostraProssimo ? 'Altri viaggi in programma' : 'Viaggi in programma'} · {altriPianificati.length}
                   </h2>
 
-                  {altriPianificati.map((viaggio) => (
-                    <div key={viaggio.id} className="
+                  {altriPianificati.map((viaggio, i) => (
+                    <motion.div key={viaggio.id} {...staggerItem(i)} className="
                       bg-white rounded-2xl
                       shadow-roamly
                       px-4 pt-1 pb-3 mb-3
@@ -80,7 +82,7 @@ export function PianificaPage() {
                       <ViaggioCard viaggio={viaggio} linkTab="pianifica" />
                       <div className="h-px bg-roamly-g6 mx-0 my-1" />
                       <ChecklistSection viaggio={viaggio} />
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
