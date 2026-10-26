@@ -14,6 +14,7 @@ import { useUploadFotoMultiplo }   from '@/hooks/useFoto'
 import { calcolaDurataViaggio }    from '@/lib/viaggi-utils'
 import type { RicordoFormData }    from './RicordoForm'
 import type { ViaggioConStato }    from '@/types'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // ============================================================
 // NuovoRicordoPage — /nuovo-ricordo
@@ -35,6 +36,7 @@ export function NuovoRicordoPage() {
   // ── Tutti gli hook prima di qualsiasi return ───────────────
   const [searchParams]    = useSearchParams()
   const navigate          = useNavigate()
+  const indietro = useIndietro()
   const location          = useLocation()
   const viaggioIdParam    = searchParams.get('viaggioId')
   const dataParam         = searchParams.get('data')
@@ -121,7 +123,7 @@ export function NuovoRicordoPage() {
         <ViaggioSelectorPage
           viaggi={viaggi}
           onSeleziona={(id) => { setViaggioScelto(id); setSceltaAperta(false) }}
-          onBack={() => (viaggioCorrente ? setSceltaAperta(false) : navigate(-1))}
+          onBack={() => (viaggioCorrente ? setSceltaAperta(false) : indietro())}
         />
       </PageLayout>
     )
@@ -252,7 +254,7 @@ export function NuovoRicordoPage() {
         {/* Header */}
         <div className="flex-none px-5 pt-14 pb-3 flex items-center gap-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={indietro}
             aria-label="Chiudi"
             className="
               shrink-0 w-[34px] h-[34px] rounded-full

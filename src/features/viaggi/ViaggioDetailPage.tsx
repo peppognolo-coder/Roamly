@@ -45,6 +45,7 @@ import { useReorderRicordi } from '@/hooks/useCrudRicordo'
 import type { Ricordo } from '@/types'
 import { useCoversByViaggio, useCoverViaggio, useFotoCountByViaggio } from '@/hooks/useFoto'
 import type { ViaggioFormData } from './ViaggioForm'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // ============================================================
 // ViaggioDetailPage — /viaggi/:id
@@ -116,6 +117,7 @@ function RicordoCardSortable({ ricordo, coverUrl, riordinabile }: RicordoCardSor
 export function ViaggioDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const indietro = useIndietro()
   const [searchParams, setSearchParams] = useSearchParams()
 
   const { data: viaggio, isLoading } = useViaggio(id)
@@ -282,7 +284,7 @@ export function ViaggioDetailPage() {
         <header className="px-5 pt-14 pb-2">
           <div className="flex items-center gap-3 mb-4">
             <button
-              onClick={() => navigate(-1)}
+              onClick={indietro}
               className="
                 w-9 h-9 rounded-xl
                 flex items-center justify-center

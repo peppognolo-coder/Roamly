@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { X, Download, Trash2, FileText, Plane } from 'lucide-react'
 import { useDocumentoWallet, useDeleteDocumento } from '@/hooks/useWallet'
 import { useViaggio } from '@/hooks/useViaggi'
 import { CATEGORIA_DOCUMENTO_OPTIONS, CAMPI_DETTAGLIO_WALLET } from '@/types'
 import { renderPdfFirstPageAsDataUrl } from '@/lib/pdfPreview'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // Larghezza del riquadro file dentro la card (max-w-[380px] - px-5 su
 // entrambi i lati, vedi il contenitore qui sotto) — usata per renderizzare
@@ -30,7 +31,7 @@ const PDF_PREVIEW_WIDTH_PX = 340
 
 export function DocumentoWalletDetailPage() {
   const { documentoId } = useParams<{ documentoId: string }>()
-  const navigate = useNavigate()
+  const indietro = useIndietro()
 
   const { documento, isLoading, isError } = useDocumentoWallet(documentoId)
   const { data: viaggio } = useViaggio(documento?.viaggio_id ?? undefined)
@@ -70,7 +71,7 @@ export function DocumentoWalletDetailPage() {
 
   function handleEliminaConfirm() {
     if (!documento) return
-    deleteDocumento(documento, { onSuccess: () => navigate(-1) })
+    deleteDocumento(documento, { onSuccess: () => indietro() })
   }
 
   const opt = documento ? CATEGORIA_DOCUMENTO_OPTIONS.find((o) => o.value === documento.categoria) : undefined
@@ -100,7 +101,7 @@ export function DocumentoWalletDetailPage() {
       {/* Barra superiore */}
       <div className="flex items-center justify-between px-5 pt-6 pb-2 shrink-0">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => indietro()}
           aria-label="Chiudi"
           className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors duration-150"
         >

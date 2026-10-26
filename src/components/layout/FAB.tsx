@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Plus, NotebookPen, Plane } from 'lucide-react'
 
@@ -8,6 +8,7 @@ import { Plus, NotebookPen, Plane } from 'lucide-react'
 // FAB — bottone centrale della BottomNav.
 // Tap → si apre a raggiera con due opzioni (Ricordo / Viaggio).
 // Tap su un'opzione, sul FAB stesso, o sullo sfondo → si chiude.
+// Dentro un viaggio, "Ricordo" preseleziona quel viaggio.
 // ============================================================
 
 const OPZIONI = [
@@ -85,11 +86,22 @@ function FabBackdrop({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
 
 export function FAB() {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [isOpen, setIsOpen] = useState(false)
 
-  function handleScegli(to: string) {
+  // Se siamo dentro un viaggio (/viaggi/:id/... o /diario/:id) il nuovo
+  // ricordo parte già con quel viaggio selezionato, come dal bottone
+  // interno alla pagina del viaggio. "nuovo" non è un id.
+  const match = pathname.match(/^\/(?:viaggi|diario)\/([^/]+)/)
+  const viaggioContestoId = match && match[1] !== 'nuovo' ? match[1] : null
+
+  function handleScegli(opz: (typeof OPZIONI)[number]) {
     setIsOpen(false)
-    navigate(to)
+    if (opz.id === 'ricordo' && viaggioContestoId) {
+      navigate(`${opz.to}?viaggioId=${viaggioContestoId}`)
+    } else {
+      navigate(opz.to)
+    }
   }
 
   return (
@@ -107,7 +119,7 @@ export function FAB() {
               animate={{ opacity: 1, scale: 1, x: opz.offset.x, y: opz.offset.y }}
               exit={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
               transition={{ duration: 0.22, delay: i * 0.04, ease: 'easeOut' }}
-              onClick={() => handleScegli(opz.to)}
+              onClick={() => handleScegli(opz)}
               style={{ left: 'calc(50% - 28px)' }}
               className="
                 absolute -top-6 z-50

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -8,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { TIPO_PRENOTAZIONE_OPTIONS } from '@/types'
 import type { Prenotazione } from '@/types'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // ============================================================
 // ROAMLY — PrenotazioneForm
@@ -178,7 +178,7 @@ export function PrenotazioneForm({
   isDeleting = false,
   deleteError,
 }: PrenotazioneFormProps) {
-  const navigate = useNavigate()
+  const indietro = useIndietro()
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -231,7 +231,7 @@ export function PrenotazioneForm({
     if (step > 1) {
       setStep((s) => (s - 1) as 1 | 2)
     } else {
-      navigate(-1)
+      indietro()
     }
   }
 

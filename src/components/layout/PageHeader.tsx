@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // ============================================================
 // PageHeader — header condiviso per le pagine
@@ -27,9 +27,9 @@ export function PageHeader({
   action,
   className = '',
 }: PageHeaderProps) {
-  const navigate = useNavigate()
+  const indietro = useIndietro()
 
-  const handleBack = () => (onBack ? onBack() : navigate(-1))
+  const handleBack = () => (onBack ? onBack() : indietro())
 
   return (
     <header className={`px-5 pt-14 pb-5 ${className}`}>

@@ -22,6 +22,7 @@ import { METEO_ICONE, RisposteRicordo } from './ContestoRicordo'
 import type { RicordoFormData } from './RicordoForm'
 import { FotoGalleria }    from './FotoGalleria'
 import { MoodIcon } from '@/components/ui/MoodIcon'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // ============================================================
 // RicordoDetailPage — /ricordi/:id
@@ -32,6 +33,7 @@ import { MoodIcon } from '@/components/ui/MoodIcon'
 export function RicordoDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const indietro = useIndietro()
 
   const { data: ricordo, isLoading: isLoadingRicordo } = useRicordo(id)
 
@@ -81,7 +83,7 @@ export function RicordoDetailPage() {
       <PageLayout>
         <div className="flex flex-col items-center justify-center gap-4 py-20 px-5 text-center">
           <p className="font-lora text-xl text-roamly-g0">Ricordo non trovato</p>
-          <Button variant="secondary" onClick={() => navigate(-1)}>
+          <Button variant="secondary" onClick={() => indietro()}>
             Torna indietro
           </Button>
         </div>
@@ -136,7 +138,7 @@ export function RicordoDetailPage() {
         {/* Header nav */}
         <header className="flex items-center gap-3 px-5 pt-14 pb-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => indietro()}
             className="
               w-9 h-9 rounded-xl flex items-center justify-center
               bg-roamly-g7 shadow-roamly

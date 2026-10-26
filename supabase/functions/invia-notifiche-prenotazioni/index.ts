@@ -140,7 +140,10 @@ Deno.serve(async (req) => {
     }
 
     const { title, body } = costruisciMessaggio(riga)
-    const payload = JSON.stringify({ title, body, url: '/' })
+    // Stesso link della riga nel feed in-app: il tap sulla notifica apre
+    // direttamente le prenotazioni del viaggio, non la home.
+    const link = `/viaggi/${riga.viaggio_id}/prenotazioni`
+    const payload = JSON.stringify({ title, body, url: link })
 
     try {
       await webpush.sendNotification(subscription, payload)
@@ -158,7 +161,7 @@ Deno.serve(async (req) => {
         tipo: 'prenotazione',
         titolo: title,
         testo: body,
-        link: `/viaggi/${riga.viaggio_id}/prenotazioni`,
+        link,
       })
     } catch (err) {
       const statusCode = (err as { statusCode?: number }).statusCode

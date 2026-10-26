@@ -14,6 +14,7 @@ import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { queryKeys } from '@/lib/queryKeys'
 import { raggruppaPeData } from '@/lib/diario-utils'
 import { formatDataViaggio, gradienteCopertinaViaggio } from '@/lib/viaggi-utils'
+import { useIndietro } from '@/hooks/useIndietro'
 
 // ============================================================
 // DiarioViaggioPage — /diario/:id
@@ -33,6 +34,7 @@ function numeroGiorno(dataISO: string, inizioISO: string | null): number | null 
 export function DiarioViaggioPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const indietro = useIndietro()
 
   const { data: viaggio, isLoading } = useViaggio(id)
   const { data: ricordi = [] } = useRicordi(id)
@@ -68,7 +70,7 @@ export function DiarioViaggioPage() {
 
             <button
               type="button"
-              onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/diario', { replace: true }))}
+              onClick={indietro}
               aria-label="Torna al diario"
               className="absolute left-4 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md text-white
                 flex items-center justify-center active:scale-95 transition-transform

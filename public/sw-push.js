@@ -33,12 +33,27 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   const url = (event.notification.data && event.notification.data.url) || '/'
 
+  const target = new URL(url, self.location.origin).href
+
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async (windowClients) => {
+      // App già aperta (anche in background): la porta in primo piano e la
+      // manda alla pagina della notifica. Prima si usava client.url.includes(url)
+      // con url '/', che combaciava sempre e si limitava a riaprire l'app
+      // dov'era rimasta.
       for (const client of windowClients) {
-        if (client.url.includes(url) && 'focus' in client) return client.focus()
+        if (new URL(client.url).origin !== self.location.origin || !('focus' in client)) continue
+        try {
+          const focused = await client.focus()
+          if (focused && 'navigate' in focused && focused.url !== target) {
+            return await focused.navigate(target)
+          }
+          return focused
+        } catch {
+          // navigate() non disponibile o rifiutato: ripiega su una nuova finestra
+        }
       }
-      if (self.clients.openWindow) return self.clients.openWindow(url)
+      if (self.clients.openWindow) return self.clients.openWindow(target)
     })
   )
 })

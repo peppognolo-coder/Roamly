@@ -1,5 +1,6 @@
 import { useMemo }           from 'react'
 import { useNavigate }       from 'react-router-dom'
+import { useIndietro }       from '@/hooks/useIndietro'
 import { motion }            from 'framer-motion'
 import { Sparkles, Image, ChevronRight, BookOpen, ArrowLeft } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
@@ -60,12 +61,7 @@ interface RaccontoViaggioProps {
 // ============================================================
 
 function BottoneIndietro({ viaggioId }: { viaggioId: string }) {
-  const navigate = useNavigate()
-
-  const esci = () => {
-    if (window.history.length > 1) navigate(-1)
-    else navigate(`/viaggi/${viaggioId}`, { replace: true })
-  }
+  const esci = useIndietro(`/viaggi/${viaggioId}`)
 
   return (
     <div className="sticky top-0 z-30 h-0">
