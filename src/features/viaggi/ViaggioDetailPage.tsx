@@ -556,36 +556,17 @@ export function ViaggioDetailPage() {
             </div>
           )}
 
-          {/* Statistiche */}
-          <div className="bg-white rounded-2xl shadow-roamly p-5">
-            <h2 className="font-dm-sans font-semibold text-sm text-roamly-g2
-              uppercase tracking-wider mb-4">
-              Statistiche
-            </h2>
-            <div className="grid grid-cols-3 gap-3">
-              <StatCard
-                label="Ricordi"
-                value={stats?.ricordi ?? 0}
-                icon={NotebookPen}
-              />
-              <StatCard
-                label="Preferiti"
-                value={stats?.preferiti ?? 0}
-                icon={Heart}
-              />
-              <StatCard
-                label="Highlight"
-                value={stats?.highlight ?? 0}
-                icon={Star}
-              />
-            </div>
-          </div>
-
           {/* Tab Pianifica / Ricordi / Persone */}
           <div className="flex flex-col gap-4">
 
-            {/* Tab bar — segmenti equi con bordo, come nel mockup */}
-            <div className="flex gap-1.5">
+            {/* Tab bar — segmenti equi con bordo, come nel mockup.
+                Sticky: resta visibile scorrendo la lista, così si cambia
+                sezione senza tornare in cima. Limitata a questo blocco:
+                sparisce con la fine del contenuto, sopra la BottomNav (z-40). */}
+            <div
+              className="sticky z-20 -mx-5 px-5 py-2 flex gap-1.5 bg-roamly-bg/95 backdrop-blur-sm"
+              style={{ top: 'env(safe-area-inset-top, 0px)' }}
+            >
               {(['pianifica', 'ricordi', 'persone'] as const).map((t) => (
                 <button
                   key={t}
@@ -625,6 +606,34 @@ export function ViaggioDetailPage() {
                 </svg>
                 Scrivi un ricordo
               </button>
+            )}
+
+            {/* Statistiche dei ricordi — riguardano solo questo tab (prima
+                stavano sopra le tab e spingevano in basso tutto il resto) */}
+            {tab === 'ricordi' && (
+              <div className="bg-white rounded-2xl shadow-roamly p-5">
+                <h2 className="font-dm-sans font-semibold text-sm text-roamly-g2
+                  uppercase tracking-wider mb-4">
+                  Statistiche
+                </h2>
+                <div className="grid grid-cols-3 gap-3">
+                  <StatCard
+                    label="Ricordi"
+                    value={stats?.ricordi ?? 0}
+                    icon={NotebookPen}
+                  />
+                  <StatCard
+                    label="Preferiti"
+                    value={stats?.preferiti ?? 0}
+                    icon={Heart}
+                  />
+                  <StatCard
+                    label="Highlight"
+                    value={stats?.highlight ?? 0}
+                    icon={Star}
+                  />
+                </div>
+              </div>
             )}
 
             {/* Tab Pianifica */}
