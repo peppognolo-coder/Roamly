@@ -96,6 +96,12 @@ export const queryKeys = {
     /** ['ricordi', 'recenti', userId] — ultimi N ricordi (Home + B45) */
     recenti: (userId: string) => ['ricordi', 'recenti', userId] as const,
 
+    /** ['ricordi', 'stesso-giorno', userId, 'MM-DD'] — ricordi di anni passati nello stesso giorno (On This Day) */
+    stessoGiorno: (userId: string, giornoMese: string) => ['ricordi', 'stesso-giorno', userId, giornoMese] as const,
+
+    /** ['ricordi', 'mappa', userId] — ricordi con posizione, per la Mappa */
+    mappa: (userId: string) => ['ricordi', 'mappa', userId] as const,
+
     /** ['ricordi', 'viaggio-ids', userId] — solo i viaggio_id, per Q2 statistiche personali */
     viaggioIds: (userId: string) => ['ricordi', 'viaggio-ids', userId] as const,
 

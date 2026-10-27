@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useEffect, useMemo } from 'react'
-import { Globe, Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move, X } from 'lucide-react'
+import { Globe, Check, NotebookPen, Heart, Star, UserPlus, Users, Sparkles, ChevronRight, Move, X, MapPin } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { motion } from 'framer-motion'
 import {
@@ -648,6 +648,22 @@ export function ViaggioDetailPage() {
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 Scrivi un ricordo
+              </button>
+            )}
+
+            {tab === 'ricordi' && (
+              <button
+                onClick={() => navigate(`/mappa?viaggio=${id}`)}
+                className="
+                  flex items-center justify-center gap-1.5 h-[38px]
+                  border border-roamly-g5 rounded-xl
+                  font-dm-sans text-xs font-medium text-roamly-g1
+                  hover:bg-roamly-g7 active:scale-[0.98]
+                  transition-all duration-150
+                "
+              >
+                <MapPin size={13} />
+                Vedi i ricordi sulla mappa
               </button>
             )}
 

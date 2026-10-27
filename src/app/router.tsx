@@ -23,6 +23,7 @@ import { RootLayout }   from '@/components/layout/RootLayout'
 import { HomePage } from '@/features/home/HomePage'
 
 // Pages — lazy
+const MappaRicordiPage       = lazy(() => import('@/features/mappa/MappaRicordiPage').then((m) => ({ default: m.MappaRicordiPage })))
 const PrivacyPage            = lazy(() => import('@/features/legal/PrivacyPage').then((m) => ({ default: m.PrivacyPage })))
 const TerminiPage            = lazy(() => import('@/features/legal/TerminiPage').then((m) => ({ default: m.TerminiPage })))
 const AuthPage               = lazy(() => import('@/features/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
@@ -260,6 +261,7 @@ const routes: RouteObject[] = [
     element: <AppShell />,
     children: [
       { path: '/', element: <HomePage /> },
+      { path: '/mappa', element: <MappaRicordiPage /> },
       { path: '/diario', element: <DiarioPage /> },
       { path: '/diario/:id', element: <DiarioViaggioPage /> },
       { path: '/ricordi/:id', element: <RicordoDetailPage /> },

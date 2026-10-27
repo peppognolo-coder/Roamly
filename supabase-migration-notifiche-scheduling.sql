@@ -51,9 +51,9 @@ $$;
 --    attivabili da Database → Extensions nella dashboard.
 -- ------------------------------------------------------------
 -- Sostituisci i due placeholder tra <> prima di lanciare:
---   <tonvixjrrhpbjxgrzjgi>          → l'ID del tuo progetto Supabase
+--   <PROJECT_REF>          → l'ID del tuo progetto Supabase
 --                             (visibile nell'URL della dashboard)
---   <eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRvbnZpeGpycmhwYmp4Z3J6amdpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MTM1OTA2MSwiZXhwIjoyMDk2OTM1MDYxfQ.JwT5SbD-ABTnsozCKrFXICQQFhm-jWqohnk7yszcKwo>     → Project Settings → API → service_role
+--   <SERVICE_ROLE_KEY>     → Project Settings → API → service_role
 --                             (quella segreta, non la anon)
 
 CREATE EXTENSION IF NOT EXISTS pg_cron;

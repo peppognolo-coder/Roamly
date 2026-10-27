@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ChevronRight, Search, X } from 'lucide-react'
+import { ChevronRight, MapPin, Search, X } from 'lucide-react'
 import { PageLayout }            from '@/components/layout/PageLayout'
 import { FiltriBar }             from './FiltriBar'
 import { VolumeViaggioCard }     from './VolumeViaggioCard'
@@ -76,6 +76,17 @@ export function DiarioPage() {
           <div className="flex items-center justify-between gap-3">
             <h1 className="font-lora text-h1 text-roamly-g0">Il tuo diario</h1>
             {!isLoading && !isEmpty && (
+              <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/mappa')}
+                aria-label="Mappa dei ricordi"
+                className="w-10 h-10 rounded-full bg-roamly-g7 text-roamly-g1 flex items-center justify-center
+                  active:scale-95 transition-transform
+                  focus:outline-none focus-visible:ring-2 focus-visible:ring-roamly-g3"
+              >
+                <MapPin size={18} />
+              </button>
               <button
                 type="button"
                 onClick={() => (inRicerca ? chiudiRicerca() : setCercaAperta(true))}
@@ -86,6 +97,7 @@ export function DiarioPage() {
               >
                 {inRicerca ? <X size={18} /> : <Search size={18} />}
               </button>
+              </div>
             )}
           </div>
 

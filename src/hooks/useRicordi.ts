@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/queryKeys'
-import { getRicordiDelViaggio, getRicordo, getRicordiRecenti, getStatisticheUtente, getRicordiViaggioIds } from '@/services/ricordiService'
+import { getRicordiDelViaggio, getRicordo, getRicordiRecenti, getRicordiStessoGiorno, getRicordiConPosizione, getStatisticheUtente, getRicordiViaggioIds } from '@/services/ricordiService'
 import { useAuth } from '@/hooks/useAuth'
 
 // ============================================================
@@ -44,6 +44,46 @@ export function useRicordo(ricordoId: string | undefined) {
       return data
     },
     enabled: !!user && !!ricordoId,
+    staleTime: 1000 * 60 * 2,
+  })
+}
+
+// ------------------------------------------------------------
+// useRicordiStessoGiorno — ricordi di anni passati nello stesso giorno
+// e mese di `oggi` ('YYYY-MM-DD'). Alimenta "On This Day" senza il
+// limite degli ultimi 50 ricordi.
+// ------------------------------------------------------------
+
+export function useRicordiStessoGiorno(oggi: string) {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: queryKeys.ricordi.stessoGiorno(user?.id ?? '', oggi.slice(5)),
+    queryFn: async () => {
+      const { data, error } = await getRicordiStessoGiorno(user!.id, oggi)
+      if (error) throw new Error(error)
+      return data
+    },
+    enabled: !!user,
+    staleTime: 1000 * 60 * 10,
+  })
+}
+
+// ------------------------------------------------------------
+// useRicordiMappa — ricordi con posizione (Mappa dei ricordi)
+// ------------------------------------------------------------
+
+export function useRicordiMappa() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: queryKeys.ricordi.mappa(user?.id ?? ''),
+    queryFn: async () => {
+      const { data, error } = await getRicordiConPosizione(user!.id)
+      if (error) throw new Error(error)
+      return data
+    },
+    enabled: !!user,
     staleTime: 1000 * 60 * 2,
   })
 }

@@ -107,6 +107,64 @@ export async function getRicordiRecenti(userId: string, limit = 10): Promise<{
 }
 
 // ------------------------------------------------------------
+// getRicordiStessoGiorno — ricordi scritti nello stesso giorno e mese
+// di `oggi` ('YYYY-MM-DD') in un anno passato. Sorgente di "On This Day":
+// a differenza di getRicordiRecenti non ha limiti di quantità, quindi un
+// ricordo di tre anni fa viene trovato anche se ce ne sono centinaia dopo.
+// `data` è una colonna DATE: si confronta con l'elenco esatto delle date
+// (una per anno), che funziona anche con 29 febbraio.
+// ------------------------------------------------------------
+
+export async function getRicordiStessoGiorno(userId: string, oggi: string): Promise<{
+  data: Ricordo[]
+  error: string | null
+}> {
+  const [anno, mese, giorno] = oggi.split('-').map(Number)
+  const date: string[] = []
+  for (let y = anno - 1; y >= 2000; y--) {
+    const d = new Date(Date.UTC(y, mese - 1, giorno))
+    // Scarta le date che non esistono (29 febbraio in un anno non bisestile)
+    if (d.getUTCMonth() !== mese - 1) continue
+    date.push(d.toISOString().slice(0, 10))
+  }
+  if (date.length === 0) return { data: [], error: null }
+
+  const { data, error } = await supabase
+    .from('ricordi')
+    .select('*')
+    .eq('user_id', userId)
+    .in('data', date)
+    .order('data', ORDER_DATA_DESC)
+    .order('created_at', ORDER_DATA_DESC)
+
+  if (error) return { data: [], error: error.message }
+  return { data: data as Ricordo[], error: null }
+}
+
+// ------------------------------------------------------------
+// getRicordiConPosizione — tutti i ricordi dell'utente con lat/lng,
+// per la Mappa dei ricordi. Solo i campi che servono, senza testo.
+// ------------------------------------------------------------
+
+export type RicordoMappa = Pick<Ricordo, 'id' | 'viaggio_id' | 'titolo' | 'luogo' | 'lat' | 'lng' | 'data'>
+
+export async function getRicordiConPosizione(userId: string): Promise<{
+  data: RicordoMappa[]
+  error: string | null
+}> {
+  const { data, error } = await supabase
+    .from('ricordi')
+    .select('id, viaggio_id, titolo, luogo, lat, lng, data')
+    .eq('user_id', userId)
+    .not('lat', 'is', null)
+    .not('lng', 'is', null)
+    .order('data', ORDER_DATA_DESC)
+
+  if (error) return { data: [], error: error.message }
+  return { data: (data ?? []) as RicordoMappa[], error: null }
+}
+
+// ------------------------------------------------------------
 // createRicordo — crea un nuovo ricordo
 // ------------------------------------------------------------
 

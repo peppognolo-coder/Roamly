@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useRicordiRecenti } from '@/hooks/useRicordi'
+import { useRicordiRecenti, useRicordiStessoGiorno } from '@/hooks/useRicordi'
 import { useViaggi } from '@/hooks/useViaggi'
 import { getRicordoDelGiorno, oggiLocale } from '@/lib/ricordi-utils'
 import type { Ricordo, ViaggioConStato } from '@/types'
@@ -32,14 +32,25 @@ export function useRicordoDelGiorno(): {
 } {
   const { data: ricordi, isLoading: isLoadingRicordi } = useRicordiRecenti(50)
   const { data: viaggi, isLoading: isLoadingViaggi }   = useViaggi()
+  const oggi = oggiLocale()
+  // Ricordi dello stesso giorno in anni passati, senza il limite dei 50
+  // più recenti: "Un anno fa" funziona anche con centinaia di ricordi.
+  const { data: stessoGiorno, isLoading: isLoadingStessoGiorno } = useRicordiStessoGiorno(oggi)
 
-  const isLoading = isLoadingRicordi || isLoadingViaggi
+  const isLoading = isLoadingRicordi || isLoadingViaggi || isLoadingStessoGiorno
 
   const data = useMemo(() => {
-    if (!ricordi || ricordi.length === 0) return null
+    // Unione senza doppioni: stessoGiorno ha la precedenza (On This Day),
+    // i recenti restano il serbatoio per preferiti / fallback.
+    const visti = new Set<string>()
+    const tutti = [...(stessoGiorno ?? []), ...(ricordi ?? [])].filter((r) => {
+      if (visti.has(r.id)) return false
+      visti.add(r.id)
+      return true
+    })
+    if (tutti.length === 0) return null
 
-    const oggi = oggiLocale()
-    const risultato = getRicordoDelGiorno(ricordi, oggi)
+    const risultato = getRicordoDelGiorno(tutti, oggi)
     if (!risultato) return null
 
     const viaggio = viaggi?.find((v) => v.id === risultato.ricordo.viaggio_id) ?? null
@@ -49,7 +60,7 @@ export function useRicordoDelGiorno(): {
       viaggio,
       labelTempo: risultato.labelTempo,
     }
-  }, [ricordi, viaggi])
+  }, [ricordi, stessoGiorno, viaggi, oggi])
 
   return { data, isLoading }
 }
