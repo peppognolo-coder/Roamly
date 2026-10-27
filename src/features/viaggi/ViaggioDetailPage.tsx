@@ -565,13 +565,34 @@ export function ViaggioDetailPage() {
                 sezione senza tornare in cima. Limitata a questo blocco:
                 sparisce con la fine del contenuto, sopra la BottomNav (z-40). */}
             <div
+              role="tablist"
+              aria-label="Sezioni del viaggio"
               className="sticky z-20 -mx-5 px-5 py-2 flex gap-1.5 bg-roamly-bg/95 backdrop-blur-sm"
               style={{ top: 'env(safe-area-inset-top, 0px)' }}
             >
               {(['pianifica', 'ricordi', 'persone'] as const).map((t) => (
                 <button
                   key={t}
+                  id={`tab-viaggio-${t}`}
+                  role="tab"
+                  type="button"
+                  aria-selected={tab === t}
+                  aria-controls="pannello-viaggio"
+                  tabIndex={tab === t ? 0 : -1}
                   onClick={() => setTab(t)}
+                  onKeyDown={(e) => {
+                    // Frecce sinistra/destra spostano la selezione (pattern WAI-ARIA tabs)
+                    const ordine = ['pianifica', 'ricordi', 'persone'] as const
+                    const i = ordine.indexOf(t)
+                    const prossimo =
+                      e.key === 'ArrowRight' ? ordine[(i + 1) % ordine.length]
+                      : e.key === 'ArrowLeft' ? ordine[(i + ordine.length - 1) % ordine.length]
+                      : null
+                    if (!prossimo) return
+                    e.preventDefault()
+                    setTab(prossimo)
+                    document.getElementById(`tab-viaggio-${prossimo}`)?.focus()
+                  }}
                   className={`
                     relative flex-1 h-[38px] rounded-xl border
                     font-dm-sans text-[12.5px] font-medium
@@ -601,6 +622,9 @@ export function ViaggioDetailPage() {
 
             <motion.div
               key={tab}
+              id="pannello-viaggio"
+              role="tabpanel"
+              aria-labelledby={`tab-viaggio-${tab}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.18 }}

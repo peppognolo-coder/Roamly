@@ -1,7 +1,10 @@
 import { lazy, Suspense } from 'react'
 import { createBrowserRouter, Navigate, useParams } from 'react-router-dom'
+import type { RouteObject } from 'react-router-dom'
 import { AuthGuard }  from '@/components/auth/AuthGuard'
 import { GuestGuard } from '@/components/auth/GuestGuard'
+import { PageSkeleton } from '@/components/layout/PageSkeleton'
+import { RouteError }   from '@/components/layout/RouteError'
 
 // ============================================================
 // Code splitting per route.
@@ -69,13 +72,8 @@ const AttivitaPage = lazy(() =>
   import('@/features/pianifica/AttivitaPage').then((m) => ({ default: m.AttivitaPage }))
 )
 
-function PageLoadingFallback() {
-  return (
-    <div className="min-h-screen bg-roamly-bg flex items-center justify-center">
-      <div className="w-6 h-6 rounded-full border-2 border-roamly-g3 border-t-transparent animate-spin" />
-    </div>
-  )
-}
+// Fallback di Suspense: sagoma della pagina (header + card) invece dello spinner
+const PageLoadingFallback = PageSkeleton
 
 function Protected({ children }: { children: React.ReactNode }) {
   return (
@@ -89,7 +87,7 @@ function Public({ children }: { children: React.ReactNode }) {
   return <GuestGuard>{children}</GuestGuard>
 }
 
-export const router = createBrowserRouter([
+const routes: RouteObject[] = [
   // ── Libera (funziona sia autenticati che no) ──────────────
   {
     path: '/invito/:token',
@@ -291,4 +289,12 @@ export const router = createBrowserRouter([
     path: '/viaggi/:id/note',
     element: <Protected><NoteViaggioPage /></Protected>,
   },
+]
+
+// errorElement su ogni rotta: un errore nel render di una pagina (o un chunk
+// lazy non più valido dopo un deploy) mostra RouteError invece di una
+// schermata bianca. La rotta "*" cattura gli indirizzi inesistenti (404).
+export const router = createBrowserRouter([
+  ...routes.map((r) => ({ ...r, errorElement: <RouteError /> })),
+  { path: '*', element: <RouteError notFound /> },
 ])
