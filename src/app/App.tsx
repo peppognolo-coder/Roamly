@@ -3,7 +3,7 @@ import { RouterProvider }       from 'react-router-dom'
 import { MotionConfig }         from 'framer-motion'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { router }               from './router'
-import { useAuthListener }      from '@/hooks/useAuth'
+import { useAuthListener, useAuth } from '@/hooks/useAuth'
 import { useAuthStore }         from '@/store/authStore'
 import { useToastStore }        from '@/store/toastStore'
 import { getInvitoInSospeso, clearInvitoInSospeso, accettaInvito } from '@/services/invitiService'
@@ -125,8 +125,28 @@ function usePendingInviteHandler() {
   }, [])
 }
 
+// ------------------------------------------------------------
+// Splash di apertura (index.html): dice alla splash che l'app è pronta
+// quando la sessione è stata letta (isLoading false) e la prima schermata
+// è montata. Due requestAnimationFrame di margine perché il cambio da
+// "carico la sessione" alla pagina vera arrivi al primo paint prima che
+// la splash cominci a sfumare. La splash ha già durata minima e massima.
+// ------------------------------------------------------------
+function useSplashPronta() {
+  const { isLoading } = useAuth()
+  useEffect(() => {
+    if (isLoading) return
+    let f2 = 0
+    const f1 = requestAnimationFrame(() => {
+      f2 = requestAnimationFrame(() => window.__roamlySplash?.ready())
+    })
+    return () => { cancelAnimationFrame(f1); cancelAnimationFrame(f2) }
+  }, [isLoading])
+}
+
 function AppInner() {
   useAuthListener()
+  useSplashPronta()
   useScrollToTopOnNavigate()
   usePendingInviteHandler()
   return (

@@ -34,7 +34,7 @@ export default defineConfig({
         short_name:  'Roamly',
         description: 'Conserva ogni viaggio. Rivivilo quando vuoi.',
         theme_color:      '#0C2A3D',
-        background_color: '#F9FBFC',
+        background_color: '#0C2A3D',
         display:          'standalone',
         orientation:      'portrait',
         start_url:        '/',

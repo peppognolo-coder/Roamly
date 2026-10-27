@@ -13,9 +13,138 @@
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Font: caricati subito (in parallelo al bundle) invece di aspettare il CSS
+         dell'app che li importa. Servono alla splash (nome in Lora) e all'app. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400&display=swap" />
+
     <title>Roamly</title>
+
+    <!-- ========================================================
+         SPLASH DI APERTURA
+         Una volta per apertura dell'app (sessionStorage): se si torna
+         all'app dallo sfondo, o la pagina si ricarica da sola per un
+         aggiornamento, non riparte. Il flag `splash-on` su <html> decide
+         se mostrarla, prima ancora del primo paint.
+         ======================================================== -->
+    <script>
+      (function () {
+        var r = document.documentElement
+        try { if (!sessionStorage.getItem('roamly:splash')) r.classList.add('splash-on') }
+        catch (e) { r.classList.add('splash-on') }
+      })()
+    </script>
+    <style>
+      html.splash-on, html.splash-on body { background: #0C2A3D; }
+      #splash {
+        display: none;
+        position: fixed; inset: 0; z-index: 99999;
+        background: #0C2A3D;
+        flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+        padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+        transition: opacity .25s ease-out;
+      }
+      html.splash-on #splash { display: flex; }
+      #splash.exit { opacity: 0; pointer-events: none; }
+      #splash svg { width: 96px; height: 96px; overflow: visible; }
+
+      #splash .rs-edge {
+        stroke: #fff; stroke-width: 3.6; stroke-linecap: round; fill: none;
+        stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0;
+        animation: rs-draw .5s cubic-bezier(.3, .7, .2, 1) forwards;
+      }
+      #splash .rs-l { animation-delay: .05s; }
+      #splash .rs-r { animation-delay: .11s; }
+      #splash .rs-dash { stroke: #5FB8D9; stroke-linecap: round; fill: none; opacity: 0; animation: rs-dashin .2s ease-out forwards; }
+      #splash .rs-a { stroke-width: 3; animation-delay: .4s; }
+      #splash .rs-b { stroke-width: 2.4; animation-delay: .48s; }
+      #splash .rs-dot, #splash .rs-ring { transform-box: fill-box; transform-origin: center; }
+      #splash .rs-dot { fill: #FF6B4A; opacity: 0; animation: rs-pop .3s cubic-bezier(.3, 1.6, .5, 1) .55s forwards; }
+      #splash .rs-ring { fill: none; stroke: #FF6B4A; stroke-width: 1.2; opacity: 0; animation: rs-ripple .55s ease-out .62s forwards; }
+      #splash .rs-name {
+        font: 600 26px/1 Lora, Georgia, 'Times New Roman', serif; color: #fff; letter-spacing: .02em;
+        opacity: 0; animation: rs-up .3s ease-out .66s forwards;
+      }
+      #splash .rs-tag {
+        margin-top: -6px; padding-inline: 24px; text-align: center;
+        font: 400 11px/1.45 'DM Sans', system-ui, -apple-system, sans-serif; color: rgba(255, 255, 255, .58);
+        opacity: 0; animation: rs-up .3s ease-out .76s forwards;
+      }
+      /* App più lenta del disegno: il punto corallo respira finché non è pronta */
+      #splash.wait .rs-dot {
+        animation: rs-pop .3s cubic-bezier(.3, 1.6, .5, 1) .55s forwards, rs-breathe 1.6s ease-in-out 1.1s infinite;
+      }
+
+      @keyframes rs-draw    { 0% { stroke-dashoffset: 1; opacity: 0; } 6% { opacity: 1; } 100% { stroke-dashoffset: 0; opacity: 1; } }
+      @keyframes rs-dashin  { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+      @keyframes rs-pop     { 0% { transform: scale(.2); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+      @keyframes rs-ripple  { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(3.4); opacity: 0; } }
+      @keyframes rs-up      { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+      @keyframes rs-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.22); } }
+
+      /* Riduci movimento: il segno compare già disegnato, fermo, e sfuma via */
+      @media (prefers-reduced-motion: reduce) {
+        #splash { transition-duration: .15s; }
+        #splash * { animation: none !important; opacity: 1 !important; transform: none !important; stroke-dashoffset: 0 !important; }
+        #splash .rs-ring { opacity: 0 !important; }
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" role="status" aria-label="Roamly si sta aprendo">
+      <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <path class="rs-edge rs-l" pathLength="1" d="M15 52 L28.8 25" />
+        <path class="rs-edge rs-r" pathLength="1" d="M49 52 L35.2 25" />
+        <path class="rs-dash rs-a" d="M32 50 L32 45" />
+        <path class="rs-dash rs-b" d="M32 40 L32 36.5" />
+        <circle class="rs-ring" cx="32" cy="20" r="4.6" />
+        <circle class="rs-dot" cx="32" cy="20" r="4.6" />
+      </svg>
+      <div class="rs-name">Roamly</div>
+      <div class="rs-tag">Conserva ogni viaggio.<br />Rivivilo quando vuoi.</div>
+    </div>
+    <script>
+      /* Gestione della splash. L'app chiama window.__roamlySplash.ready()
+         quando la sessione è risolta e la prima schermata è montata (vedi
+         App.tsx). La splash resta almeno il tempo del disegno (MIN), poi
+         sfuma; se l'app è più lenta aspetta; se l'app non risponde entro MAX
+         sfuma comunque, così non può restare incollata sopra un errore. */
+      (function () {
+        var root = document.documentElement
+        var el = document.getElementById('splash')
+        var api = { ready: function () {} }
+        window.__roamlySplash = api
+        if (!el || !root.classList.contains('splash-on')) return
+
+        try { sessionStorage.setItem('roamly:splash', '1') } catch (e) {}
+
+        var ridotto = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        var MIN = ridotto ? 500 : 950
+        var MAX = 8000
+        var t0 = performance.now()
+        var chiusa = false
+
+        function esci() {
+          if (chiusa) return
+          chiusa = true
+          el.classList.add('exit')
+          var fine = function () {
+            if (el.parentNode) el.parentNode.removeChild(el)
+            root.classList.remove('splash-on')
+          }
+          el.addEventListener('transitionend', fine, { once: true })
+          setTimeout(fine, 600)
+        }
+
+        if (!ridotto) setTimeout(function () { if (!chiusa) el.classList.add('wait') }, MIN)
+        api.ready = function () {
+          setTimeout(esci, Math.max(0, MIN - (performance.now() - t0)))
+        }
+        setTimeout(esci, MAX)
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
