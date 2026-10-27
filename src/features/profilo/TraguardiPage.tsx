@@ -5,7 +5,6 @@ import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { useTraguardi } from '@/hooks/useBadges'
 import type { BadgeConStato } from '@/types'
 
@@ -68,7 +67,6 @@ export function TraguardiPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

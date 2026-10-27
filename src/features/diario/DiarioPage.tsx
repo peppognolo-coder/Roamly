@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Search, X } from 'lucide-react'
 import { PageLayout }            from '@/components/layout/PageLayout'
-import { BottomNav }             from '@/components/layout/BottomNav'
 import { FiltriBar }             from './FiltriBar'
 import { VolumeViaggioCard }     from './VolumeViaggioCard'
 import { RicordoCardDiario }     from './RicordoCardDiario'
@@ -172,7 +171,6 @@ export function DiarioPage() {
           </div>
         )}
       </div>
-      <BottomNav />
     </PageLayout>
   )
 }

@@ -6,7 +6,6 @@ import type { LucideIcon } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { useProfilo }   from '@/hooks/useProfilo'
 import { useAuth }      from '@/hooks/useAuth'
 import { useStatisticheUtente } from '@/hooks/useRicordi'
@@ -201,7 +200,6 @@ export function ProfiloPage() {
 
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

@@ -3,7 +3,6 @@ import { PageLayout }        from '@/components/layout/PageLayout'
 import { staggerItem }       from '@/lib/animations'
 import { PageHeader }        from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
-import { BottomNav }         from '@/components/layout/BottomNav'
 import { CountdownSection }  from './CountdownSection'
 import { ChecklistSection }  from './ChecklistSection'
 import { ViaggioCard }       from '@/features/viaggi/ViaggioCard'
@@ -92,7 +91,6 @@ export function PianificaPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

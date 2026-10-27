@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { FAB } from './FAB'
 
 interface NavItem {
@@ -58,11 +59,17 @@ const navItems: NavItem[] = [
 
 export function BottomNav() {
   return (
-    <nav className="
-      fixed bottom-0 left-0 right-0 z-40
-      flex justify-center
-      pointer-events-none
-    ">
+    <nav
+      aria-label="Navigazione principale"
+      // Nome di transizione: durante un cambio pagina la barra resta ferma
+      // (non si dissolve insieme al resto); vedi ::view-transition in globals.css
+      style={{ viewTransitionName: 'bottom-nav' }}
+      className="
+        fixed bottom-0 left-0 right-0 z-40
+        flex justify-center
+        pointer-events-none
+      "
+    >
       <div className="
         w-full max-w-[430px]
         bg-roamly-bg/95 backdrop-blur-sm
@@ -108,7 +115,13 @@ function NavTabItem({ item }: { item: NavItem }) {
         <>
           <span className="relative">
             {isActive && (
-              <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-roamly-g3" />
+              // Un solo punto condiviso (layoutId): scivola da una tab all'altra
+              // perché la barra non si rimonta più a ogni pagina (AppShell).
+              <motion.span
+                layoutId="bottomnav-dot"
+                transition={{ type: 'spring', stiffness: 500, damping: 34 }}
+                className="absolute -top-1.5 left-1/2 -ml-0.5 w-1 h-1 rounded-full bg-roamly-g3"
+              />
             )}
             <span className={isActive ? 'scale-105 transition-transform block' : 'block'}>
               {item.icon}

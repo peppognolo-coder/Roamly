@@ -2,7 +2,8 @@
 // PageSkeleton — fallback di Suspense mentre si scarica il chunk di
 // una pagina lazy. Riproduce la sagoma tipica (header + card) al posto
 // del cerchio che gira, così il passaggio al contenuto reale non
-// "salta". Niente BottomNav: la barra la monta ogni pagina da sé.
+// "salta". Niente BottomNav: nelle schermate principali la monta AppShell,
+// fuori dallo Suspense, quindi resta visibile anche durante il caricamento.
 // ============================================================
 
 export function PageSkeleton() {

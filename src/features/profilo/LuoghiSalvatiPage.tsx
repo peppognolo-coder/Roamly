@@ -4,7 +4,6 @@ import { Bookmark, MapPin, Sparkles, Plus, Trash2, Loader2, Folder, Pencil, Plan
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { useLuoghiSalvati, useArricchisciLuogo, useGestioneRaccolte } from '@/hooks/useLuoghiSalvati'
 import { LuogoSearchInput } from '@/components/ui/LuogoSearchInput'
 import { SelettoreRaccolte } from './SelettoreRaccolte'
@@ -358,7 +357,6 @@ export function LuoghiSalvatiPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

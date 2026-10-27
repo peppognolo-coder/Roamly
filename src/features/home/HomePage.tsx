@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import { BookOpen, Search, Compass, ChevronRight, Bell, Plus, Plane, Bookmark, Map } from 'lucide-react'
 import { PageLayout }        from '@/components/layout/PageLayout'
 import { PageHeader }        from '@/components/layout/PageHeader'
-import { BottomNav }         from '@/components/layout/BottomNav'
 import { Button }            from '@/components/ui/Button'
 import { ViaggioAttivoCard } from './ViaggioAttivoCard'
 import { UltimiRicordiSection } from './UltimiRicordiSection'
@@ -324,7 +323,6 @@ export function HomePage() {
         )}
 
       </div>
-      <BottomNav />
     </PageLayout>
   )
 }

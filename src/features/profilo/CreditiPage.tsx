@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { useProfilo }   from '@/hooks/useProfilo'
 import { useStoricoCrediti, useCodiceReferral } from '@/hooks/useCrediti'
 
@@ -97,7 +96,6 @@ export function CreditiPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

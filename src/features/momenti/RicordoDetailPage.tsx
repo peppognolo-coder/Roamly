@@ -5,7 +5,6 @@ import { Heart, Share2 } from 'lucide-react'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { PageLayout }     from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
-import { BottomNav }      from '@/components/layout/BottomNav'
 import { Button }         from '@/components/ui/Button'
 import { RicordoForm }    from './RicordoForm'
 import { SpotifyEmbedPlayer } from '@/components/ui/SpotifyEmbedPlayer'
@@ -72,7 +71,6 @@ export function RicordoDetailPage() {
     return (
       <PageLayout>
         <SkeletonDetail />
-        <BottomNav />
       </PageLayout>
     )
   }
@@ -87,7 +85,6 @@ export function RicordoDetailPage() {
             Torna indietro
           </Button>
         </div>
-        <BottomNav />
       </PageLayout>
     )
   }
@@ -424,7 +421,6 @@ export function RicordoDetailPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
       {/* Share Card modal */}
       {showShare && (
         <ShareCardRicordo

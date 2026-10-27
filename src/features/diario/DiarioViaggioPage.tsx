@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, BookOpen, ChevronRight, Plus, Map as MapIcon } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
-import { BottomNav } from '@/components/layout/BottomNav'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { StatoBadge } from '@/features/viaggi/StatoBadge'
@@ -50,7 +49,6 @@ export function DiarioViaggioPage() {
     return (
       <PageLayout>
         <div className="h-[260px] bg-roamly-g6 animate-pulse" />
-        <BottomNav />
       </PageLayout>
     )
   }
@@ -168,7 +166,6 @@ export function DiarioViaggioPage() {
           </div>
         </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

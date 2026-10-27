@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { ViaggioCoverIcon } from '@/components/ui/ViaggioCoverIcon'
 import { useLuoghiSalvati, useAggiornaLuogo, useArricchisciLuogo } from '@/hooks/useLuoghiSalvati'
 import { useViaggi } from '@/hooks/useViaggi'
@@ -145,7 +144,6 @@ export function LuogoSalvatoPage() {
             )}
           </div>
         </AnimatedPage>
-        <BottomNav />
       </PageLayout>
     )
   }
@@ -397,7 +395,6 @@ export function LuogoSalvatoPage() {
         document.body
       )}
 
-      <BottomNav />
     </PageLayout>
   )
 }

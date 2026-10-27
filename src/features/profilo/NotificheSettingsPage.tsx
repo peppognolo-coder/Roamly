@@ -2,7 +2,6 @@ import { Bell, AlertTriangle, ShieldOff } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { PageHeader }   from '@/components/layout/PageHeader'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { Toggle }       from '@/components/ui/Toggle'
 import { useProfilo, useAggiornaProfilo } from '@/hooks/useProfilo'
 import { useNotifichePush } from '@/hooks/useNotifichePush'
@@ -167,7 +166,6 @@ export function NotificheSettingsPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

@@ -112,3 +112,43 @@ body {
     transition-delay: 0ms !important;
   }
 }
+
+/* ============================================================
+   TRANSIZIONI DI PAGINA (View Transitions API)
+   router.tsx attiva document.startViewTransition a ogni cambio pagina.
+   - root: dissolvenza breve tra vecchia e nuova pagina
+   - bottom-nav: la barra ha un nome suo, quindi resta ferma invece di
+     dissolversi con il resto (lo snapshot nuovo e vecchio coincidono)
+   - cover-<id>: la copertina del viaggio nella lista scorre fino
+     all'hero della pagina del viaggio (ViaggioCard → ViaggioDetailPage)
+   Senza l'API (Safari < 18) niente di questo ha effetto.
+   ============================================================ */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.18s;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-group(bottom-nav) {
+  animation: none;
+}
+::view-transition-old(bottom-nav) {
+  display: none;
+}
+::view-transition-new(bottom-nav) {
+  animation: none;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

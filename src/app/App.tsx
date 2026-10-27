@@ -29,7 +29,6 @@ const queryClient = new QueryClient({
 // (a differenza di useLocation), utilizzabile qui fuori dalle route.
 // ------------------------------------------------------------
 function useScrollToTopOnNavigate() {
-  const pathnameRef = useRef(window.location.pathname)
   const keyRef = useRef(router.state.location.key)
 
   // Disattiva il ripristino automatico dello scroll del browser: lo
@@ -56,8 +55,6 @@ function useScrollToTopOnNavigate() {
     return router.subscribe((state) => {
       const cambiataVoce = state.location.key !== keyRef.current
       keyRef.current = state.location.key
-      const cambiataPagina = state.location.pathname !== pathnameRef.current
-      pathnameRef.current = state.location.pathname
 
       if (!cambiataVoce) return
 
@@ -81,9 +78,15 @@ function useScrollToTopOnNavigate() {
           requestAnimationFrame(tick)
           return
         }
+        // Nessuna posizione salvata (o era in cima): si riparte dall'alto
+        window.scrollTo(0, 0)
+        return
       }
 
-      if (cambiataPagina) window.scrollTo(0, 0)
+      // Push/replace verso una pagina nuova: la scroll in cima la fa
+      // RootLayout (layout effect), dopo il render e dentro l'eventuale View
+      // Transition. Farla qui sposterebbe la pagina vecchia prima che il
+      // browser ne scatti la foto.
     })
   }, [])
 }

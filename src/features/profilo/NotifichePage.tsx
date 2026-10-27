@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { Bell } from 'lucide-react'
 import { PageLayout }   from '@/components/layout/PageLayout'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
-import { BottomNav }    from '@/components/layout/BottomNav'
 import { useNotifiche } from '@/hooks/useNotifiche'
 import { formatTempoRelativo, aspettoNotifica } from '@/lib/notifiche-utils'
 import type { Notifica } from '@/types'
@@ -72,7 +71,6 @@ export function NotifichePage() {
 
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }

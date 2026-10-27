@@ -22,7 +22,6 @@ import { CSS } from '@dnd-kit/utilities'
 import { AvatarStack } from '@/components/ui/AvatarStack'
 import { PageLayout }       from '@/components/layout/PageLayout'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
-import { BottomNav }        from '@/components/layout/BottomNav'
 import { Button }           from '@/components/ui/Button'
 import { StatoBadge }       from './StatoBadge'
 import { ViaggioForm }      from './ViaggioForm'
@@ -206,7 +205,6 @@ export function ViaggioDetailPage() {
     return (
       <PageLayout>
         <SkeletonDetail />
-        <BottomNav />
       </PageLayout>
     )
   }
@@ -222,7 +220,6 @@ export function ViaggioDetailPage() {
             Torna ai viaggi
           </Button>
         </div>
-        <BottomNav />
       </PageLayout>
     )
   }
@@ -421,7 +418,11 @@ export function ViaggioDetailPage() {
           <div className="rounded-[20px] overflow-hidden bg-roamly-g0">
             <div
               className="relative h-[118px]"
-              style={!coverViaggio ? { background: 'linear-gradient(150deg, #123F58, #0B6F99 60%, #5FB8D9)' } : undefined}
+              style={{
+                // Nome condiviso con la fascia di ViaggioCard (transizione lista → viaggio)
+                viewTransitionName: id ? `cover-${id}` : undefined,
+                ...(!coverViaggio ? { background: 'linear-gradient(150deg, #123F58, #0B6F99 60%, #5FB8D9)' } : {}),
+              }}
             >
               {coverViaggio && (
                 <img src={coverViaggio} alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -902,7 +903,6 @@ export function ViaggioDetailPage() {
         </div>
       </div>
       </AnimatedPage>
-      <BottomNav />
       {showLinkPubblico && id && (
         <LinkPubblicoSheet
           viaggioId={id}

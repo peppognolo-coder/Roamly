@@ -5,6 +5,8 @@ import { AuthGuard }  from '@/components/auth/AuthGuard'
 import { GuestGuard } from '@/components/auth/GuestGuard'
 import { PageSkeleton } from '@/components/layout/PageSkeleton'
 import { RouteError }   from '@/components/layout/RouteError'
+import { AppShell }     from '@/components/layout/AppShell'
+import { RootLayout }   from '@/components/layout/RootLayout'
 
 // ============================================================
 // Code splitting per route.
@@ -124,64 +126,16 @@ const routes: RouteObject[] = [
 
   // ── Protette (solo per utenti autenticati) ───────────────
   {
-    path: '/',
-    element: <Protected><HomePage /></Protected>,
-  },
-  {
-    path: '/diario',
-    element: <Protected><DiarioPage /></Protected>,
-  },
-  {
-    path: '/diario/:id',
-    element: <Protected><DiarioViaggioPage /></Protected>,
-  },
-  {
     path: '/nuovo-ricordo',
     element: <Protected><NuovoRicordoPage /></Protected>,
-  },
-  {
-    path: '/ricordi/:id',
-    element: <Protected><RicordoDetailPage /></Protected>,
-  },
-  {
-    path: '/pianifica',
-    element: <Protected><PianificaPage /></Protected>,
-  },
-  {
-    path: '/profilo',
-    element: <Protected><ProfiloPage /></Protected>,
   },
   {
     path: '/profilo/impostazioni',
     element: <Protected><ImpostazioniAccountPage /></Protected>,
   },
   {
-    path: '/profilo/notifiche',
-    element: <Protected><NotificheSettingsPage /></Protected>,
-  },
-  {
-    path: '/profilo/crediti',
-    element: <Protected><CreditiPage /></Protected>,
-  },
-  {
-    path: '/profilo/traguardi',
-    element: <Protected><TraguardiPage /></Protected>,
-  },
-  {
     path: '/profilo/statistiche',
     element: <Protected><StatistichePage /></Protected>,
-  },
-  {
-    path: '/profilo/salvati',
-    element: <Protected><LuoghiSalvatiPage /></Protected>,
-  },
-  {
-    path: '/profilo/salvati/:id',
-    element: <Protected><LuogoSalvatoPage /></Protected>,
-  },
-  {
-    path: '/profilo/feed',
-    element: <Protected><NotifichePage /></Protected>,
   },
   {
     path: '/profilo/wallet',
@@ -200,19 +154,11 @@ const routes: RouteObject[] = [
     path: '/offline',
     element: <Protected><OfflinePage /></Protected>,
   },
-  {
-    path: '/viaggi',
-    element: <Protected><ViaggiPage /></Protected>,
-  },
   // NOTA: /viaggi/nuovo deve precedere /viaggi/:id
   // altrimenti React Router interpreta "nuovo" come un ID
   {
     path: '/viaggi/nuovo',
     element: <Protected><NuovoViaggioPage /></Protected>,
-  },
-  {
-    path: '/viaggi/:id',
-    element: <Protected><ViaggioDetailPage /></Protected>,
   },
   {
     path: '/viaggi/:id/recap',
@@ -289,12 +235,79 @@ const routes: RouteObject[] = [
     path: '/viaggi/:id/note',
     element: <Protected><NoteViaggioPage /></Protected>,
   },
+
+  // ── Protette, con barra in basso persistente (AppShell) ───
+  // Home, Diario, Pianifica, Profilo, lista/dettaglio viaggio, dettaglio
+  // ricordo e le pagine profilo con barra. AppShell monta AuthGuard,
+  // Suspense e BottomNav una volta sola per tutto il gruppo.
+  {
+    element: <AppShell />,
+    children: [
+      { path: '/', element: <HomePage /> },
+      { path: '/diario', element: <DiarioPage /> },
+      { path: '/diario/:id', element: <DiarioViaggioPage /> },
+      { path: '/ricordi/:id', element: <RicordoDetailPage /> },
+      { path: '/pianifica', element: <PianificaPage /> },
+      { path: '/profilo', element: <ProfiloPage /> },
+      { path: '/profilo/crediti', element: <CreditiPage /> },
+      { path: '/profilo/traguardi', element: <TraguardiPage /> },
+      { path: '/profilo/salvati', element: <LuoghiSalvatiPage /> },
+      { path: '/profilo/salvati/:id', element: <LuogoSalvatoPage /> },
+      { path: '/profilo/feed', element: <NotifichePage /> },
+      { path: '/profilo/notifiche', element: <NotificheSettingsPage /> },
+      { path: '/viaggi', element: <ViaggiPage /> },
+      { path: '/viaggi/:id', element: <ViaggioDetailPage /> },
+    ],
+  },
 ]
 
-// errorElement su ogni rotta: un errore nel render di una pagina (o un chunk
-// lazy non più valido dopo un deploy) mostra RouteError invece di una
+// errorElement su ogni rotta (anche dentro la shell, così un errore in una
+// pagina lascia visibile la barra): un errore nel render di una pagina, o un
+// chunk lazy non più valido dopo un deploy, mostra RouteError invece di una
 // schermata bianca. La rotta "*" cattura gli indirizzi inesistenti (404).
+function conErrore(r: RouteObject): RouteObject {
+  const base = { ...r, errorElement: <RouteError /> } as RouteObject
+  if (r.children) (base as { children?: RouteObject[] }).children = r.children.map(conErrore)
+  return base
+}
+
 export const router = createBrowserRouter([
-  ...routes.map((r) => ({ ...r, errorElement: <RouteError /> })),
-  { path: '*', element: <RouteError notFound /> },
+  {
+    element: <RootLayout />,
+    children: [
+      ...routes.map(conErrore),
+      { path: '*', element: <RouteError notFound /> },
+    ],
+  },
 ])
+
+// ------------------------------------------------------------
+// Transizioni di pagina (View Transitions API).
+// Ogni navigate() che porta a un'altra PAGINA parte con
+// viewTransition: true, senza toccare i ~230 punti di chiamata:
+// react-router avvolge l'aggiornamento in document.startViewTransition
+// e il CSS (globals.css) decide come dissolvere. Non si applica a:
+//  - cambi di sola query/hash (es. ?tab=), che non sono cambi pagina
+//  - "indietro" (navigate(-1) / gesto di sistema), gestito dal browser
+//  - chiamate che passano già viewTransition esplicitamente
+// Nei browser senza l'API (Safari < 18) react-router aggiorna e basta:
+// nessuna transizione, nessun errore.
+// ------------------------------------------------------------
+type OpzioniNavigate = Parameters<typeof router.navigate>[1]
+
+function eCambioPagina(to: unknown): boolean {
+  let nuovo: string | undefined
+  if (typeof to === 'string') nuovo = to.split(/[?#]/)[0]
+  else if (to && typeof to === 'object') nuovo = (to as { pathname?: string }).pathname
+  else return false
+  if (!nuovo) return false
+  return nuovo !== router.state.location.pathname
+}
+
+const navigateOriginale = router.navigate.bind(router)
+router.navigate = ((to: never, opts?: OpzioniNavigate) => {
+  if (opts?.viewTransition === undefined && eCambioPagina(to)) {
+    opts = { ...opts, viewTransition: true }
+  }
+  return navigateOriginale(to, opts)
+}) as typeof router.navigate

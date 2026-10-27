@@ -45,7 +45,12 @@ export function ViaggioCard({ viaggio, linkTab }: ViaggioCardProps) {
       {/* Fascia di copertina — colore deterministico per viaggio */}
       <div
         className="w-16 shrink-0 flex items-center justify-center text-white/80"
-        style={{ backgroundColor: coloreCopertinaViaggio(viaggio.id) }}
+        style={{
+          backgroundColor: coloreCopertinaViaggio(viaggio.id),
+          // Stesso nome dell'hero in ViaggioDetailPage: con le View Transitions
+          // la fascia scorre fino a diventare la copertina del viaggio
+          viewTransitionName: `cover-${viaggio.id}`,
+        }}
       >
         <ViaggioCoverIcon value={viaggio.cover_emoji} size={22} />
       </div>

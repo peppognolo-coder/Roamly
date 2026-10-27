@@ -6,7 +6,6 @@ import { staggerItem } from '@/lib/animations'
 import { PageLayout }  from '@/components/layout/PageLayout'
 import { PageHeader }  from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
-import { BottomNav }   from '@/components/layout/BottomNav'
 import { Button }      from '@/components/ui/Button'
 import { ViaggioCard } from './ViaggioCard'
 import { useViaggiPerStato } from '@/hooks/useViaggi'
@@ -103,7 +102,6 @@ export function ViaggiPage() {
 
       </div>
       </AnimatedPage>
-      <BottomNav />
     </PageLayout>
   )
 }
