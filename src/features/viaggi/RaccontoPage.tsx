@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Share2, Globe, Wallet } from 'lucide-react'
+import { Share2, Globe, Wallet, BookOpen, Loader2 } from 'lucide-react'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { AnimatedPage } from '@/components/layout/AnimatedPage'
 import { RaccontoViaggio } from './RaccontoViaggio'
@@ -25,6 +25,21 @@ export function RaccontoPage() {
   const navigate = useNavigate()
   const [showShare, setShowShare] = useState(false)
   const [mostraLink, setMostraLink] = useState(false)
+  const [libroPerc, setLibroPerc] = useState<number | null>(null)
+  const [libroErrore, setLibroErrore] = useState(false)
+
+  async function scaricaLibro() {
+    if (!viaggioId || libroPerc !== null) return
+    setLibroErrore(false); setLibroPerc(0)
+    try {
+      const { scaricaLibroViaggio } = await import('@/services/libroService')
+      await scaricaLibroViaggio(viaggioId, setLibroPerc)
+    } catch (e) {
+      console.error(e); setLibroErrore(true)
+    } finally {
+      setLibroPerc(null)
+    }
+  }
   const { data: mioRuolo } = useMioRuolo(viaggioId)
   const { data: recap } = useRecapViaggio(viaggioId)
 
@@ -74,6 +89,22 @@ export function RaccontoPage() {
             >
               <Share2 size={15} /> Condividi il racconto
             </button>
+            <button
+              onClick={scaricaLibro}
+              disabled={libroPerc !== null}
+              className="h-[46px] rounded-full border border-roamly-g5 bg-roamly-g7 text-roamly-g2
+                inline-flex items-center justify-center gap-1.5
+                font-dm-sans text-sm font-medium active:scale-[0.98] transition-transform disabled:opacity-80"
+            >
+              {libroPerc !== null
+                ? <><Loader2 size={14} className="animate-spin" /> Preparo il libro… {libroPerc}%</>
+                : <><BookOpen size={14} /> Scarica il libro (PDF)</>}
+            </button>
+            {libroErrore && (
+              <p className="text-center font-dm-sans text-xs text-red-500">
+                Non sono riuscito a creare il libro. Riprova tra poco.
+              </p>
+            )}
             <div className={`grid gap-2.5 ${mioRuolo === 'proprietario' ? 'grid-cols-2' : 'grid-cols-1'}`}>
               {mioRuolo === 'proprietario' && (
                 <button
