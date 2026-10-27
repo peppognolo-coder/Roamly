@@ -77,7 +77,8 @@ export function BottomNav() {
         grid grid-cols-5 items-center
         h-20 px-2
         pointer-events-auto
-      ">
+      " /* area sicura: la barra sopra l'indicatore di casa, sfondo fino al bordo */
+        style={{ height: 'calc(5rem + env(safe-area-inset-bottom, 0px))', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         {/* Home + Diario */}
         {navItems.slice(0, 2).map((item) => (
           <NavTabItem key={item.to} item={item} />

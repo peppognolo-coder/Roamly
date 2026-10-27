@@ -58,6 +58,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Pagine dentro PageLayout: il loro "schermo intero" non include lo spazio
+   riservato in fondo alla barra di navigazione (--roamly-spazio, impostato
+   da PageLayout). Senza questa sottrazione ogni pagina era più alta dello
+   schermo di quello spazio (circa 96px) e scorreva sempre. */
+.roamly-page .min-h-screen {
+  min-height: calc(100vh - var(--roamly-spazio, 0px));
+  min-height: calc(100dvh - var(--roamly-spazio, 0px));
+}
+
 /* ============================================================
    SCROLLBAR — discreta, in linea con il design
    ============================================================ */

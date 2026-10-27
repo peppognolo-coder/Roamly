@@ -7,6 +7,13 @@ export default {
   ],
   theme: {
     extend: {
+      // "Schermo intero" = area realmente visibile. Su iPad/iPhone 100vh è
+      // l'altezza con le barre del browser NASCOSTE, quindi la pagina risulta
+      // più alta di ciò che si vede e la barra in basso finisce fuori schermo.
+      // 100dvh segue le barre; il valore 100vh resta come ripiego per i
+      // browser che non conoscono dvh.
+      minHeight: { screen: ['100vh', '100dvh'] },
+      height:    { screen: ['100vh', '100dvh'] },
       colors: {
         'roamly-g0':   '#0C2A3D',
         'roamly-g1':   '#123F58',
