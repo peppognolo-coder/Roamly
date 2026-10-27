@@ -10,6 +10,7 @@ import {
   requestPasswordReset,
   updatePassword,
   deleteAccount,
+  loginWithApple,
 } from '@/services/authService'
 import { useAuthStore } from '@/store/authStore'
 
@@ -112,7 +113,21 @@ export function useOAuth() {
     return { success: true }
   }
 
-  return { signInWithGoogle, isLoading, error }
+  async function signInWithApple() {
+    setIsLoading(true)
+    setError(null)
+
+    const { error: authError } = await loginWithApple()
+
+    if (authError) {
+      setError(mapAuthError(authError.message))
+      setIsLoading(false)
+      return { success: false }
+    }
+    return { success: true }
+  }
+
+  return { signInWithGoogle, signInWithApple, isLoading, error }
 }
 
 // ------------------------------------------------------------

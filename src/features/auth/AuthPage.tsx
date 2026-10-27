@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { LoginForm }   from './LoginForm'
 import { RegisterForm } from './RegisterForm'
 import { ForgotPasswordForm } from './ForgotPasswordForm'
+import { Link } from 'react-router-dom'
 import { OAuthButton }  from './OAuthButton'
 import { RoamlyMark } from '@/components/ui/RoamlyMark'
 
@@ -91,7 +92,9 @@ export function AuthPage() {
 
         {/* Footer */}
         <p className="font-dm-sans text-xs text-center text-roamly-muted">
-          Usando Roamly accetti i Termini di servizio e la Privacy policy.
+          Usando Roamly accetti i{' '}
+          <Link to="/termini" className="underline">Termini di servizio</Link> e la{' '}
+          <Link to="/privacy" className="underline">Privacy policy</Link>.
         </p>
 
       </div>

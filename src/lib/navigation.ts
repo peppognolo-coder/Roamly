@@ -29,6 +29,7 @@ export function percorsoGenitore(pathname: string): string {
   m = p.match(/^\/viaggi\/([^/]+)\/(giorno\/[^/]+|racconto|wrapped|recap)$/)
   if (m) return `/viaggi/${m[1]}`
 
+  if (p === '/privacy' || p === '/termini') return '/profilo'
   if (p === '/viaggi/nuovo') return '/viaggi'
   if (/^\/viaggi\/[^/]+$/.test(p)) return '/viaggi'
   if (p === '/viaggi') return '/'

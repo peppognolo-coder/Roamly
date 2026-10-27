@@ -2,7 +2,8 @@ import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Check } from 'lucide-react'
+import { Check, Download } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { PageLayout }         from '@/components/layout/PageLayout'
 import { PageHeader }         from '@/components/layout/PageHeader'
 import { AnimatedPage }       from '@/components/layout/AnimatedPage'
@@ -11,6 +12,7 @@ import { Input }              from '@/components/ui/Input'
 import { useAuth }            from '@/hooks/useAuth'
 import { useProfilo, useAggiornaProfilo, useUploadAvatar } from '@/hooks/useProfilo'
 import { useLogout, useDeleteAccount } from '@/hooks/useAuthActions'
+import { esportaDatiUtente, scaricaJson } from '@/services/esportaDatiService'
 
 // ============================================================
 // Schema Zod — Aggiornamento profilo
@@ -82,6 +84,24 @@ export function ImpostazioniAccountPage() {
     const file = e.target.files?.[0]
     if (file) uploadAvatar(file)
     e.target.value = '' // permette di riselezionare lo stesso file
+  }
+
+  const [isExporting, setIsExporting]   = useState(false)
+  const [exportError, setExportError]   = useState<string | null>(null)
+
+  async function handleExport() {
+    if (!user) return
+    setIsExporting(true)
+    setExportError(null)
+    try {
+      const dati = await esportaDatiUtente(user.id, user.email)
+      const giorno = new Date().toISOString().slice(0, 10)
+      scaricaJson(`roamly-i-miei-dati-${giorno}.json`, dati)
+    } catch {
+      setExportError('Impossibile preparare i dati. Riprova.')
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   async function handleDeleteAccount() {
@@ -252,11 +272,47 @@ export function ImpostazioniAccountPage() {
               />
               <InfoRow
                 label="Provider"
-                value={user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
+                value={
+                  user?.app_metadata?.provider === 'google' ? 'Google'
+                  : user?.app_metadata?.provider === 'apple' ? 'Apple'
+                  : 'Email'
+                }
               />
             </div>
           </div>
 
+        </div>
+
+        {/* I tuoi dati: copia scaricabile + documenti legali */}
+        <div className="px-5 pt-2 flex flex-col gap-2.5">
+          <h2 className="font-dm-mono text-[11px] font-medium text-roamly-g2 uppercase tracking-wider px-1">
+            I tuoi dati
+          </h2>
+          <div className="bg-white rounded-2xl shadow-roamly p-4 flex flex-col gap-3">
+            <button
+              onClick={handleExport}
+              disabled={isExporting}
+              className="flex items-center gap-3 text-left active:opacity-70 disabled:opacity-50"
+            >
+              <span className="w-9 h-9 rounded-full bg-roamly-g6 flex items-center justify-center shrink-0">
+                {isExporting
+                  ? <span className="w-4 h-4 rounded-full border-2 border-roamly-g0 border-t-transparent animate-spin" />
+                  : <Download size={16} className="text-roamly-g0" />}
+              </span>
+              <span className="flex flex-col">
+                <span className="font-dm-sans text-sm font-medium text-roamly-g0">Scarica i miei dati</span>
+                <span className="font-dm-sans text-xs text-roamly-muted">
+                  Un file con viaggi, ricordi, note e link a foto e documenti
+                </span>
+              </span>
+            </button>
+            {exportError && <p className="font-dm-sans text-xs text-red-500">{exportError}</p>}
+            <div className="h-px bg-roamly-g6" />
+            <div className="flex gap-4 font-dm-sans text-sm text-roamly-g0">
+              <Link to="/privacy" className="underline">Privacy policy</Link>
+              <Link to="/termini" className="underline">Termini di servizio</Link>
+            </div>
+          </div>
         </div>
 
         {/* Logout — pillola outline, non un'azione distruttiva:

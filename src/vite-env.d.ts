@@ -7,3 +7,9 @@
 interface Window {
   __roamlySplash?: { ready: () => void }
 }
+
+interface ImportMetaEnv {
+  // 'true' mostra "Continua con Apple" nel login. Va attivato solo dopo aver
+  // configurato Apple Developer + Supabase (vedi docs/apple-login.md).
+  readonly VITE_APPLE_LOGIN?: string
+}

@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { deleteViaggio } from '@/services/viaggiService'
+import { getDocumentiWallet, deleteDocumento } from '@/services/walletService'
+import { STORAGE_BUCKETS } from '@/types'
 
 // ============================================================
 // ROAMLY — Auth Service
@@ -85,6 +87,17 @@ export async function loginWithEmail(email: string, password: string) {
 export async function loginWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
+    options: {
+      redirectTo: window.location.origin,
+    },
+  })
+
+  return { data, error }
+}
+
+export async function loginWithApple() {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'apple',
     options: {
       redirectTo: window.location.origin,
     },
@@ -183,6 +196,27 @@ export async function deleteAccount(
     if (error) {
       return { error: `Impossibile eliminare tutti i dati: ${error}` }
     }
+  }
+
+  // File personali che non appartengono a un viaggio: documenti del Wallet
+  // (file + riga) e foto profilo. Prima del RPC, finché l'utente esiste e
+  // può ancora accedere ai propri file.
+  const { data: documenti, error: errDocs } = await getDocumentiWallet()
+  if (errDocs) {
+    return { error: `Impossibile leggere i documenti: ${errDocs}` }
+  }
+  for (const doc of documenti) {
+    const { error } = await deleteDocumento(doc)
+    if (error) return { error: `Impossibile eliminare i documenti: ${error}` }
+  }
+
+  const { data: fileAvatar } = await supabase.storage
+    .from(STORAGE_BUCKETS.AVATAR_PROFILI)
+    .list(userId)
+  if (fileAvatar && fileAvatar.length > 0) {
+    await supabase.storage
+      .from(STORAGE_BUCKETS.AVATAR_PROFILI)
+      .remove(fileAvatar.map((f) => `${userId}/${f.name}`))
   }
 
   const { error: errRpc } = await supabase.rpc('elimina_account')

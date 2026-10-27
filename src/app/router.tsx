@@ -23,6 +23,8 @@ import { RootLayout }   from '@/components/layout/RootLayout'
 import { HomePage } from '@/features/home/HomePage'
 
 // Pages — lazy
+const PrivacyPage            = lazy(() => import('@/features/legal/PrivacyPage').then((m) => ({ default: m.PrivacyPage })))
+const TerminiPage            = lazy(() => import('@/features/legal/TerminiPage').then((m) => ({ default: m.TerminiPage })))
 const AuthPage               = lazy(() => import('@/features/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
 const ResetPasswordPage      = lazy(() => import('@/features/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })))
 const DiarioPage             = lazy(() => import('@/features/diario/DiarioPage').then((m) => ({ default: m.DiarioPage })))
@@ -120,6 +122,16 @@ const routes: RouteObject[] = [
         <ResetPasswordPage />
       </Suspense>
     ),
+  },
+
+  // ── Legali: pubbliche, aperte a tutti (anche senza login) ─
+  {
+    path: '/privacy',
+    element: <Suspense fallback={<PageLoadingFallback />}><PrivacyPage /></Suspense>,
+  },
+  {
+    path: '/termini',
+    element: <Suspense fallback={<PageLoadingFallback />}><TerminiPage /></Suspense>,
   },
 
   // ── Pubbliche (solo per utenti NON autenticati) ──────────
