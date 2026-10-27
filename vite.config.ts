@@ -20,7 +20,11 @@ import path from 'path'
 // Il SW gestisce esclusivamente la shell applicativa e gli asset statici.
 // ============================================================
 
+// Versione mostrata in /diagnostica: commit di Netlify (COMMIT_REF) + data di build.
+const versioneApp = `${(process.env.COMMIT_REF ?? 'locale').slice(0, 7)} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`
+
 export default defineConfig({
+  define: { __APP_VERSION__: JSON.stringify(versioneApp) },
   plugins: [
     react(),
     VitePWA({

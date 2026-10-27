@@ -13,3 +13,6 @@ interface ImportMetaEnv {
   // configurato Apple Developer + Supabase (vedi docs/apple-login.md).
   readonly VITE_APPLE_LOGIN?: string
 }
+
+// Versione dell'app (commit + data di build), iniettata da vite.config.ts
+declare const __APP_VERSION__: string

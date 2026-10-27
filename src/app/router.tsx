@@ -23,6 +23,7 @@ import { RootLayout }   from '@/components/layout/RootLayout'
 import { HomePage } from '@/features/home/HomePage'
 
 // Pages — lazy
+const DiagnosticaPage        = lazy(() => import('@/features/diagnostica/DiagnosticaPage').then((m) => ({ default: m.DiagnosticaPage })))
 const MappaRicordiPage       = lazy(() => import('@/features/mappa/MappaRicordiPage').then((m) => ({ default: m.MappaRicordiPage })))
 const PrivacyPage            = lazy(() => import('@/features/legal/PrivacyPage').then((m) => ({ default: m.PrivacyPage })))
 const TerminiPage            = lazy(() => import('@/features/legal/TerminiPage').then((m) => ({ default: m.TerminiPage })))
@@ -123,6 +124,12 @@ const routes: RouteObject[] = [
         <ResetPasswordPage />
       </Suspense>
     ),
+  },
+
+  // ── Diagnostica schermo (solo strumento, nessun dato) ─────
+  {
+    path: '/diagnostica',
+    element: <Suspense fallback={<PageLoadingFallback />}><DiagnosticaPage /></Suspense>,
   },
 
   // ── Legali: pubbliche, aperte a tutti (anche senza login) ─
