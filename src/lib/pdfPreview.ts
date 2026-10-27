@@ -1,5 +1,3 @@
-import * as pdfjsLib from 'pdfjs-dist'
-import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 
 // ============================================================
 // pdfPreview — converte la prima pagina di un PDF in un'immagine
@@ -15,12 +13,28 @@ import pdfWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
 // funziona anche offline una volta installata la PWA.
 // ============================================================
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerSrc
+// pdf.js (~370 KB) si scarica solo quando serve davvero un'anteprima PDF,
+// non quando si apre la pagina del documento.
+let pdfjsPronta: Promise<typeof import('pdfjs-dist')> | null = null
+function caricaPdfjs() {
+  if (!pdfjsPronta) {
+    pdfjsPronta = Promise.all([
+      import('pdfjs-dist'),
+      import('pdfjs-dist/build/pdf.worker.min.mjs?url'),
+    ]).then(([lib, worker]) => {
+      lib.GlobalWorkerOptions.workerSrc = worker.default
+      return lib
+    })
+    pdfjsPronta.catch(() => { pdfjsPronta = null })
+  }
+  return pdfjsPronta
+}
 
 export async function renderPdfFirstPageAsDataUrl(
   url: string,
   targetWidthPx: number
 ): Promise<string> {
+  const pdfjsLib = await caricaPdfjs()
   const pdf = await pdfjsLib.getDocument(url).promise
   const page = await pdf.getPage(1)
 

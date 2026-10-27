@@ -134,6 +134,23 @@ export default defineConfig({
     }),
   ],
 
+  build: {
+    rollupOptions: {
+      output: {
+        // Librerie stabili in file separati: a ogni rilascio cambia solo il
+        // codice dell'app, e i visitatori di ritorno riscaricano poche decine
+        // di KB invece di tutto il bundle.
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return
+          if (/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@remix-run)\//.test(id)) return 'vendor-react'
+          if (id.includes('node_modules/@supabase/')) return 'vendor-supabase'
+          if (id.includes('node_modules/framer-motion') || id.includes('node_modules/motion-')) return 'vendor-motion'
+          if (id.includes('node_modules/@tanstack/')) return 'vendor-query'
+        },
+      },
+    },
+  },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

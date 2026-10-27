@@ -10,9 +10,9 @@ import { RootLayout }   from '@/components/layout/RootLayout'
 
 // ============================================================
 // Code splitting per route.
-// Restano EAGER solo AuthPage e HomePage — i due schermi che
-// praticamente ogni sessione tocca subito (gate di login, poi
-// home). Tutto il resto è lazy: ogni pagina diventa un chunk
+// Resta EAGER solo HomePage — lo schermo che quasi ogni sessione
+// tocca subito. Il login è lazy: chi è già dentro non scarica
+// nemmeno zod/react-hook-form. Tutto il resto è lazy: ogni pagina diventa un chunk
 // separato scaricato solo quando l'utente ci naviga davvero,
 // invece di pesare sul bundle iniziale per tutti.
 // Stesso pattern già in uso per AttivitaPage (Leaflet) — qui
@@ -20,10 +20,10 @@ import { RootLayout }   from '@/components/layout/RootLayout'
 // ============================================================
 
 // Pages — eager (primo paint)
-import { AuthPage } from '@/features/auth/AuthPage'
 import { HomePage } from '@/features/home/HomePage'
 
 // Pages — lazy
+const AuthPage               = lazy(() => import('@/features/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
 const ResetPasswordPage      = lazy(() => import('@/features/auth/ResetPasswordPage').then((m) => ({ default: m.ResetPasswordPage })))
 const DiarioPage             = lazy(() => import('@/features/diario/DiarioPage').then((m) => ({ default: m.DiarioPage })))
 const DiarioViaggioPage      = lazy(() => import('@/features/diario/DiarioViaggioPage').then((m) => ({ default: m.DiarioViaggioPage })))
@@ -86,7 +86,11 @@ function Protected({ children }: { children: React.ReactNode }) {
 }
 
 function Public({ children }: { children: React.ReactNode }) {
-  return <GuestGuard>{children}</GuestGuard>
+  return (
+    <GuestGuard>
+      <Suspense fallback={<PageLoadingFallback />}>{children}</Suspense>
+    </GuestGuard>
+  )
 }
 
 const routes: RouteObject[] = [
