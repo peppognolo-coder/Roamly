@@ -32,6 +32,7 @@ export interface LibroDati {
 }
 
 const A4 = { w: 595.28, h: 841.89 }
+const YMIN = 66
 const M = 52                                   // margine laterale
 const COL = {
   notte: [0.047, 0.165, 0.239] as const,       // #0C2A3D
@@ -146,9 +147,9 @@ export async function generaLibroPdf(
   }
   function piede() {
     pagina.drawLine({ start: { x: M, y: 44 }, end: { x: A4.w - M, y: 44 }, thickness: 0.5, color: c(COL.linea) })
-    pagina.drawText(nomeBreve.toUpperCase().slice(0, 48), { x: M, y: 28, size: 7.5, font: fGrasso, color: c(COL.grigio) })
+    pagina.drawText(nomeBreve.toUpperCase().slice(0, 48), { x: M, y: 28, size: 9, font: fGrasso, color: c(COL.grigio) })
     const n = String(numero + 1)
-    pagina.drawText(n, { x: A4.w - M - fGrasso.widthOfTextAtSize(n, 8), y: 28, size: 8, font: fGrasso, color: c(COL.grigio) })
+    pagina.drawText(n, { x: A4.w - M - fGrasso.widthOfTextAtSize(n, 10), y: 28, size: 10, font: fGrasso, color: c(COL.grigio) })
   }
   const testoCentrato = (t: string, f: typeof fTesto, size: number, yy: number, col: readonly [number, number, number]) =>
     pagina.drawText(t, { x: (A4.w - f.widthOfTextAtSize(t, size)) / 2, y: yy, size, font: f, color: c(col) })
@@ -169,113 +170,136 @@ export async function generaLibroPdf(
   // ============ COPERTINA ====================================
   pagina.drawRectangle({ x: 0, y: 0, width: A4.w, height: A4.h, color: c(COL.notte) })
   // marchio: puntino corallo + anello
-  pagina.drawCircle({ x: M + 6, y: A4.h - 62, size: 6, color: c(COL.corallo) })
-  pagina.drawCircle({ x: M + 6, y: A4.h - 62, size: 11, borderColor: c(COL.azzurro), borderWidth: 1, opacity: 0, borderOpacity: 0.7 })
-  pagina.drawText('ROAMLY', { x: M + 26, y: A4.h - 66, size: 10, font: fGrasso, color: c(COL.bianco) })
+  pagina.drawCircle({ x: M + 7, y: A4.h - 62, size: 7, color: c(COL.corallo) })
+  pagina.drawCircle({ x: M + 7, y: A4.h - 62, size: 13, borderColor: c(COL.azzurro), borderWidth: 1, opacity: 0, borderOpacity: 0.7 })
+  pagina.drawText('ROAMLY', { x: M + 30, y: A4.h - 67, size: 13, font: fGrasso, color: c(COL.bianco) })
 
   let yc = A4.h - 130
   if (dati.copertina) {
     const img = await doc.embedJpg(dati.copertina)
     const w = A4.w - M * 2, h = w / 1.5
     pagina.drawImage(img, { x: M, y: yc - h, width: w, height: h })
-    yc -= h + 46
+    yc -= h + 56
   } else {
     yc -= 60
   }
-  const titoloRighe = righe(fTitolo, dati.nome, 34, A4.w - M * 2)
-  for (const r of titoloRighe.slice(0, 4)) {
-    pagina.drawText(r, { x: M, y: yc, size: 34, font: fTitolo, color: c(COL.bianco) }); yc -= 42
+  const titoloRighe = righe(fTitolo, dati.nome, 40, A4.w - M * 2)
+  for (const r of titoloRighe.slice(0, 3)) {
+    pagina.drawText(r, { x: M, y: yc, size: 40, font: fTitolo, color: c(COL.bianco) }); yc -= 48
   }
   if (dati.luogo) {
-    pagina.drawText(pulisci(fTesto, dati.luogo).toUpperCase(), { x: M, y: yc - 4, size: 10, font: fGrasso, color: c(COL.azzurro) }); yc -= 22
+    pagina.drawText(pulisci(fTesto, dati.luogo).toUpperCase(), { x: M, y: yc - 4, size: 13, font: fGrasso, color: c(COL.azzurro) }); yc -= 26
   }
-  if (periodo) pagina.drawText(periodo, { x: M, y: yc - 4, size: 11, font: fTesto, color: c(COL.bianco), opacity: 0.8 })
+  if (periodo) pagina.drawText(periodo, { x: M, y: yc - 4, size: 15, font: fTesto, color: c(COL.bianco), opacity: 0.85 })
 
   // tre numeri in fondo
   const stat = [[nGiorni, 'GIORNI'], [ricordi.length, 'RICORDI'], [nFoto, 'FOTO']] as const
   const colW = (A4.w - M * 2) / 3
   stat.forEach(([n, l], i) => {
     const x = M + colW * i
-    pagina.drawText(String(n), { x, y: 96, size: 26, font: fTitolo, color: c(COL.corallo) })
-    pagina.drawText(l, { x, y: 78, size: 7.5, font: fGrasso, color: c(COL.azzurro) })
+    pagina.drawText(String(n), { x, y: 98, size: 44, font: fTitolo, color: c(COL.corallo) })
+    pagina.drawText(l, { x, y: 76, size: 11.5, font: fGrasso, color: c(COL.azzurro) })
   })
   onProgress?.(62)
 
   // ============ RIEPILOGO + MAPPA ============================
   nuovaPagina(COL.carta)
   y = A4.h - 70
-  pagina.drawText('IL VIAGGIO IN BREVE', { x: M, y, size: 8.5, font: fGrasso, color: c(COL.corallo) }); y -= 30
-  for (const r of righe(fTitolo, dati.nome, 22, A4.w - M * 2).slice(0, 2)) {
-    pagina.drawText(r, { x: M, y, size: 22, font: fTitolo, color: c(COL.notte) }); y -= 28
+  pagina.drawText('IL VIAGGIO IN BREVE', { x: M, y, size: 11, font: fGrasso, color: c(COL.corallo) }); y -= 34
+  for (const r of righe(fTitolo, dati.nome, 27, A4.w - M * 2).slice(0, 2)) {
+    pagina.drawText(r, { x: M, y, size: 27, font: fTitolo, color: c(COL.notte) }); y -= 33
   }
-  y -= 6
+  y -= 8
   const stat4 = [[nGiorni, 'giorni'], [ricordi.length, 'ricordi'], [nFoto, 'foto'], [luoghi, 'luoghi']] as const
   const w4 = (A4.w - M * 2) / 4
   stat4.forEach(([n, l], i) => {
     const x = M + w4 * i
-    pagina.drawText(String(n), { x, y, size: 20, font: fTitolo, color: c(COL.notte) })
-    pagina.drawText(l.toUpperCase(), { x, y: y - 14, size: 7.5, font: fGrasso, color: c(COL.grigio) })
+    pagina.drawText(String(n), { x, y, size: 32, font: fTitolo, color: c(COL.notte) })
+    pagina.drawText(l.toUpperCase(), { x, y: y - 17, size: 10, font: fGrasso, color: c(COL.grigio) })
   })
-  y -= 44
+  y -= 54
 
-  // punti per la mappa: tappe con coordinate, altrimenti luoghi dei ricordi
+  // punti per la mappa: tappe con coordinate
   type P = { nome: string; lat: number; lng: number }
   let punti: P[] = dati.tappe.filter(t => t.lat != null && t.lng != null).map(t => ({ nome: t.nome, lat: t.lat!, lng: t.lng! }))
-  if (punti.length < 2) {
-    punti = []
-  }
+  if (punti.length < 2) punti = []
   const haPosizione = punti.length > 0
 
   if (haPosizione) {
-    const bw = A4.w - M * 2, bh = 230
+    // punti lontani dal gruppo (es. una tappa geolocalizzata male) restano
+    // fuori dalla mappa, così il resto si legge ingrandito
+    const med = (a: number[]) => { const s = [...a].sort((x, z) => x - z); return s[Math.floor(s.length / 2)] }
+    const cLat = med(punti.map(p => p.lat)), cLng = med(punti.map(p => p.lng))
+    const dist = punti.map(p => Math.hypot(p.lat - cLat, (p.lng - cLng) * Math.cos(cLat * Math.PI / 180)))
+    const soglia = Math.max(4 * med(dist), 0.04)
+    const dentro = punti.map((_, i) => dist[i] <= soglia)
+    const nucleo = dentro.filter(Boolean).length >= 2 ? dentro : punti.map(() => true)
+
+    const bw = A4.w - M * 2, bh = 330
     const top = y
-    pagina.drawRectangle({ x: M, y: top - bh, width: bw, height: bh, color: c([0.93, 0.96, 0.975]), borderColor: c(COL.linea), borderWidth: 0.6 })
-    // reticolo
+    pagina.drawRectangle({ x: M, y: top - bh, width: bw, height: bh, color: c([0.93, 0.96, 0.975]), borderColor: c(COL.linea), borderWidth: 0.8 })
     for (let i = 1; i < 8; i++) {
-      pagina.drawLine({ start: { x: M + (bw / 8) * i, y: top - bh }, end: { x: M + (bw / 8) * i, y: top }, thickness: 0.3, color: c([0.85, 0.9, 0.93]) })
+      pagina.drawLine({ start: { x: M + (bw / 8) * i, y: top - bh }, end: { x: M + (bw / 8) * i, y: top }, thickness: 0.4, color: c([0.85, 0.9, 0.93]) })
     }
-    for (let i = 1; i < 5; i++) {
-      pagina.drawLine({ start: { x: M, y: top - (bh / 5) * i }, end: { x: M + bw, y: top - (bh / 5) * i }, thickness: 0.3, color: c([0.85, 0.9, 0.93]) })
+    for (let i = 1; i < 6; i++) {
+      pagina.drawLine({ start: { x: M, y: top - (bh / 6) * i }, end: { x: M + bw, y: top - (bh / 6) * i }, thickness: 0.4, color: c([0.85, 0.9, 0.93]) })
     }
-    const lats = punti.map(p => p.lat), lngs = punti.map(p => p.lng)
+    const visibili = punti.map((p, i) => ({ p, i })).filter(x => nucleo[x.i])
+    const lats = visibili.map(x => x.p.lat), lngs = visibili.map(x => x.p.lng)
     const latMin = Math.min(...lats), latMax = Math.max(...lats)
     const lngMin = Math.min(...lngs), lngMax = Math.max(...lngs)
     const k = Math.cos(((latMin + latMax) / 2) * Math.PI / 180)
-    const spanX = Math.max((lngMax - lngMin) * k, 0.01), spanY = Math.max(latMax - latMin, 0.01)
-    const pad = 34
+    const spanX = Math.max((lngMax - lngMin) * k, 0.002), spanY = Math.max(latMax - latMin, 0.002)
+    const pad = 44
     const scala = Math.min((bw - pad * 2) / spanX, (bh - pad * 2) / spanY)
     const ox = M + (bw - spanX * scala) / 2, oy = top - bh + (bh - spanY * scala) / 2
-    const proj = (p: P) => ({ x: ox + (p.lng - lngMin) * k * scala, y: oy + (p.lat - latMin) * scala })
-    const pr = punti.map(proj)
-    for (let i = 0; i < pr.length - 1; i++) {
-      pagina.drawLine({ start: pr[i], end: pr[i + 1], thickness: 1.2, color: c(COL.azzurro), dashArray: [1.5, 4], lineCap: 1 })
+    const pos = visibili.map(({ p, i }) => ({ i, x: ox + (p.lng - lngMin) * k * scala, y: oy + (p.lat - latMin) * scala }))
+    // distanzia i cerchi sovrapposti (mappa schematica)
+    const R = 13
+    for (let it = 0; it < 80; it++) {
+      for (let a = 0; a < pos.length; a++) for (let b = a + 1; b < pos.length; b++) {
+        const dx = pos[b].x - pos[a].x, dy = pos[b].y - pos[a].y
+        const d = Math.hypot(dx, dy) || 0.01
+        if (d < R * 2 + 3) {
+          const f = ((R * 2 + 3 - d) / 2) / d
+          pos[a].x -= dx * f; pos[a].y -= dy * f; pos[b].x += dx * f; pos[b].y += dy * f
+        }
+      }
+      for (const q of pos) {
+        q.x = Math.min(M + bw - R - 6, Math.max(M + R + 6, q.x))
+        q.y = Math.min(top - R - 6, Math.max(top - bh + R + 6, q.y))
+      }
     }
-    pr.forEach((p, i) => {
-      pagina.drawCircle({ x: p.x, y: p.y, size: 9, color: c(COL.corallo), borderColor: c(COL.bianco), borderWidth: 1.5 })
-      const n = String(i + 1)
-      pagina.drawText(n, { x: p.x - fGrasso.widthOfTextAtSize(n, 8) / 2, y: p.y - 2.8, size: 8, font: fGrasso, color: c(COL.bianco) })
+    for (let a = 0; a < pos.length - 1; a++) {
+      pagina.drawLine({ start: pos[a], end: pos[a + 1], thickness: 1.6, color: c(COL.azzurro), dashArray: [2, 5], lineCap: 1 })
+    }
+    pos.forEach(q => {
+      pagina.drawCircle({ x: q.x, y: q.y, size: R, color: c(COL.corallo), borderColor: c(COL.bianco), borderWidth: 2 })
+      const n = String(q.i + 1)
+      pagina.drawText(n, { x: q.x - fGrasso.widthOfTextAtSize(n, 11.5) / 2, y: q.y - 4, size: 11.5, font: fGrasso, color: c(COL.bianco) })
     })
-    y = top - bh - 26
-    pagina.drawText('TAPPE', { x: M, y, size: 8.5, font: fGrasso, color: c(COL.corallo) }); y -= 18
-    const maxTappe = Math.min(punti.length, 14)
+    y = top - bh - 34
+    pagina.drawText('TAPPE', { x: M, y, size: 11, font: fGrasso, color: c(COL.corallo) }); y -= 24
+    const maxTappe = Math.min(punti.length, 16)
+    const perCol = Math.ceil(maxTappe / 2)
     for (let i = 0; i < maxTappe; i++) {
-      const col2 = i >= 7
-      const x = M + (col2 ? bw / 2 : 0)
-      const yy = y - (i % 7) * 18
-      pagina.drawCircle({ x: x + 6, y: yy + 3, size: 6.5, color: c(COL.corallo) })
+      const x = M + (i >= perCol ? bw / 2 : 0)
+      const yy = y - (i % perCol) * 25
+      if (yy < YMIN) break
+      pagina.drawCircle({ x: x + 9, y: yy + 4, size: 9, color: c(COL.corallo) })
       const n = String(i + 1)
-      pagina.drawText(n, { x: x + 6 - fGrasso.widthOfTextAtSize(n, 7) / 2, y: yy + 0.6, size: 7, font: fGrasso, color: c(COL.bianco) })
-      const nome = righe(fTesto, punti[i].nome, 10, bw / 2 - 30)[0] ?? ''
-      pagina.drawText(nome, { x: x + 20, y: yy, size: 10, font: fTesto, color: c(COL.testo) })
+      pagina.drawText(n, { x: x + 9 - fGrasso.widthOfTextAtSize(n, 9.5) / 2, y: yy + 0.8, size: 9.5, font: fGrasso, color: c(COL.bianco) })
+      const nome = righe(fTesto, punti[i].nome + (nucleo[i] ? '' : '  (fuori mappa)'), 13, bw / 2 - 36)[0] ?? ''
+      pagina.drawText(nome, { x: x + 26, y: yy, size: 13, font: fTesto, color: c(COL.testo) })
     }
   } else {
     // niente coordinate: elenco dei luoghi dei ricordi
     const elenco = [...new Set(ricordi.map(r => (r.luogo ?? '').trim()).filter(Boolean))].slice(0, 16)
     if (elenco.length) {
-      pagina.drawText('LUOGHI', { x: M, y, size: 8.5, font: fGrasso, color: c(COL.corallo) }); y -= 20
+      pagina.drawText('LUOGHI', { x: M, y, size: 11, font: fGrasso, color: c(COL.corallo) }); y -= 26
       for (const l of elenco) {
-        pagina.drawCircle({ x: M + 4, y: y + 3, size: 2.5, color: c(COL.corallo) })
-        pagina.drawText(righe(fTesto, l, 10.5, A4.w - M * 2 - 20)[0] ?? '', { x: M + 16, y, size: 10.5, font: fTesto, color: c(COL.testo) }); y -= 18
+        pagina.drawCircle({ x: M + 5, y: y + 4, size: 3.5, color: c(COL.corallo) })
+        pagina.drawText(righe(fTesto, l, 13.5, A4.w - M * 2 - 24)[0] ?? '', { x: M + 20, y, size: 13.5, font: fTesto, color: c(COL.testo) }); y -= 25
       }
     }
   }
@@ -290,7 +314,6 @@ export async function generaLibroPdf(
   }
   const giorni = [...perGiorno.keys()].sort()
   const LARG = A4.w - M * 2
-  const YMIN = 66
   let fatti = 0
 
   for (const g of giorni) {
@@ -299,71 +322,82 @@ export async function generaLibroPdf(
       nuovaPagina(COL.carta)
       y = A4.h - 70
       const etichetta = `GIORNO ${n > 0 ? n : giorni.indexOf(g) + 1}${segue ? ' · SEGUE' : ''}`
-      pagina.drawText(etichetta, { x: M, y, size: 8.5, font: fGrasso, color: c(COL.corallo) }); y -= 24
-      pagina.drawText(pulisci(fTitolo, fmtData(g, { weekday: 'long', day: 'numeric', month: 'long' })), { x: M, y, size: 19, font: fTitolo, color: c(COL.notte) })
-      y -= 16
-      pagina.drawLine({ start: { x: M, y }, end: { x: A4.w - M, y }, thickness: 0.6, color: c(COL.linea) })
-      y -= 26
+      pagina.drawText(etichetta, { x: M, y, size: 11, font: fGrasso, color: c(COL.corallo) }); y -= 30
+      pagina.drawText(pulisci(fTitolo, fmtData(g, { weekday: 'long', day: 'numeric', month: 'long' })), { x: M, y, size: 25, font: fTitolo, color: c(COL.notte) })
+      y -= 18
+      pagina.drawLine({ start: { x: M, y }, end: { x: A4.w - M, y }, thickness: 0.7, color: c(COL.linea) })
+      y -= 32
       piede()
     }
     intestazione(false)
 
     for (const r of perGiorno.get(g)!) {
-      const titRighe = righe(fTitolo, r.titolo || 'Senza titolo', 15, LARG)
-      const corpo = r.testo ? righe(fTesto, r.testo, 10.5, LARG) : []
-      const hMeta = 16
-      const hTit = titRighe.length * 19 + 6
+      const titRighe = righe(fTitolo, r.titolo || 'Senza titolo', 20, LARG)
+      const corpo = r.testo ? righe(fTesto, r.testo, 13, LARG) : []
+      const hMeta = 20
+      const hTit = titRighe.length * 26 + 8
+      const lh = 19.5
+      // righe di foto: 1 → ampia; 2 → affiancate; 3 → una larga + due
       const nF = r.foto.length
-      const fW = nF === 1 ? LARG * 0.72 : nF ? (LARG - (nF - 1) * 8) / nF : 0
-      const fH = fW / 1.5
-      const hFoto = nF ? fH + 14 : 0
-      const lh = 15.5
+      const gruppi: number[][] = nF === 0 ? [] : nF === 1 ? [[0]] : nF === 2 ? [[0, 1]] : [[0], [1, 2]]
+      const larghezze = (gr: number[]) => gr.length === 1 ? (nF === 1 ? LARG * 0.86 : LARG) : (LARG - 10) / 2
+      const hFoto = gruppi.reduce((s, gr) => s + larghezze(gr) / 1.5 + 10, 0)
 
-      // il blocco "intestazione ricordo" deve stare almeno con 2 righe di testo
+      // l'intestazione del ricordo deve stare con almeno 2 righe di testo
       const minBlocco = hMeta + hTit + Math.min(corpo.length, 2) * lh + 10
       if (y - minBlocco < YMIN) intestazione(true)
 
       const metaTesto = [r.mood, r.luogo].filter(Boolean).map(s => pulisci(fGrasso, s!)).join('  ·  ')
-      if (metaTesto) pagina.drawText(metaTesto.toUpperCase(), { x: M, y, size: 7.5, font: fGrasso, color: c(COL.azzurro) })
+      if (metaTesto) pagina.drawText(metaTesto.toUpperCase(), { x: M, y, size: 9.5, font: fGrasso, color: c(COL.azzurro) })
       y -= hMeta
-      for (const t of titRighe) { pagina.drawText(t, { x: M, y, size: 15, font: fTitolo, color: c(COL.notte) }); y -= 19 }
-      y -= 6
+      for (const t of titRighe) { pagina.drawText(t, { x: M, y, size: 20, font: fTitolo, color: c(COL.notte) }); y -= 26 }
+      y -= 8
 
       let i = 0
       while (i < corpo.length) {
         if (y - lh < YMIN) intestazione(true)
         const l = corpo[i]
-        if (l) pagina.drawText(l, { x: M, y, size: 10.5, font: fTesto, color: c(COL.testo) })
+        if (l) pagina.drawText(l, { x: M, y, size: 13, font: fTesto, color: c(COL.testo) })
         y -= l ? lh : lh * 0.6
         i++
       }
       if (nF) {
-        y -= 6
-        if (y - hFoto < YMIN) intestazione(true)
-        for (let k = 0; k < nF; k++) {
-          const img = await doc.embedJpg(r.foto[k])
-          pagina.drawImage(img, { x: M + k * (fW + 8), y: y - fH, width: fW, height: fH })
+        y -= 8
+        for (const gr of gruppi) {
+          let fW = larghezze(gr), fH = fW / 1.5
+          if (y - fH < YMIN) {
+            // se manca poco spazio rimpicciolisce la riga invece di andare a pagina nuova
+            const libero = y - YMIN
+            if (libero > fH * 0.6) { const f = libero / fH; fW *= f; fH = libero }
+            else intestazione(true)
+          }
+          for (let q = 0; q < gr.length; q++) {
+            const img = await doc.embedJpg(r.foto[gr[q]])
+            pagina.drawImage(img, { x: M + q * (fW + 10), y: y - fH, width: fW, height: fH })
+          }
+          y -= fH + 10
         }
-        y -= hFoto
+        void hFoto
       }
-      y -= 22
+      y -= 26
     }
     fatti++
     onProgress?.(68 + Math.round((fatti / giorni.length) * 27))
   }
 
+
   // ============ CHIUSURA =====================================
   nuovaPagina(COL.notte)
   const cy = A4.h / 2 + 40
   if (dati.citazione) {
-    const q = righe(fCorsivo, '“' + dati.citazione + '”', 19, A4.w - M * 2 - 40).slice(0, 7)
-    let yy = cy + (q.length * 27) / 2
-    for (const r of q) { testoCentrato(r, fCorsivo, 19, yy, COL.bianco); yy -= 27 }
+    const q = righe(fCorsivo, '“' + dati.citazione + '”', 24, A4.w - M * 2 - 40).slice(0, 7)
+    let yy = cy + (q.length * 33) / 2
+    for (const r of q) { testoCentrato(r, fCorsivo, 24, yy, COL.bianco); yy -= 33 }
     pagina.drawLine({ start: { x: A4.w / 2 - 14, y: yy - 8 }, end: { x: A4.w / 2 + 14, y: yy - 8 }, thickness: 1.5, color: c(COL.corallo) })
   } else {
     testoCentrato(pulisci(fTitolo, dati.nome), fTitolo, 24, cy, COL.bianco)
   }
-  testoCentrato('Creato con Roamly  ·  roamly.app', fGrasso, 8.5, 60, COL.azzurro)
+  testoCentrato('Creato con Roamly  ·  roamly.app', fGrasso, 11, 60, COL.azzurro)
 
   onProgress?.(97)
   const bytes = await doc.save()
